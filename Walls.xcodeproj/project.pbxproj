@@ -19,6 +19,8 @@
 		4D06AC83188A976C00ED425F /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D06AC6B188A976C00ED425F /* UIKit.framework */; };
 		4D06AC8B188A976C00ED425F /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 4D06AC89188A976C00ED425F /* InfoPlist.strings */; };
 		4D06AC8D188A976C00ED425F /* WallsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D06AC8C188A976C00ED425F /* WallsTests.m */; };
+		4D97AC96188A99130044EEFE /* SVGame.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D97AC95188A99130044EEFE /* SVGame.m */; };
+		4D97AC99188A991E0044EEFE /* SVPlayer.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D97AC98188A991E0044EEFE /* SVPlayer.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,6 +50,10 @@
 		4D06AC88188A976C00ED425F /* WallsTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "WallsTests-Info.plist"; sourceTree = "<group>"; };
 		4D06AC8A188A976C00ED425F /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		4D06AC8C188A976C00ED425F /* WallsTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = WallsTests.m; sourceTree = "<group>"; };
+		4D97AC94188A99130044EEFE /* SVGame.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVGame.h; sourceTree = "<group>"; };
+		4D97AC95188A99130044EEFE /* SVGame.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVGame.m; sourceTree = "<group>"; };
+		4D97AC97188A991E0044EEFE /* SVPlayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVPlayer.h; sourceTree = "<group>"; };
+		4D97AC98188A991E0044EEFE /* SVPlayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVPlayer.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -107,6 +113,9 @@
 		4D06AC6D188A976C00ED425F /* Walls */ = {
 			isa = PBXGroup;
 			children = (
+				4D97AC91188A98D30044EEFE /* Models */,
+				4D97AC92188A98D80044EEFE /* Controllers */,
+				4D97AC93188A98DD0044EEFE /* Views */,
 				4D06AC76188A976C00ED425F /* SVAppDelegate.h */,
 				4D06AC77188A976C00ED425F /* SVAppDelegate.m */,
 				4D06AC79188A976C00ED425F /* Images.xcassets */,
@@ -142,6 +151,31 @@
 				4D06AC89188A976C00ED425F /* InfoPlist.strings */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		4D97AC91188A98D30044EEFE /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				4D97AC94188A99130044EEFE /* SVGame.h */,
+				4D97AC95188A99130044EEFE /* SVGame.m */,
+				4D97AC97188A991E0044EEFE /* SVPlayer.h */,
+				4D97AC98188A991E0044EEFE /* SVPlayer.m */,
+			);
+			name = Models;
+			sourceTree = "<group>";
+		};
+		4D97AC92188A98D80044EEFE /* Controllers */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Controllers;
+			sourceTree = "<group>";
+		};
+		4D97AC93188A98DD0044EEFE /* Views */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Views;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -240,8 +274,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4D97AC96188A99130044EEFE /* SVGame.m in Sources */,
 				4D06AC74188A976C00ED425F /* main.m in Sources */,
 				4D06AC78188A976C00ED425F /* SVAppDelegate.m in Sources */,
+				4D97AC99188A991E0044EEFE /* SVPlayer.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -444,6 +480,7 @@
 				4D06AC92188A976C00ED425F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		4D06AC93188A976C00ED425F /* Build configuration list for PBXNativeTarget "WallsTests" */ = {
 			isa = XCConfigurationList;
@@ -452,6 +489,7 @@
 				4D06AC95188A976C00ED425F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
