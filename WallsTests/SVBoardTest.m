@@ -251,7 +251,7 @@
     }
 }
 
-- (void)movePlayer {
+- (void)testMovePlayer {
     SVBoard* board;
     SVPosition* start;
     SVPosition* end;
@@ -264,7 +264,7 @@
     XCTAssertEqual(board.playerPositions[kSVPlayer1], end, @"Player was not moved from %@ to %@", start, end);
 }
 
-- (void)movePlayerException {
+- (void)testMovePlayerException {
     SVBoard* board;
     SVPosition* start;
     SVPosition* end;
