@@ -217,4 +217,66 @@
     XCTAssertTrue([board canPlayer:kSVPlayer1 moveTo:end], "Move not accepted from %@ to %@", start, end);
 }
 
+- (void)testMovesForPlayer {
+    SVBoard* board;
+    NSArray* expectedPositions;
+    NSArray* positions;
+    
+    //No walls and position next to board edge
+    board = [[SVBoard alloc] init];
+    board.playerPositions[kSVPlayer1] = [[SVPosition alloc] initWithX:0 andY:1];
+    expectedPositions = [NSArray arrayWithObjects:[[SVPosition alloc] initWithX:1 andY:1],
+                                                  [[SVPosition alloc] initWithX:0 andY:2],
+                                                  [[SVPosition alloc] initWithX:0 andY:0], nil];
+    positions = [board movesForPlayer:kSVPlayer1];
+    XCTAssertEqual(positions.count, expectedPositions.count,
+                   @"Moves count returned :%d but expected :%d", (int)positions.count, (int)expectedPositions.count);
+    for (SVPosition* position in positions) {
+        XCTAssertTrue([expectedPositions containsObject:position], @"Move %@ returned but not legal", position);
+    }
+    
+    //Wall
+    board = [[SVBoard alloc] init];
+    board.playerPositions[kSVPlayer1] = [[SVPosition alloc] initWithX:2 andY:2];
+    SVPosition* wall = [[SVPosition alloc] initWithX:2 andY:2];
+    [board.verticalWalls setObject:[NSNumber numberWithBool:true] forKey:wall];
+    expectedPositions = [NSArray arrayWithObjects:[[SVPosition alloc] initWithX:2 andY:1],
+                         [[SVPosition alloc] initWithX:2 andY:3],
+                         [[SVPosition alloc] initWithX:1 andY:2], nil];
+    positions = [board movesForPlayer:kSVPlayer1];
+    XCTAssertEqual(positions.count, expectedPositions.count,
+                   @"Moves count returned :%d but expected :%d", (int)positions.count, (int)expectedPositions.count);
+    for (SVPosition* position in positions) {
+        XCTAssertTrue([expectedPositions containsObject:position], @"Move %@ returned but not legal", position);
+    }
+}
+
+- (void)movePlayer {
+    SVBoard* board;
+    SVPosition* start;
+    SVPosition* end;
+    
+    board = [[SVBoard alloc] init];
+    start = [[SVPosition alloc] initWithX:3 andY:3];
+    end = [[SVPosition alloc] initWithX:4 andY:3];
+    board.playerPositions[kSVPlayer1] = start;
+    [board movePlayer:kSVPlayer1 to:end];
+    XCTAssertEqual(board.playerPositions[kSVPlayer1], end, @"Player was not moved from %@ to %@", start, end);
+}
+
+- (void)movePlayerException {
+    SVBoard* board;
+    SVPosition* start;
+    SVPosition* end;
+    SVPosition* wall;
+    
+    board = [[SVBoard alloc] init];
+    start = [[SVPosition alloc] initWithX:3 andY:3];
+    end = [[SVPosition alloc] initWithX:4 andY:3];
+    board.playerPositions[kSVPlayer1] = start;
+    wall = [[SVPosition alloc] initWithX:3 andY:3];
+    [board movePlayer:kSVPlayer1 to:end];
+    XCTAssertThrows([board movePlayer:kSVPlayer1 to:end], @"Exception not throwned for move %@ to %@ with wall %@", start, end, wall);
+}
+
 @end

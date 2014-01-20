@@ -86,7 +86,7 @@
 - (void)movePlayer:(kSVPlayer)player to:(SVPosition*)end {
     if (![self canPlayer:player moveTo:end]) {
         NSException* exception = [NSException
-                                  exceptionWithName:@"InvalidMoveException"
+                                  exceptionWithName:@"SVInvalidMoveException"
                                   reason:[NSString stringWithFormat:@"Player %d can't move to %@", player, end]
                                   userInfo:nil];
         @throw exception;
@@ -226,11 +226,13 @@
     [positions addObject:[[SVPosition alloc] initWithX:playerPosition.x andY:playerPosition.y + 1]];
     [positions addObject:[[SVPosition alloc] initWithX:playerPosition.x - 1 andY:playerPosition.y]];
     
+    NSMutableArray* legalPositions = [[NSMutableArray alloc] init];
+    
     for (SVPosition* position in positions) {
-        if (![self canPlayer:player moveTo:position])
-            [positions removeObject:position];
+        if ([self canPlayer:player moveTo:position])
+            [legalPositions addObject:position];
     }
-    return positions;
+    return legalPositions;
 }
 
 @end
