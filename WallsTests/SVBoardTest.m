@@ -549,4 +549,36 @@
     XCTAssertTrue([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:2 andY:3] withDirection:kSVHorizontalDirection],
                   @"2 horizontal walls not interleaving rejected");
 }
+
+- (void)testAddWallSuccess {
+    SVBoard* board;
+    SVPosition* wallPosition;
+    kSVWallDirection wallDirection;
+    
+    //Add 1 horizontal wall
+    board = [[SVBoard alloc] init];
+    wallDirection = kSVHorizontalDirection;
+    wallPosition = [[SVPosition alloc] initWithX:2 andY:2];
+    [board addWallAtPosition:wallPosition withDirection:wallDirection];
+    XCTAssertTrue([board.walls[wallDirection] objectForKey:wallPosition], @"Wall %@ was not added", wallPosition);
+    XCTAssertEqual((int)((NSDictionary*)board.walls[wallDirection]).count, 1, @"Number of walls incorrect");
+    
+    //Add 1 vertical wall
+    board = [[SVBoard alloc] init];
+    wallDirection = kSVVerticalDirection;
+    wallPosition = [[SVPosition alloc] initWithX:2 andY:2];
+    [board addWallAtPosition:wallPosition withDirection:wallDirection];
+    XCTAssertTrue([board.walls[wallDirection] objectForKey:wallPosition], @"Wall %@ was not added", wallPosition);
+    XCTAssertEqual((int)((NSDictionary*)board.walls[wallDirection]).count, 1, @"Number of walls incorrect");
+}
+
+- (void)testAddWallFail {
+    SVBoard* board;
+    SVPosition* wallPosition;
+    
+    board = [[SVBoard alloc] init];
+    wallPosition = [[SVPosition alloc] initWithX:2 andY:2];
+    [board.walls[kSVHorizontalDirection] setObject:[NSNumber numberWithBool:true] forKey:wallPosition];
+    XCTAssertThrows([board addWallAtPosition:wallPosition withDirection:kSVVerticalDirection], @"Exception not throwned for invalid wall");
+}
 @end

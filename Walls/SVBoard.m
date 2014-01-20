@@ -141,7 +141,16 @@
 }
 
 - (void)addWallAtPosition:(SVPosition*)position withDirection:(kSVWallDirection)direction {
-    
+    if (![self isWallLegalAtPosition:position withDirection:direction]) {
+        NSException* exception = [NSException
+                                  exceptionWithName:@"SVInvalidWallException"
+                                  reason:[NSString stringWithFormat:@"Wall of direction %d can't be built at %@", direction, position]
+                                  userInfo:nil];
+        @throw exception;
+    }
+    else {
+        [self.walls[direction] setObject:[NSNumber numberWithBool:true] forKey:position];
+    }
 }
 //
 //- (BOOL)canMoveFrom:(SVPosition*)start to:(SVPosition*)end {
