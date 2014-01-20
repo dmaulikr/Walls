@@ -123,6 +123,19 @@
     if (position.x < 0 || position.x >= self.size.width || position.y < 0 || position.y >= self.size.height)
         return false;
     
+    kSVWallDirection otherDirection = direction == kSVHorizontalDirection ? kSVVerticalDirection : kSVHorizontalDirection;
+    NSDictionary* wallsInDirection = self.walls[direction];
+    NSDictionary* wallsInOtherDirection = self.walls[otherDirection];
+    if ([wallsInDirection objectForKey:position] ||
+        [wallsInOtherDirection objectForKey:position])
+        return false;
+    
+    int xOffset = direction == kSVHorizontalDirection ? 1 : 0;
+    int yOffset = direction == kSVHorizontalDirection ? 0 : 1;
+    
+    if ([wallsInDirection objectForKey:[[SVPosition alloc] initWithX:position.x - xOffset andY:position.y - yOffset]] ||
+        [wallsInDirection objectForKey:[[SVPosition alloc] initWithX:position.x + xOffset andY:position.y + yOffset]])
+        return false;
     
     return true;
 }

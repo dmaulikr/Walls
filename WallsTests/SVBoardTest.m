@@ -419,4 +419,134 @@
     
 }
 
+- (void)testIsWallLegalFail {
+    SVBoard* board;
+    NSMutableDictionary* verticalWalls;
+    NSMutableDictionary* horizontalWalls;
+    
+    //2 walls of same direction at same position
+    board = [[SVBoard alloc] init];
+    horizontalWalls = [[NSMutableDictionary alloc] init];
+    [horizontalWalls setObject:[NSNumber numberWithBool:true] forKey:[[SVPosition alloc] initWithX:2 andY:2]];
+    board.walls[kSVHorizontalDirection] = horizontalWalls;
+    XCTAssertFalse([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:2 andY:2] withDirection:kSVHorizontalDirection],
+                   @"2 horizontal walls on same position not rejected");
+    
+    board = [[SVBoard alloc] init];
+    verticalWalls = [[NSMutableDictionary alloc] init];
+    [verticalWalls setObject:[NSNumber numberWithBool:true] forKey:[[SVPosition alloc] initWithX:2 andY:2]];
+    board.walls[kSVVerticalDirection] = verticalWalls;
+    XCTAssertFalse([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:2 andY:2] withDirection:kSVVerticalDirection],
+                   @"2 horizontal walls on same position not rejected");
+    
+    //2 walls of different direction at same position
+    board = [[SVBoard alloc] init];
+    horizontalWalls = [[NSMutableDictionary alloc] init];
+    [horizontalWalls setObject:[NSNumber numberWithBool:true] forKey:[[SVPosition alloc] initWithX:2 andY:2]];
+    board.walls[kSVHorizontalDirection] = horizontalWalls;
+    XCTAssertFalse([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:2 andY:2] withDirection:kSVVerticalDirection],
+                   @"1 horizontal wall and 1 vertical wall on same position not rejected");
+    
+    board = [[SVBoard alloc] init];
+    verticalWalls = [[NSMutableDictionary alloc] init];
+    [verticalWalls setObject:[NSNumber numberWithBool:true] forKey:[[SVPosition alloc] initWithX:2 andY:2]];
+    board.walls[kSVVerticalDirection] = verticalWalls;
+    XCTAssertFalse([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:2 andY:2] withDirection:kSVHorizontalDirection],
+                   @"1 vertical wall and 1 horizontal wall on same position not rejected");
+    
+    //Horizontal walls interleaving
+    board = [[SVBoard alloc] init];
+    horizontalWalls = [[NSMutableDictionary alloc] init];
+    [horizontalWalls setObject:[NSNumber numberWithBool:true] forKey:[[SVPosition alloc] initWithX:2 andY:2]];
+    board.walls[kSVHorizontalDirection] = horizontalWalls;
+    XCTAssertFalse([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:3 andY:2] withDirection:kSVHorizontalDirection],
+                   @"2 horizontal walls interleaving not rejected");
+    
+    board = [[SVBoard alloc] init];
+    horizontalWalls = [[NSMutableDictionary alloc] init];
+    [horizontalWalls setObject:[NSNumber numberWithBool:true] forKey:[[SVPosition alloc] initWithX:2 andY:2]];
+    board.walls[kSVHorizontalDirection] = horizontalWalls;
+    XCTAssertFalse([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:1 andY:2] withDirection:kSVHorizontalDirection],
+                   @"2 horizontal walls interleaving not rejected");
+
+    
+    //Vertical walls interleaving
+    board = [[SVBoard alloc] init];
+    verticalWalls = [[NSMutableDictionary alloc] init];
+    [verticalWalls setObject:[NSNumber numberWithBool:true] forKey:[[SVPosition alloc] initWithX:2 andY:2]];
+    board.walls[kSVVerticalDirection] = verticalWalls;
+    XCTAssertFalse([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:2 andY:3] withDirection:kSVVerticalDirection],
+                   @"2 vertical walls interleaving not rejected");
+    
+    board = [[SVBoard alloc] init];
+    verticalWalls = [[NSMutableDictionary alloc] init];
+    [verticalWalls setObject:[NSNumber numberWithBool:true] forKey:[[SVPosition alloc] initWithX:2 andY:2]];
+    board.walls[kSVVerticalDirection] = verticalWalls;
+    XCTAssertFalse([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:2 andY:1] withDirection:kSVVerticalDirection],
+                   @"2 vertical walls interleaving not rejected");
+}
+
+- (void)testIsWallLegalSuccess {
+    SVBoard* board;
+    NSMutableDictionary* verticalWalls;
+    NSMutableDictionary* horizontalWalls;
+    
+    //2 adjacent walls of same direction
+    board = [[SVBoard alloc] init];
+    horizontalWalls = [[NSMutableDictionary alloc] init];
+    [horizontalWalls setObject:[NSNumber numberWithBool:true] forKey:[[SVPosition alloc] initWithX:2 andY:2]];
+    board.walls[kSVHorizontalDirection] = horizontalWalls;
+    XCTAssertTrue([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:0 andY:2] withDirection:kSVHorizontalDirection],
+                   @"2 horizontal walls not interleaving rejected");
+    
+    board = [[SVBoard alloc] init];
+    horizontalWalls = [[NSMutableDictionary alloc] init];
+    [horizontalWalls setObject:[NSNumber numberWithBool:true] forKey:[[SVPosition alloc] initWithX:2 andY:2]];
+    board.walls[kSVHorizontalDirection] = horizontalWalls;
+    XCTAssertTrue([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:4 andY:2] withDirection:kSVHorizontalDirection],
+                  @"2 horizontal walls not interleaving rejected");
+    
+    board = [[SVBoard alloc] init];
+    verticalWalls = [[NSMutableDictionary alloc] init];
+    [verticalWalls setObject:[NSNumber numberWithBool:true] forKey:[[SVPosition alloc] initWithX:2 andY:2]];
+    board.walls[kSVHorizontalDirection] = verticalWalls;
+    XCTAssertTrue([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:0 andY:2] withDirection:kSVVerticalDirection],
+                  @"2 horizontal walls not interleaving rejected");
+    
+    board = [[SVBoard alloc] init];
+    verticalWalls = [[NSMutableDictionary alloc] init];
+    [verticalWalls setObject:[NSNumber numberWithBool:true] forKey:[[SVPosition alloc] initWithX:2 andY:2]];
+    board.walls[kSVHorizontalDirection] = verticalWalls;
+    XCTAssertTrue([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:0 andY:2] withDirection:kSVVerticalDirection],
+                  @"2 horizontal walls not interleaving rejected");
+    
+    //2 adjacent walls of different direction
+    board = [[SVBoard alloc] init];
+    horizontalWalls = [[NSMutableDictionary alloc] init];
+    [horizontalWalls setObject:[NSNumber numberWithBool:true] forKey:[[SVPosition alloc] initWithX:2 andY:2]];
+    board.walls[kSVHorizontalDirection] = horizontalWalls;
+    XCTAssertTrue([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:1 andY:2] withDirection:kSVVerticalDirection],
+                  @"2 horizontal walls not interleaving rejected");
+    
+    board = [[SVBoard alloc] init];
+    horizontalWalls = [[NSMutableDictionary alloc] init];
+    [horizontalWalls setObject:[NSNumber numberWithBool:true] forKey:[[SVPosition alloc] initWithX:2 andY:2]];
+    board.walls[kSVHorizontalDirection] = horizontalWalls;
+    XCTAssertTrue([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:3 andY:2] withDirection:kSVVerticalDirection],
+                  @"2 horizontal walls not interleaving rejected");
+    
+    board = [[SVBoard alloc] init];
+    verticalWalls = [[NSMutableDictionary alloc] init];
+    [verticalWalls setObject:[NSNumber numberWithBool:true] forKey:[[SVPosition alloc] initWithX:2 andY:2]];
+    board.walls[kSVVerticalDirection] = verticalWalls;
+    XCTAssertTrue([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:2 andY:1] withDirection:kSVHorizontalDirection],
+                  @"2 horizontal walls not interleaving rejected");
+    
+    board = [[SVBoard alloc] init];
+    verticalWalls = [[NSMutableDictionary alloc] init];
+    [verticalWalls setObject:[NSNumber numberWithBool:true] forKey:[[SVPosition alloc] initWithX:2 andY:2]];
+    board.walls[kSVHorizontalDirection] = verticalWalls;
+    XCTAssertTrue([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:2 andY:3] withDirection:kSVHorizontalDirection],
+                  @"2 horizontal walls not interleaving rejected");
+}
 @end
