@@ -99,7 +99,7 @@
 //}
 
 
-- (void)testCanMoveFails {
+- (void)testCanMoveFail {
     SVBoard* board;
     SVPosition* start;
     SVPosition* end;
@@ -183,7 +183,7 @@
     XCTAssertFalse([board canPlayer:kSVPlayer1 moveTo:end], "Move through vertical wall (%@) not detected from %@ to %@", wall, start, end);
 }
 
-- (void)testCanMoveSuccesses {
+- (void)testCanMoveSuccess {
     SVBoard* board;
     SVPosition* start;
     SVPosition* end;
@@ -279,7 +279,7 @@
     XCTAssertThrows([board movePlayer:kSVPlayer1 to:end], @"Exception not throwned for move %@ to %@ with wall %@", start, end, wall);
 }
 
-- (void)testIsEqualFails {
+- (void)testIsEqualFail {
     SVBoard* board1;
     SVBoard* board2;
     
@@ -308,7 +308,7 @@
     XCTAssertFalse([board2 isEqual:board1], @"Boards equal while shouldn't because of player 1 position");
 }
 
-- (void)testIsEqualSuccesses {
+- (void)testIsEqualSuccess {
     SVBoard* board1;
     SVBoard* board2;
     
@@ -324,7 +324,7 @@
     XCTAssertTrue([board2 isEqual:board1], @"Boards not equal while should");
 }
 
-- (void)testHashEqualityFails {
+- (void)testHashEqualityFail {
     SVBoard* board1;
     SVBoard* board2;
     
@@ -363,6 +363,41 @@
                                forKey:[[SVPosition alloc] initWithX:3 andY:3]];
     board2.playerPositions[kSVPlayer2] = [[SVPosition alloc] initWithX:3 andY:2];
     XCTAssertEqual([board1 hash], [board2 hash], @"Hash not equal while should");
+}
+
+- (void)testIsGoalReachableByPlayer {
+    SVBoard* board;
+    NSMutableDictionary* verticalWalls;
+    NSMutableDictionary* horizontalWalls;
+    
+    //Player 1 and 2 blocked
+    board = [[SVBoard alloc] init];
+    horizontalWalls = [[NSMutableDictionary alloc] init];
+    [horizontalWalls setObject:[NSNumber numberWithBool:true] forKey:[[SVPosition alloc] initWithX:0 andY:2]];
+    [horizontalWalls setObject:[NSNumber numberWithBool:true] forKey:[[SVPosition alloc] initWithX:2 andY:2]];
+    [horizontalWalls setObject:[NSNumber numberWithBool:true] forKey:[[SVPosition alloc] initWithX:4 andY:2]];
+    [horizontalWalls setObject:[NSNumber numberWithBool:true] forKey:[[SVPosition alloc] initWithX:5 andY:4]];
+    board.horizontalWalls = horizontalWalls;
+    
+    verticalWalls = [[NSMutableDictionary alloc] init];
+    [verticalWalls setObject:[NSNumber numberWithBool:true] forKey:[[SVPosition alloc] initWithX:5 andY:3]];
+    board.verticalWalls = verticalWalls;
+    XCTAssertFalse([board isGoalReachableByPlayer:kSVPlayer1], @"Goal reachable by player 1 while shouldn't");
+    XCTAssertFalse([board isGoalReachableByPlayer:kSVPlayer2], @"Goal reachable by player 2 while shouldn't");
+    
+    //Player 2 blocked
+    board = [[SVBoard alloc] init];
+    horizontalWalls = [[NSMutableDictionary alloc] init];
+    [horizontalWalls setObject:[NSNumber numberWithBool:true] forKey:[[SVPosition alloc] initWithX:3 andY:1]];
+    [horizontalWalls setObject:[NSNumber numberWithBool:true] forKey:[[SVPosition alloc] initWithX:5 andY:1]];
+    board.horizontalWalls = horizontalWalls;
+    
+    verticalWalls = [[NSMutableDictionary alloc] init];
+    [verticalWalls setObject:[NSNumber numberWithBool:true] forKey:[[SVPosition alloc] initWithX:2 andY:0]];
+    board.verticalWalls = verticalWalls;
+    XCTAssertTrue([board isGoalReachableByPlayer:kSVPlayer1], @"Goal not reachable by player 1 while should");
+    XCTAssertFalse([board isGoalReachableByPlayer:kSVPlayer2], @"Goal reachable by player 2 while shouldn't");
+    
 }
 
 @end

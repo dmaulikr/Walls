@@ -16,12 +16,12 @@
 - (id)init {
     self = [super init];
     if (self) {
-        _size = CGSizeMake(6, 9);
+        _size = CGSizeMake(7, 9);
         _verticalWalls = [[NSMutableDictionary alloc] init];
         _horizontalWalls = [[NSMutableDictionary alloc] init];
         _playerPositions = [[NSMutableArray alloc] init];
-        [_playerPositions addObject:[[SVPosition alloc] initWithX:4 andY:8]];
-        [_playerPositions addObject:[[SVPosition alloc] initWithX:4 andY:0]];
+        [_playerPositions addObject:[[SVPosition alloc] initWithX:3 andY:8]];
+        [_playerPositions addObject:[[SVPosition alloc] initWithX:3 andY:0]];
         _playerGoalsY = [[NSMutableArray alloc] initWithObjects:[NSNumber numberWithInt:0],
                                                                 [NSNumber numberWithInt:_size.height - 1], nil];
     }
@@ -37,7 +37,7 @@
     copy.size = self.size;
     copy.verticalWalls = [self.verticalWalls mutableCopy];
     copy.horizontalWalls = [self.horizontalWalls mutableCopy];
-    copy.playerPositions = self.playerPositions;
+    copy.playerPositions = [self.playerPositions mutableCopy];
     return copy;
 }
 
@@ -106,7 +106,7 @@
     if (![self canPlayer:player moveTo:end]) {
         NSException* exception = [NSException
                                   exceptionWithName:@"SVInvalidMoveException"
-                                  reason:[NSString stringWithFormat:@"Player %d can't move to %@", player, end]
+                                  reason:[NSString stringWithFormat:@"Player %d can't move from %@ to %@", player, self.playerPositions[player], end]
                                   userInfo:nil];
         @throw exception;
     }
@@ -218,20 +218,22 @@
 
 - (BOOL)isGoalReachableByPlayer:(kSVPlayer)player {
     NSMutableArray* queue = [[NSMutableArray alloc] init];
-    NSMutableDictionary* visitedBoards = [[NSMutableDictionary alloc] init];
+    NSMutableDictionary* visitedPositions = [[NSMutableDictionary alloc] init];
+    [visitedPositions setObject:[NSNumber numberWithBool:true] forKey:self.playerPositions[player]];
     int goalY = ((NSNumber*)self.playerGoalsY[player]).intValue;
     
     [queue addObject:self];
     while (queue.count > 0) {
         SVBoard* board = [queue firstObject];
+        [queue removeObjectAtIndex:0];
         if (((SVPosition*)board.playerPositions[player]).y == goalY)
             return true;
         NSArray* positions = [board movesForPlayer:player];
         for (SVPosition* position in positions) {
-            SVBoard* copy = [self mutableCopy];
-            [copy movePlayer:player to:position];
-            if (![visitedBoards objectForKey:copy]) {
-                [visitedBoards setObject:[NSNumber numberWithBool:true] forKey:copy];
+            if (![visitedPositions objectForKey:position]) {
+                SVBoard* copy = [board copy];
+                [copy movePlayer:player to:position];
+                [visitedPositions setObject:[NSNumber numberWithBool:true] forKey:position];
                 [queue addObject:copy];
             }
         }
@@ -256,6 +258,10 @@
             [legalPositions addObject:position];
     }
     return legalPositions;
+}
+
+- (NSString*)description {
+    return [NSString stringWithFormat:@"player1: %@; player2: %@", self.playerPositions[0], self.playerPositions[1]];
 }
 
 @end
