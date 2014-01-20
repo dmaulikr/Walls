@@ -16,7 +16,7 @@
 - (id)init {
     self = [super init];
     if (self) {
-        _size = CGSizeMake(9, 9);
+        _size = CGSizeMake(6, 9);
         _verticalWalls = [[NSMutableDictionary alloc] init];
         _horizontalWalls = [[NSMutableDictionary alloc] init];
         _playerPositions = [[NSMutableArray alloc] init];
