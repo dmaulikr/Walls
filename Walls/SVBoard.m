@@ -17,8 +17,8 @@
     self = [super init];
     if (self) {
         _size = CGSizeMake(7, 9);
-        _verticalWalls = [[NSMutableDictionary alloc] init];
-        _horizontalWalls = [[NSMutableDictionary alloc] init];
+        _walls = [[NSMutableArray alloc] initWithObjects:[[NSMutableDictionary alloc] init],
+                                                         [[NSMutableDictionary alloc] init], nil];
         _playerPositions = [[NSMutableArray alloc] init];
         [_playerPositions addObject:[[SVPosition alloc] initWithX:3 andY:8]];
         [_playerPositions addObject:[[SVPosition alloc] initWithX:3 andY:0]];
@@ -35,9 +35,12 @@
 - (id)copyWithZone:(NSZone *)zone {
     SVBoard* copy = [SVBoard allocWithZone:zone];
     copy.size = self.size;
-    copy.verticalWalls = [self.verticalWalls mutableCopy];
-    copy.horizontalWalls = [self.horizontalWalls mutableCopy];
+    NSMutableArray* walls = [[NSMutableArray alloc] init];
+    walls[kSVVerticalDirection] = [self.walls[kSVVerticalDirection] mutableCopy];
+    walls[kSVHorizontalDirection] = [self.walls[kSVHorizontalDirection] mutableCopy];
+    copy.walls = walls;
     copy.playerPositions = [self.playerPositions mutableCopy];
+    copy.playerGoalsY = [self.playerGoalsY mutableCopy];
     return copy;
 }
 
@@ -46,18 +49,19 @@
         return false;
     SVBoard* otherBoard = (SVBoard*)object;
     return CGSizeEqualToSize(self.size, otherBoard.size) &&
-           [self.verticalWalls isEqualToDictionary:otherBoard.verticalWalls] &&
-           [self.horizontalWalls isEqualToDictionary:otherBoard.horizontalWalls] &&
+           [self.walls[kSVHorizontalDirection] isEqualToDictionary:otherBoard.walls[kSVHorizontalDirection]] &&
+           [self.walls[kSVVerticalDirection] isEqualToDictionary:otherBoard.walls[kSVVerticalDirection]] &&
            [self.playerPositions[kSVPlayer1] isEqual:otherBoard.playerPositions[kSVPlayer1]] &&
-           [self.playerPositions[kSVPlayer2] isEqual:otherBoard.playerPositions[kSVPlayer2]];
+           [self.playerPositions[kSVPlayer2] isEqual:otherBoard.playerPositions[kSVPlayer2]] &&
+           [self.playerGoalsY isEqual:otherBoard.playerGoalsY];
 }
 
 - (NSUInteger)hash {
-    return [[NSString stringWithFormat:@"%@,%@,%@,%@",
+    return [[NSString stringWithFormat:@"%@,%@,%@, %@",
                      NSStringFromCGSize(self.size),
-                     self.verticalWalls,
-                     self.horizontalWalls,
-                     self.playerPositions] hash];
+                     self.walls,
+                     self.playerPositions,
+                     self.playerGoalsY] hash];
 }
 
 - (BOOL)canPlayer:(kSVPlayer)player moveTo:(SVPosition*)end {
@@ -72,30 +76,30 @@
         return false;
     
     if (start.y > end.y &&
-        ([self.horizontalWalls objectForKey:[[SVPosition alloc] initWithX:start.x - 1
+        ([self.walls[kSVHorizontalDirection] objectForKey:[[SVPosition alloc] initWithX:start.x - 1
                                                            andY:start.y - 1]] ||
-         [self.horizontalWalls objectForKey:[[SVPosition alloc] initWithX:start.x
+         [self.walls[kSVHorizontalDirection] objectForKey:[[SVPosition alloc] initWithX:start.x
                                                            andY:start.y - 1]]))
         return false;
     
     if (start.x < end.x &&
-        ([self.verticalWalls objectForKey:[[SVPosition alloc] initWithX:start.x
+        ([self.walls[kSVVerticalDirection] objectForKey:[[SVPosition alloc] initWithX:start.x
                                                            andY:start.y - 1]] ||
-         [self.verticalWalls objectForKey:[[SVPosition alloc] initWithX:start.x
+         [self.walls[kSVVerticalDirection] objectForKey:[[SVPosition alloc] initWithX:start.x
                                                            andY:start.y]]))
         return false;
     
     if (start.y < end.y &&
-        ([self.horizontalWalls objectForKey:[[SVPosition alloc] initWithX:start.x - 1
+        ([self.walls[kSVHorizontalDirection] objectForKey:[[SVPosition alloc] initWithX:start.x - 1
                                                            andY:start.y]] ||
-         [self.horizontalWalls objectForKey:[[SVPosition alloc] initWithX:start.x
+         [self.walls[kSVHorizontalDirection] objectForKey:[[SVPosition alloc] initWithX:start.x
                                                            andY:start.y]]))
         return false;
     
     if (start.x > end.x &&
-        ([self.verticalWalls objectForKey:[[SVPosition alloc] initWithX:start.x - 1
+        ([self.walls[kSVVerticalDirection] objectForKey:[[SVPosition alloc] initWithX:start.x - 1
                                                            andY:start.y - 1]] ||
-         [self.verticalWalls objectForKey:[[SVPosition alloc] initWithX:start.x - 1
+         [self.walls[kSVVerticalDirection] objectForKey:[[SVPosition alloc] initWithX:start.x - 1
                                                            andY:start.y]]))
         return false;
     
@@ -115,7 +119,11 @@
     }
 }
 
-- (BOOL)isWallLegalAtPosition:(CGPoint)position {
+- (BOOL)isWallLegalAtPosition:(SVPosition*)position withDirection:(kSVWallDirection)direction {
+    if (position.x < 0 || position.x >= self.size.width || position.y < 0 || position.y >= self.size.height)
+        return false;
+    
+    
     return true;
 }
 

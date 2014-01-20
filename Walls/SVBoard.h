@@ -21,13 +21,12 @@ typedef enum {
 
 @interface SVBoard : NSObject <NSCopying>
 @property (assign, readonly) CGSize size;
-@property (strong, readonly) NSMutableDictionary* verticalWalls;
-@property (strong, readonly) NSMutableDictionary* horizontalWalls;
+@property (strong, readonly) NSMutableArray* walls;
 @property (strong, readonly) NSMutableArray* playerPositions;
 
 - (BOOL)canPlayer:(kSVPlayer)player moveTo:(SVPosition*)end;
 - (void)movePlayer:(kSVPlayer)player to:(SVPosition*)end;
-- (BOOL)isWallLegalAtPosition:(CGPoint)position;
+- (BOOL)isWallLegalAtPosition:(SVPosition*)position withDirection:(kSVWallDirection)direction;
 - (void)addWallAtPosition:(SVPosition*)position withDirection:(kSVWallDirection)direction;
 
 @end

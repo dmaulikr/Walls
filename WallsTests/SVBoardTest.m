@@ -119,7 +119,7 @@
     end = [[SVPosition alloc] initWithX:3 andY:2];
     board.playerPositions[kSVPlayer1] = start;
     wall = [[SVPosition alloc] initWithX:2 andY:2];
-    [board.horizontalWalls setObject:[NSNumber numberWithBool:true] forKey:wall];
+    [board.walls[kSVHorizontalDirection] setObject:[NSNumber numberWithBool:true] forKey:wall];
     XCTAssertFalse([board canPlayer:kSVPlayer1 moveTo:end], "Move through horizontal wall (%@) not detected from %@ to %@", wall, start, end);
     
     board = [[SVBoard alloc] init];
@@ -127,7 +127,7 @@
     end = [[SVPosition alloc] initWithX:3 andY:2];
     board.playerPositions[kSVPlayer1] = start;
     wall = [[SVPosition alloc] initWithX:3 andY:2];
-    [board.horizontalWalls setObject:[NSNumber numberWithBool:true] forKey:wall];
+    [board.walls[kSVHorizontalDirection] setObject:[NSNumber numberWithBool:true] forKey:wall];
     XCTAssertFalse([board canPlayer:kSVPlayer1 moveTo:end], "Move through horizontal wall (%@) not detected from %@ to %@", wall, start, end);
     
     //Bottom
@@ -136,7 +136,7 @@
     end = [[SVPosition alloc] initWithX:3 andY:4];
     board.playerPositions[kSVPlayer1] = start;
     wall = [[SVPosition alloc] initWithX:2 andY:3];
-    [board.horizontalWalls setObject:[NSNumber numberWithBool:true] forKey:wall];
+    [board.walls[kSVHorizontalDirection] setObject:[NSNumber numberWithBool:true] forKey:wall];
     XCTAssertFalse([board canPlayer:kSVPlayer1 moveTo:end], "Move through horizontal wall (%@) not detected from %@ to %@", wall, start, end);
     
     board = [[SVBoard alloc] init];
@@ -144,7 +144,7 @@
     end = [[SVPosition alloc] initWithX:3 andY:4];
     board.playerPositions[kSVPlayer1] = start;
     wall = [[SVPosition alloc] initWithX:3 andY:3];
-    [board.horizontalWalls setObject:[NSNumber numberWithBool:true] forKey:wall];
+    [board.walls[kSVHorizontalDirection] setObject:[NSNumber numberWithBool:true] forKey:wall];
     XCTAssertFalse([board canPlayer:kSVPlayer1 moveTo:end], "Move through horizontal wall (%@) not detected from %@ to %@", wall, start, end);
     
     //Move through vertical wall
@@ -154,7 +154,7 @@
     end = [[SVPosition alloc] initWithX:2 andY:3];
     board.playerPositions[kSVPlayer1] = start;
     wall = [[SVPosition alloc] initWithX:2 andY:2];
-    [board.verticalWalls setObject:[NSNumber numberWithBool:true] forKey:wall];
+    [board.walls[kSVVerticalDirection] setObject:[NSNumber numberWithBool:true] forKey:wall];
     XCTAssertFalse([board canPlayer:kSVPlayer1 moveTo:end], "Move through vertical wall (%@) not detected from %@ to %@", wall, start, end);
     
     board = [[SVBoard alloc] init];
@@ -162,7 +162,7 @@
     end = [[SVPosition alloc] initWithX:2 andY:3];
     board.playerPositions[kSVPlayer1] = start;
     wall = [[SVPosition alloc] initWithX:2 andY:3];
-    [board.verticalWalls setObject:[NSNumber numberWithBool:true] forKey:wall];
+    [board.walls[kSVVerticalDirection] setObject:[NSNumber numberWithBool:true] forKey:wall];
     XCTAssertFalse([board canPlayer:kSVPlayer1 moveTo:end], "Move through vertical wall (%@) not detected from %@ to %@", wall, start, end);
     
     //Right
@@ -171,7 +171,7 @@
     end = [[SVPosition alloc] initWithX:4 andY:3];
     board.playerPositions[kSVPlayer1] = start;
     wall = [[SVPosition alloc] initWithX:3 andY:2];
-    [board.verticalWalls setObject:[NSNumber numberWithBool:true] forKey:wall];
+    [board.walls[kSVVerticalDirection] setObject:[NSNumber numberWithBool:true] forKey:wall];
     XCTAssertFalse([board canPlayer:kSVPlayer1 moveTo:end], "Move through vertical wall (%@) not detected from %@ to %@", wall, start, end);
     
     board = [[SVBoard alloc] init];
@@ -179,7 +179,7 @@
     end = [[SVPosition alloc] initWithX:4 andY:3];
     board.playerPositions[kSVPlayer1] = start;
     wall = [[SVPosition alloc] initWithX:3 andY:3];
-    [board.verticalWalls setObject:[NSNumber numberWithBool:true] forKey:wall];
+    [board.walls[kSVVerticalDirection] setObject:[NSNumber numberWithBool:true] forKey:wall];
     XCTAssertFalse([board canPlayer:kSVPlayer1 moveTo:end], "Move through vertical wall (%@) not detected from %@ to %@", wall, start, end);
 }
 
@@ -239,7 +239,7 @@
     board = [[SVBoard alloc] init];
     board.playerPositions[kSVPlayer1] = [[SVPosition alloc] initWithX:2 andY:2];
     SVPosition* wall = [[SVPosition alloc] initWithX:2 andY:2];
-    [board.verticalWalls setObject:[NSNumber numberWithBool:true] forKey:wall];
+    [board.walls[kSVVerticalDirection] setObject:[NSNumber numberWithBool:true] forKey:wall];
     expectedPositions = [NSArray arrayWithObjects:[[SVPosition alloc] initWithX:2 andY:1],
                          [[SVPosition alloc] initWithX:2 andY:3],
                          [[SVPosition alloc] initWithX:1 andY:2], nil];
@@ -279,23 +279,42 @@
     XCTAssertThrows([board movePlayer:kSVPlayer1 to:end], @"Exception not throwned for move %@ to %@ with wall %@", start, end, wall);
 }
 
+- (void)testCopy {
+    SVBoard* board;
+    SVBoard* copy;
+    board = [[SVBoard alloc] init];
+    [board.walls[kSVVerticalDirection] setObject:[NSNumber numberWithBool:true]
+                                           forKey:[[SVPosition alloc] initWithX:3 andY:3]];
+
+    [board.walls[kSVHorizontalDirection] setObject:[NSNumber numberWithBool:true]
+                                          forKey:[[SVPosition alloc] initWithX:3 andY:3]];
+    board.playerPositions[kSVPlayer1] = [[SVPosition alloc] initWithX:3 andY:2];
+    board.playerPositions[kSVPlayer2] = [[SVPosition alloc] initWithX:6 andY:2];
+    copy = [board copy];
+    XCTAssertEqualObjects(board.playerPositions, copy.playerPositions, @"Player positions not equal");
+    XCTAssertEqualObjects(board.walls[kSVHorizontalDirection], copy.walls[kSVHorizontalDirection], @"Horizontal walls not equal");
+    XCTAssertEqualObjects(board.walls[kSVVerticalDirection], copy.walls[kSVVerticalDirection], @"Vertical walls not equal");
+    XCTAssertEqual(board.size, copy.size, @"Sizes not equal");
+}
+
+
 - (void)testIsEqualFail {
     SVBoard* board1;
     SVBoard* board2;
     
     //Different Walls
     board1 = [[SVBoard alloc] init];
-    [board1.verticalWalls setObject:[NSNumber numberWithBool:true]
+    [board1.walls[kSVVerticalDirection] setObject:[NSNumber numberWithBool:true]
                              forKey:[[SVPosition alloc] initWithX:3 andY:3]];
     board2 = [[SVBoard alloc] init];
     XCTAssertFalse([board1 isEqual:board2], @"Boards equal while shouldn't because of walls");
     XCTAssertFalse([board2 isEqual:board1], @"Boards equal while shouldn't because of walls");
     
     board1 = [[SVBoard alloc] init];
-    [board1.horizontalWalls setObject:[NSNumber numberWithBool:true]
+    [board1.walls[kSVHorizontalDirection] setObject:[NSNumber numberWithBool:true]
                              forKey:[[SVPosition alloc] initWithX:3 andY:3]];
     board2 = [[SVBoard alloc] init];
-    [board2.horizontalWalls setObject:[NSNumber numberWithBool:true]
+    [board2.walls[kSVHorizontalDirection] setObject:[NSNumber numberWithBool:true]
                              forKey:[[SVPosition alloc] initWithX:4 andY:4]];
     XCTAssertFalse([board1 isEqual:board2], @"Boards equal while shouldn't because of walls");
     XCTAssertFalse([board2 isEqual:board1], @"Boards equal while shouldn't because of walls");
@@ -313,11 +332,11 @@
     SVBoard* board2;
     
     board1 = [[SVBoard alloc] init];
-    [board1.horizontalWalls setObject:[NSNumber numberWithBool:true]
+    [board1.walls[kSVHorizontalDirection] setObject:[NSNumber numberWithBool:true]
                              forKey:[[SVPosition alloc] initWithX:3 andY:3]];
     board1.playerPositions[kSVPlayer2] = [[SVPosition alloc] initWithX:3 andY:2];
     board2 = [[SVBoard alloc] init];
-    [board2.horizontalWalls setObject:[NSNumber numberWithBool:true]
+    [board2.walls[kSVHorizontalDirection] setObject:[NSNumber numberWithBool:true]
                              forKey:[[SVPosition alloc] initWithX:3 andY:3]];
     board2.playerPositions[kSVPlayer2] = [[SVPosition alloc] initWithX:3 andY:2];
     XCTAssertTrue([board1 isEqual:board2], @"Boards not equal while should");
@@ -330,16 +349,16 @@
     
     //Different Walls
     board1 = [[SVBoard alloc] init];
-    [board1.verticalWalls setObject:[NSNumber numberWithBool:true]
+    [board1.walls[kSVVerticalDirection] setObject:[NSNumber numberWithBool:true]
                              forKey:[[SVPosition alloc] initWithX:3 andY:3]];
     board2 = [[SVBoard alloc] init];
     XCTAssertNotEqual([board1 hash], [board2 hash], @"Hash equal while shouldn't");
     
     board1 = [[SVBoard alloc] init];
-    [board1.horizontalWalls setObject:[NSNumber numberWithBool:true]
+    [board1.walls[kSVHorizontalDirection] setObject:[NSNumber numberWithBool:true]
                                forKey:[[SVPosition alloc] initWithX:3 andY:3]];
     board2 = [[SVBoard alloc] init];
-    [board2.horizontalWalls setObject:[NSNumber numberWithBool:true]
+    [board2.walls[kSVHorizontalDirection] setObject:[NSNumber numberWithBool:true]
                                forKey:[[SVPosition alloc] initWithX:4 andY:4]];
     XCTAssertNotEqual([board1 hash], [board2 hash], @"Hash equal while shouldn't");
     
@@ -355,11 +374,11 @@
     SVBoard* board2;
     
     board1 = [[SVBoard alloc] init];
-    [board1.horizontalWalls setObject:[NSNumber numberWithBool:true]
+    [board1.walls[kSVHorizontalDirection] setObject:[NSNumber numberWithBool:true]
                                forKey:[[SVPosition alloc] initWithX:3 andY:3]];
     board1.playerPositions[kSVPlayer2] = [[SVPosition alloc] initWithX:3 andY:2];
     board2 = [[SVBoard alloc] init];
-    [board2.horizontalWalls setObject:[NSNumber numberWithBool:true]
+    [board2.walls[kSVHorizontalDirection] setObject:[NSNumber numberWithBool:true]
                                forKey:[[SVPosition alloc] initWithX:3 andY:3]];
     board2.playerPositions[kSVPlayer2] = [[SVPosition alloc] initWithX:3 andY:2];
     XCTAssertEqual([board1 hash], [board2 hash], @"Hash not equal while should");
@@ -377,11 +396,11 @@
     [horizontalWalls setObject:[NSNumber numberWithBool:true] forKey:[[SVPosition alloc] initWithX:2 andY:2]];
     [horizontalWalls setObject:[NSNumber numberWithBool:true] forKey:[[SVPosition alloc] initWithX:4 andY:2]];
     [horizontalWalls setObject:[NSNumber numberWithBool:true] forKey:[[SVPosition alloc] initWithX:5 andY:4]];
-    board.horizontalWalls = horizontalWalls;
+    board.walls[kSVHorizontalDirection] = horizontalWalls;
     
     verticalWalls = [[NSMutableDictionary alloc] init];
     [verticalWalls setObject:[NSNumber numberWithBool:true] forKey:[[SVPosition alloc] initWithX:5 andY:3]];
-    board.verticalWalls = verticalWalls;
+    board.walls[kSVVerticalDirection] = verticalWalls;
     XCTAssertFalse([board isGoalReachableByPlayer:kSVPlayer1], @"Goal reachable by player 1 while shouldn't");
     XCTAssertFalse([board isGoalReachableByPlayer:kSVPlayer2], @"Goal reachable by player 2 while shouldn't");
     
@@ -390,11 +409,11 @@
     horizontalWalls = [[NSMutableDictionary alloc] init];
     [horizontalWalls setObject:[NSNumber numberWithBool:true] forKey:[[SVPosition alloc] initWithX:3 andY:1]];
     [horizontalWalls setObject:[NSNumber numberWithBool:true] forKey:[[SVPosition alloc] initWithX:5 andY:1]];
-    board.horizontalWalls = horizontalWalls;
+    board.walls[kSVHorizontalDirection] = horizontalWalls;
     
     verticalWalls = [[NSMutableDictionary alloc] init];
     [verticalWalls setObject:[NSNumber numberWithBool:true] forKey:[[SVPosition alloc] initWithX:2 andY:0]];
-    board.verticalWalls = verticalWalls;
+    board.walls[kSVVerticalDirection] = verticalWalls;
     XCTAssertTrue([board isGoalReachableByPlayer:kSVPlayer1], @"Goal not reachable by player 1 while should");
     XCTAssertFalse([board isGoalReachableByPlayer:kSVPlayer2], @"Goal reachable by player 2 while shouldn't");
     

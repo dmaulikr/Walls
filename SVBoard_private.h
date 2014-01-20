@@ -10,8 +10,7 @@
 
 @interface SVBoard ()
 @property (assign) CGSize size;
-@property (strong) NSMutableDictionary* verticalWalls;
-@property (strong) NSMutableDictionary* horizontalWalls;
+@property (strong) NSMutableArray* walls;
 @property (strong) NSMutableArray* playerPositions;
 @property (strong) NSArray* playerGoalsY;
 
