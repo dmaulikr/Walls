@@ -16,12 +16,12 @@
 - (id)init {
     self = [super init];
     if (self) {
-        _size = CGSizeMake(7, 9);
+        _size = CGSizeMake(7, 10);
         _walls = [[NSMutableArray alloc] initWithObjects:[[NSMutableDictionary alloc] init],
                                                          [[NSMutableDictionary alloc] init], nil];
         _playerPositions = [[NSMutableArray alloc] init];
-        [_playerPositions addObject:[[SVPosition alloc] initWithX:3 andY:8]];
-        [_playerPositions addObject:[[SVPosition alloc] initWithX:3 andY:0]];
+        [_playerPositions addObject:[[SVPosition alloc] initWithX:floor(_size.width / 2) andY:_size.height - 1]];
+        [_playerPositions addObject:[[SVPosition alloc] initWithX:floor(_size.width / 2) andY:0]];
         _playerGoalsY = [[NSMutableArray alloc] initWithObjects:[NSNumber numberWithInt:0],
                                                                 [NSNumber numberWithInt:_size.height - 1], nil];
     }

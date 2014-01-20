@@ -19,6 +19,8 @@
 		4D06AC83188A976C00ED425F /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D06AC6B188A976C00ED425F /* UIKit.framework */; };
 		4D06AC8B188A976C00ED425F /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 4D06AC89188A976C00ED425F /* InfoPlist.strings */; };
 		4D499E45188AAA13000A48C6 /* SVBoard.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D499E44188AAA13000A48C6 /* SVBoard.m */; };
+		4DA11951188D89AB008A8688 /* SVGameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DA11950188D89AB008A8688 /* SVGameViewController.m */; };
+		4DA11954188D89D7008A8688 /* SVSquareView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DA11953188D89D7008A8688 /* SVSquareView.m */; };
 		4DE07FF7188C477D00A3251A /* SVPosition.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DE07FF6188C477D00A3251A /* SVPosition.m */; };
 		4DF62C32188C28AB00ED83D4 /* SVBoardTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DF62C31188C28AB00ED83D4 /* SVBoardTest.m */; };
 /* End PBXBuildFile section */
@@ -51,6 +53,10 @@
 		4D06AC8A188A976C00ED425F /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		4D499E43188AAA13000A48C6 /* SVBoard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVBoard.h; sourceTree = "<group>"; };
 		4D499E44188AAA13000A48C6 /* SVBoard.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVBoard.m; sourceTree = "<group>"; };
+		4DA1194F188D89AB008A8688 /* SVGameViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVGameViewController.h; sourceTree = "<group>"; };
+		4DA11950188D89AB008A8688 /* SVGameViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVGameViewController.m; sourceTree = "<group>"; };
+		4DA11952188D89D7008A8688 /* SVSquareView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVSquareView.h; sourceTree = "<group>"; };
+		4DA11953188D89D7008A8688 /* SVSquareView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVSquareView.m; sourceTree = "<group>"; };
 		4DE07FF4188C2F8A00A3251A /* SVBoard_private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SVBoard_private.h; path = ../SVBoard_private.h; sourceTree = "<group>"; };
 		4DE07FF5188C477D00A3251A /* SVPosition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVPosition.h; sourceTree = "<group>"; };
 		4DE07FF6188C477D00A3251A /* SVPosition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVPosition.m; sourceTree = "<group>"; };
@@ -169,6 +175,8 @@
 		4D97AC92188A98D80044EEFE /* Controllers */ = {
 			isa = PBXGroup;
 			children = (
+				4DA1194F188D89AB008A8688 /* SVGameViewController.h */,
+				4DA11950188D89AB008A8688 /* SVGameViewController.m */,
 			);
 			name = Controllers;
 			sourceTree = "<group>";
@@ -176,6 +184,8 @@
 		4D97AC93188A98DD0044EEFE /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				4DA11952188D89D7008A8688 /* SVSquareView.h */,
+				4DA11953188D89D7008A8688 /* SVSquareView.m */,
 			);
 			name = Views;
 			sourceTree = "<group>";
@@ -277,8 +287,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				4D499E45188AAA13000A48C6 /* SVBoard.m in Sources */,
+				4DA11951188D89AB008A8688 /* SVGameViewController.m in Sources */,
 				4DE07FF7188C477D00A3251A /* SVPosition.m in Sources */,
 				4D06AC74188A976C00ED425F /* main.m in Sources */,
+				4DA11954188D89D7008A8688 /* SVSquareView.m in Sources */,
 				4D06AC78188A976C00ED425F /* SVAppDelegate.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
