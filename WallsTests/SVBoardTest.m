@@ -279,4 +279,90 @@
     XCTAssertThrows([board movePlayer:kSVPlayer1 to:end], @"Exception not throwned for move %@ to %@ with wall %@", start, end, wall);
 }
 
+- (void)testIsEqualFails {
+    SVBoard* board1;
+    SVBoard* board2;
+    
+    //Different Walls
+    board1 = [[SVBoard alloc] init];
+    [board1.verticalWalls setObject:[NSNumber numberWithBool:true]
+                             forKey:[[SVPosition alloc] initWithX:3 andY:3]];
+    board2 = [[SVBoard alloc] init];
+    XCTAssertFalse([board1 isEqual:board2], @"Boards equal while shouldn't because of walls");
+    XCTAssertFalse([board2 isEqual:board1], @"Boards equal while shouldn't because of walls");
+    
+    board1 = [[SVBoard alloc] init];
+    [board1.horizontalWalls setObject:[NSNumber numberWithBool:true]
+                             forKey:[[SVPosition alloc] initWithX:3 andY:3]];
+    board2 = [[SVBoard alloc] init];
+    [board2.horizontalWalls setObject:[NSNumber numberWithBool:true]
+                             forKey:[[SVPosition alloc] initWithX:4 andY:4]];
+    XCTAssertFalse([board1 isEqual:board2], @"Boards equal while shouldn't because of walls");
+    XCTAssertFalse([board2 isEqual:board1], @"Boards equal while shouldn't because of walls");
+    
+    //Different player positions
+    board1 = [[SVBoard alloc] init];
+    board1.playerPositions[kSVPlayer1] = [[SVPosition alloc] initWithX:3 andY:3];
+    board2 = [[SVBoard alloc] init];
+    XCTAssertFalse([board1 isEqual:board2], @"Boards equal while shouldn't because of player 1 position");
+    XCTAssertFalse([board2 isEqual:board1], @"Boards equal while shouldn't because of player 1 position");
+}
+
+- (void)testIsEqualSuccesses {
+    SVBoard* board1;
+    SVBoard* board2;
+    
+    board1 = [[SVBoard alloc] init];
+    [board1.horizontalWalls setObject:[NSNumber numberWithBool:true]
+                             forKey:[[SVPosition alloc] initWithX:3 andY:3]];
+    board1.playerPositions[kSVPlayer2] = [[SVPosition alloc] initWithX:3 andY:2];
+    board2 = [[SVBoard alloc] init];
+    [board2.horizontalWalls setObject:[NSNumber numberWithBool:true]
+                             forKey:[[SVPosition alloc] initWithX:3 andY:3]];
+    board2.playerPositions[kSVPlayer2] = [[SVPosition alloc] initWithX:3 andY:2];
+    XCTAssertTrue([board1 isEqual:board2], @"Boards not equal while should");
+    XCTAssertTrue([board2 isEqual:board1], @"Boards not equal while should");
+}
+
+- (void)testHashEqualityFails {
+    SVBoard* board1;
+    SVBoard* board2;
+    
+    //Different Walls
+    board1 = [[SVBoard alloc] init];
+    [board1.verticalWalls setObject:[NSNumber numberWithBool:true]
+                             forKey:[[SVPosition alloc] initWithX:3 andY:3]];
+    board2 = [[SVBoard alloc] init];
+    XCTAssertNotEqual([board1 hash], [board2 hash], @"Hash equal while shouldn't");
+    
+    board1 = [[SVBoard alloc] init];
+    [board1.horizontalWalls setObject:[NSNumber numberWithBool:true]
+                               forKey:[[SVPosition alloc] initWithX:3 andY:3]];
+    board2 = [[SVBoard alloc] init];
+    [board2.horizontalWalls setObject:[NSNumber numberWithBool:true]
+                               forKey:[[SVPosition alloc] initWithX:4 andY:4]];
+    XCTAssertNotEqual([board1 hash], [board2 hash], @"Hash equal while shouldn't");
+    
+    //Different player positions
+    board1 = [[SVBoard alloc] init];
+    board1.playerPositions[kSVPlayer1] = [[SVPosition alloc] initWithX:3 andY:3];
+    board2 = [[SVBoard alloc] init];
+    XCTAssertNotEqual([board1 hash], [board2 hash], @"Hash equal while shouldn't");
+}
+
+- (void)testHashEqualitySuccess {
+    SVBoard* board1;
+    SVBoard* board2;
+    
+    board1 = [[SVBoard alloc] init];
+    [board1.horizontalWalls setObject:[NSNumber numberWithBool:true]
+                               forKey:[[SVPosition alloc] initWithX:3 andY:3]];
+    board1.playerPositions[kSVPlayer2] = [[SVPosition alloc] initWithX:3 andY:2];
+    board2 = [[SVBoard alloc] init];
+    [board2.horizontalWalls setObject:[NSNumber numberWithBool:true]
+                               forKey:[[SVPosition alloc] initWithX:3 andY:3]];
+    board2.playerPositions[kSVPlayer2] = [[SVPosition alloc] initWithX:3 andY:2];
+    XCTAssertEqual([board1 hash], [board2 hash], @"Hash not equal while should");
+}
+
 @end

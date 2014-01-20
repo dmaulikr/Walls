@@ -41,6 +41,25 @@
     return copy;
 }
 
+- (BOOL)isEqual:(id)object {
+    if (![object isKindOfClass:[self class]])
+        return false;
+    SVBoard* otherBoard = (SVBoard*)object;
+    return CGSizeEqualToSize(self.size, otherBoard.size) &&
+           [self.verticalWalls isEqualToDictionary:otherBoard.verticalWalls] &&
+           [self.horizontalWalls isEqualToDictionary:otherBoard.horizontalWalls] &&
+           [self.playerPositions[kSVPlayer1] isEqual:otherBoard.playerPositions[kSVPlayer1]] &&
+           [self.playerPositions[kSVPlayer2] isEqual:otherBoard.playerPositions[kSVPlayer2]];
+}
+
+- (NSUInteger)hash {
+    return [[NSString stringWithFormat:@"%@,%@,%@,%@",
+                     NSStringFromCGSize(self.size),
+                     self.verticalWalls,
+                     self.horizontalWalls,
+                     self.playerPositions] hash];
+}
+
 - (BOOL)canPlayer:(kSVPlayer)player moveTo:(SVPosition*)end {
     //Check if 1 square move
     SVPosition* start = self.playerPositions[player];
@@ -198,21 +217,25 @@
 //////////////////////////////////////////////////////
 
 - (BOOL)isGoalReachableByPlayer:(kSVPlayer)player {
-//    NSMutableArray* queue = [[NSMutableArray alloc] init];
-//    int goalY = ((NSNumber*)self.playerGoalsY[player]).intValue;
-//    
-//    [queue addObject:self];
-//    while (queue.count > 0) {
-//        SVBoard* board = [queue firstObject];
-//        if (((SVPosition*)board.playerPositions[player]).y == goalY)
-//            return true;
-//        NSArray* positions = [board simplifiedMovesForPlayer:player];
-//        for (SVPosition* position in positions) {
-//            SVBoard* copy = [self mutableCopy];
-//            [copy movePlayer:player to:position];
-//            [queue addObject:copy];
-//        }
-//    }
+    NSMutableArray* queue = [[NSMutableArray alloc] init];
+    NSMutableDictionary* visitedBoards = [[NSMutableDictionary alloc] init];
+    int goalY = ((NSNumber*)self.playerGoalsY[player]).intValue;
+    
+    [queue addObject:self];
+    while (queue.count > 0) {
+        SVBoard* board = [queue firstObject];
+        if (((SVPosition*)board.playerPositions[player]).y == goalY)
+            return true;
+        NSArray* positions = [board movesForPlayer:player];
+        for (SVPosition* position in positions) {
+            SVBoard* copy = [self mutableCopy];
+            [copy movePlayer:player to:position];
+            if (![visitedBoards objectForKey:copy]) {
+                [visitedBoards setObject:[NSNumber numberWithBool:true] forKey:copy];
+                [queue addObject:copy];
+            }
+        }
+    }
     return false;
 }
 
