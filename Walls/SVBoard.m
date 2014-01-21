@@ -13,6 +13,11 @@
 @end
 
 @implementation SVBoard
+
+//////////////////////////////////////////////////////
+// Public
+//////////////////////////////////////////////////////
+
 - (id)init {
     self = [super init];
     if (self) {
@@ -28,16 +33,12 @@
     return self;
 }
 
-//////////////////////////////////////////////////////
-// Public
-//////////////////////////////////////////////////////
-
 - (id)copyWithZone:(NSZone *)zone {
     SVBoard* copy = [SVBoard allocWithZone:zone];
     copy.size = self.size;
     NSMutableArray* walls = [[NSMutableArray alloc] init];
-    walls[kSVVerticalDirection] = [self.walls[kSVVerticalDirection] mutableCopy];
-    walls[kSVHorizontalDirection] = [self.walls[kSVHorizontalDirection] mutableCopy];
+    walls[kSVVerticalOrientation] = [self.walls[kSVVerticalOrientation] mutableCopy];
+    walls[kSVHorizontalOrientation] = [self.walls[kSVHorizontalOrientation] mutableCopy];
     copy.walls = walls;
     copy.playerPositions = [self.playerPositions mutableCopy];
     copy.playerGoalsY = [self.playerGoalsY mutableCopy];
@@ -46,11 +47,11 @@
 
 - (BOOL)isEqual:(id)object {
     if (![object isKindOfClass:[self class]])
-        return false;
+        return NO;
     SVBoard* otherBoard = (SVBoard*)object;
     return CGSizeEqualToSize(self.size, otherBoard.size) &&
-           [self.walls[kSVHorizontalDirection] isEqualToDictionary:otherBoard.walls[kSVHorizontalDirection]] &&
-           [self.walls[kSVVerticalDirection] isEqualToDictionary:otherBoard.walls[kSVVerticalDirection]] &&
+           [self.walls[kSVHorizontalOrientation] isEqualToDictionary:otherBoard.walls[kSVHorizontalOrientation]] &&
+           [self.walls[kSVVerticalOrientation] isEqualToDictionary:otherBoard.walls[kSVVerticalOrientation]] &&
            [self.playerPositions[kSVPlayer1] isEqual:otherBoard.playerPositions[kSVPlayer1]] &&
            [self.playerPositions[kSVPlayer2] isEqual:otherBoard.playerPositions[kSVPlayer2]] &&
            [self.playerGoalsY isEqual:otherBoard.playerGoalsY];
@@ -68,42 +69,42 @@
     //Check if 1 square move
     SVPosition* start = self.playerPositions[player];
     if (abs(start.x - end.x) + abs(start.y - end.y) != 1)
-        return false;
+        return NO;
     
     //Check if positions are on board
     if (start.x >= self.size.width || start.x < 0 || start.y >= self.size.height || start.y < 0 ||
         end.x >= self.size.width || end.x < 0 || end.y >= self.size.height || end.y < 0)
-        return false;
+        return NO;
     
     if (start.y > end.y &&
-        ([self.walls[kSVHorizontalDirection] objectForKey:[[SVPosition alloc] initWithX:start.x - 1
+        ([self.walls[kSVHorizontalOrientation] objectForKey:[[SVPosition alloc] initWithX:start.x - 1
                                                            andY:start.y - 1]] ||
-         [self.walls[kSVHorizontalDirection] objectForKey:[[SVPosition alloc] initWithX:start.x
+         [self.walls[kSVHorizontalOrientation] objectForKey:[[SVPosition alloc] initWithX:start.x
                                                            andY:start.y - 1]]))
-        return false;
+        return NO;
     
     if (start.x < end.x &&
-        ([self.walls[kSVVerticalDirection] objectForKey:[[SVPosition alloc] initWithX:start.x
+        ([self.walls[kSVVerticalOrientation] objectForKey:[[SVPosition alloc] initWithX:start.x
                                                            andY:start.y - 1]] ||
-         [self.walls[kSVVerticalDirection] objectForKey:[[SVPosition alloc] initWithX:start.x
+         [self.walls[kSVVerticalOrientation] objectForKey:[[SVPosition alloc] initWithX:start.x
                                                            andY:start.y]]))
-        return false;
+        return NO;
     
     if (start.y < end.y &&
-        ([self.walls[kSVHorizontalDirection] objectForKey:[[SVPosition alloc] initWithX:start.x - 1
+        ([self.walls[kSVHorizontalOrientation] objectForKey:[[SVPosition alloc] initWithX:start.x - 1
                                                            andY:start.y]] ||
-         [self.walls[kSVHorizontalDirection] objectForKey:[[SVPosition alloc] initWithX:start.x
+         [self.walls[kSVHorizontalOrientation] objectForKey:[[SVPosition alloc] initWithX:start.x
                                                            andY:start.y]]))
-        return false;
+        return NO;
     
     if (start.x > end.x &&
-        ([self.walls[kSVVerticalDirection] objectForKey:[[SVPosition alloc] initWithX:start.x - 1
+        ([self.walls[kSVVerticalOrientation] objectForKey:[[SVPosition alloc] initWithX:start.x - 1
                                                            andY:start.y - 1]] ||
-         [self.walls[kSVVerticalDirection] objectForKey:[[SVPosition alloc] initWithX:start.x - 1
+         [self.walls[kSVVerticalOrientation] objectForKey:[[SVPosition alloc] initWithX:start.x - 1
                                                            andY:start.y]]))
-        return false;
+        return NO;
     
-    return true;
+    return YES;
 }
 
 - (void)movePlayer:(kSVPlayer)player to:(SVPosition*)end {
@@ -119,37 +120,37 @@
     }
 }
 
-- (BOOL)isWallLegalAtPosition:(SVPosition*)position withDirection:(kSVWallDirection)direction {
-    if (position.x < 0 || position.x >= self.size.width || position.y < 0 || position.y >= self.size.height)
-        return false;
+- (BOOL)isWallLegalAtPosition:(SVPosition*)position withOrientation:(kSVWallOrientation)orientation {
+    if (position.x <= 0 || position.x >= self.size.width || position.y <= 0 || position.y >= self.size.height)
+        return NO;
     
-    kSVWallDirection otherDirection = direction == kSVHorizontalDirection ? kSVVerticalDirection : kSVHorizontalDirection;
-    NSDictionary* wallsInDirection = self.walls[direction];
-    NSDictionary* wallsInOtherDirection = self.walls[otherDirection];
-    if ([wallsInDirection objectForKey:position] ||
-        [wallsInOtherDirection objectForKey:position])
-        return false;
+    kSVWallOrientation otherOrientation = orientation == kSVHorizontalOrientation ? kSVVerticalOrientation : kSVHorizontalOrientation;
+    NSDictionary* wallsInOrientation = self.walls[orientation];
+    NSDictionary* wallsInOtherOrientation = self.walls[otherOrientation];
+    if ([wallsInOrientation objectForKey:position] ||
+        [wallsInOtherOrientation objectForKey:position])
+        return NO;
     
-    int xOffset = direction == kSVHorizontalDirection ? 1 : 0;
-    int yOffset = direction == kSVHorizontalDirection ? 0 : 1;
+    int xOffset = orientation == kSVHorizontalOrientation ? 1 : 0;
+    int yOffset = orientation == kSVHorizontalOrientation ? 0 : 1;
     
-    if ([wallsInDirection objectForKey:[[SVPosition alloc] initWithX:position.x - xOffset andY:position.y - yOffset]] ||
-        [wallsInDirection objectForKey:[[SVPosition alloc] initWithX:position.x + xOffset andY:position.y + yOffset]])
-        return false;
+    if ([wallsInOrientation objectForKey:[[SVPosition alloc] initWithX:position.x - xOffset andY:position.y - yOffset]] ||
+        [wallsInOrientation objectForKey:[[SVPosition alloc] initWithX:position.x + xOffset andY:position.y + yOffset]])
+        return NO;
     
-    return true;
+    return YES;
 }
 
-- (void)addWallAtPosition:(SVPosition*)position withDirection:(kSVWallDirection)direction {
-    if (![self isWallLegalAtPosition:position withDirection:direction]) {
+- (void)addWallAtPosition:(SVPosition*)position withOrientation:(kSVWallOrientation)orientation {
+    if (![self isWallLegalAtPosition:position withOrientation:orientation]) {
         NSException* exception = [NSException
                                   exceptionWithName:@"SVInvalidWallException"
-                                  reason:[NSString stringWithFormat:@"Wall of direction %d can't be built at %@", direction, position]
+                                  reason:[NSString stringWithFormat:@"Wall of orientation %d can't be built at %@", orientation, position]
                                   userInfo:nil];
         @throw exception;
     }
     else {
-        [self.walls[direction] setObject:[NSNumber numberWithBool:true] forKey:position];
+        [self.walls[orientation] setObject:[NSNumber numberWithBool:YES] forKey:position];
     }
 }
 //
@@ -159,7 +160,7 @@
 //        //Check if a player is on end position
 //        if ([end isEqual:self.playerPositions[0]] ||
 //            [end isEqual:self.playerPositions[1]])
-//            return false;
+//            return NO;
 //        
 //        return [self canSimplifiedMoveFrom:start to:end];
 //    }
@@ -170,7 +171,7 @@
 //            SVPosition* inBetweenPosition = [[SVPosition alloc] initWithX:(start.x + end.x) / 2 andY:(start.y + end.y) / 2];
 //            if (![inBetweenPosition isEqual:self.playerPositions[0]] &&
 //                ![inBetweenPosition isEqual:self.playerPositions[1]])
-//                return false;
+//                return NO;
 //            
 //            return [self canSimplifiedMoveFrom:start to:inBetweenPosition] && [self canSimplifiedMoveFrom:inBetweenPosition to:end];
 //        }
@@ -188,13 +189,13 @@
 //                     [inBetweenPosition2 isEqual:self.playerPositions[1]])
 //                otherPlayerPosition = inBetweenPosition2;
 //            else
-//                return false;
+//                return NO;
 //            
 //            //Check if straight jump not possible
 //            SVPosition* straightJumpPosition = [[SVPosition alloc] initWithX:start.x + (otherPlayerPosition.x - start.x) * 2
 //                                                                        andY:start.y + (otherPlayerPosition.y - start.y) * 2];
 //            if ([self canMoveFrom:start to:straightJumpPosition])
-//                return false;
+//                return NO;
 //            
 //            //Check if no wall blocks the jump
 //            return [self canSimplifiedMoveFrom:start to:otherPlayerPosition] &&
@@ -203,10 +204,10 @@
 //    }
 //    
 //    else {
-//        return false;
+//        return NO;
 //    }
 //    
-//    return true;
+//    return YES;
 //}
 
 
@@ -249,7 +250,7 @@
 - (BOOL)isGoalReachableByPlayer:(kSVPlayer)player {
     NSMutableArray* queue = [[NSMutableArray alloc] init];
     NSMutableDictionary* visitedPositions = [[NSMutableDictionary alloc] init];
-    [visitedPositions setObject:[NSNumber numberWithBool:true] forKey:self.playerPositions[player]];
+    [visitedPositions setObject:[NSNumber numberWithBool:YES] forKey:self.playerPositions[player]];
     int goalY = ((NSNumber*)self.playerGoalsY[player]).intValue;
     
     [queue addObject:self];
@@ -257,18 +258,18 @@
         SVBoard* board = [queue firstObject];
         [queue removeObjectAtIndex:0];
         if (((SVPosition*)board.playerPositions[player]).y == goalY)
-            return true;
+            return YES;
         NSArray* positions = [board movesForPlayer:player];
         for (SVPosition* position in positions) {
             if (![visitedPositions objectForKey:position]) {
                 SVBoard* copy = [board copy];
                 [copy movePlayer:player to:position];
-                [visitedPositions setObject:[NSNumber numberWithBool:true] forKey:position];
+                [visitedPositions setObject:[NSNumber numberWithBool:YES] forKey:position];
                 [queue addObject:copy];
             }
         }
     }
-    return false;
+    return NO;
 }
 
 - (NSArray*)movesForPlayer:(kSVPlayer)player {

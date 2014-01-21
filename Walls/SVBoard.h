@@ -15,9 +15,9 @@ typedef enum {
 } kSVPlayer;
 
 typedef enum {
-    kSVVerticalDirection,
-    kSVHorizontalDirection
-} kSVWallDirection;
+    kSVVerticalOrientation,
+    kSVHorizontalOrientation
+} kSVWallOrientation;
 
 @interface SVBoard : NSObject <NSCopying>
 @property (assign, readonly) CGSize size;
@@ -26,7 +26,7 @@ typedef enum {
 
 - (BOOL)canPlayer:(kSVPlayer)player moveTo:(SVPosition*)end;
 - (void)movePlayer:(kSVPlayer)player to:(SVPosition*)end;
-- (BOOL)isWallLegalAtPosition:(SVPosition*)position withDirection:(kSVWallDirection)direction;
-- (void)addWallAtPosition:(SVPosition*)position withDirection:(kSVWallDirection)direction;
+- (BOOL)isWallLegalAtPosition:(SVPosition*)position withOrientation:(kSVWallOrientation)orientation;
+- (void)addWallAtPosition:(SVPosition*)position withOrientation:(kSVWallOrientation)orientation;
 
 @end
