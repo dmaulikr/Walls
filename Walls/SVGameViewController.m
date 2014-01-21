@@ -31,7 +31,7 @@ const int kSVSquareSize = 46;
 @property (assign) kSVPlayer currentPlayer;
 @property (assign) int turn;
 
-//Touch
+//Walls
 @property (strong) NSArray* wallPoints;
 @property (strong) SVPosition* wallPosition;
 @property (assign) kSVWallOrientation wallOrientation;
@@ -105,10 +105,10 @@ const int kSVSquareSize = 46;
         }
     }
     
-//    SVSquareView* player1View = [self squareViewForPosition:self.board.playerPositions[kSVPlayer1]];
-//    player1View.backgroundColor = self.playerColors[kSVPlayer1];
-//    SVSquareView* player2View = [self squareViewForPosition:self.board.playerPositions[kSVPlayer2]];
-//    player2View.backgroundColor = self.playerColors[kSVPlayer2];
+    SVSquareView* player1View = [self.squareViews objectAtIndex:[self.squarePositions indexOfObject:self.board.playerPositions[kSVPlayer1]]];
+    player1View.backgroundColor = self.playerColors[kSVPlayer1];
+    SVSquareView* player2View = [self.squareViews objectAtIndex:[self.squarePositions indexOfObject:self.board.playerPositions[kSVPlayer2]]];
+    player2View.backgroundColor = self.playerColors[kSVPlayer2];
     
     self.boardCanvas = [[SVBoardCanvas alloc] initWithFrame:self.boardView.bounds];
     self.boardCanvas.userInteractionEnabled = NO;
@@ -305,133 +305,6 @@ const int kSVSquareSize = 46;
             }
         }
     }
-//    if (gestureRecognizer.state == UIGestureRecognizerStateBegan) {
-//        CGPoint velocity = [gestureRecognizer velocityInView:self.boardView];
-//        self.currentWallOrientation = abs(velocity.x) > abs(velocity.y) ? kSVHorizontalOrientation : kSVVerticalOrientation;
-//        if (self.currentWallOrientation == kSVHorizontalOrientation)
-//            self.currentWallBuildingDirection = velocity.x > 0 ? kSVRightDirection : kSVLeftDirection;
-//        else
-//            self.currentWallBuildingDirection = velocity.y > 0 ? kSVBottomDirection : kSVTopDirection;
-//        
-//        CGPoint startPoint = [gestureRecognizer locationInView:self.boardView];
-//        CGPoint endPoint;
-//        //Find the closest wall start;
-//        int x = round(startPoint.x / kSVSquareSize);
-//        int y = round(startPoint.y / kSVSquareSize);
-//        
-//        if (x == 0) {
-//            startPoint = CGPointMake(, y * kSVSquareSize);
-//            if (self.currentWallOrientation == kSVHorizontalOrientation) {
-//                if (self.currentWallOrientation == kSVLeftDirection)
-//                    endPoint = CGPointMake(-kSVSquareSize - 1, startPoint.y);
-//                else
-//                    endPoint = CGPointMake(2 * kSVSquareSize - 1, startPoint.y);
-//            }
-//            endPoint = CGPointMake(2 * kSVSquareSize - 1, startPoint.y);
-//        }
-//        else {
-//            startPoint = CGPointMake(x * kSVSquareSize - 1, y * kSVSquareSize);
-//            
-//        }
-//        self.startWallPoint = startPoint;
-//        self.endWallPoint =
-//        self.lastWallPoint = startPoint;
-//    }
-//    else {
-//        //Adjust the point on the horizontal/vertical line
-//        CGPoint newPoint = [gestureRecognizer locationInView:self.boardView];
-//        int length;
-//        if (self.currentWallOrientation == kSVHorizontalOrientation) {
-//            newPoint = CGPointMake(newPoint.x, self.lastTouchPoint.y);
-//            length = abs(newPoint.x - self.firstTouchPoint.x);
-//        }
-//        else {
-//            newPoint = CGPointMake(self.lastTouchPoint.x, newPoint.y);
-//            length = abs(newPoint.y - self.firstTouchPoint.y);
-//        }
-//        
-//        if (gestureRecognizer.state == UIGestureRecognizerStateEnded) {;
-//            //Check if wall valid and build
-//            if (length >= 2 * kSVSquareSize - 10) {
-//                int x = round((self.firstTouchPoint.x + self.lastTouchPoint.x) / 2);
-//                int y = round((self.firstTouchPoint.y + self.lastTouchPoint.y) / 2);
-//                SVPosition* wallPosition = [[SVPosition alloc] initWithX:round(x / kSVSquareSize) - 1
-//                                                                    andY:round(y / kSVSquareSize) - 1];
-//                if ([self.board isWallLegalAtPosition:wallPosition withOrientation:self.currentWallOrientation]) {
-//                    UIView* wallView;
-//                    int x;
-//                    int y;
-//                    int width;
-//                    int height;
-//                    
-//                    if (self.currentWallOrientation == kSVHorizontalOrientation) {
-//                        x = self.currentWallBuildingDirection == kSVLeftDirection ? self.lastTouchPoint.x : self.firstTouchPoint.x;
-//                        y = self.firstTouchPoint.y - 5;
-//                        width = 2 * kSVSquareSize;
-//                        height = 10;
-//                    }
-//                    else {
-//                        x = self.firstTouchPoint.x - 5;
-//                        y = self.currentWallBuildingDirection == kSVTopDirection ? self.lastTouchPoint.y : self.firstTouchPoint.y;
-//                        width = 10;
-//                        height = 2 * kSVSquareSize;
-//                    }
-//                    
-//                    wallView = [[UIView alloc] initWithFrame:CGRectMake(x, y, width, height)];
-//                    wallView.backgroundColor = [UIColor blackColor];
-//                    [self.boardView addSubview:wallView];
-//                    [self.board addWallAtPosition:wallPosition withOrientation:self.currentWallOrientation];
-//                }
-//                else {
-//                    UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Invalid build"
-//                                                                    message:@"Choose another place to build"
-//                                                                   delegate:self
-//                                                          cancelButtonTitle:nil
-//                                                          otherButtonTitles:@"Ok", nil];
-//                    [alert show];
-//                }
-//            }
-//            [self.boardCanvas clear];
-//        }
-//        
-//        else if (gestureRecognizer.state == UIGestureRecognizerStateChanged) {
-//            if (!(self.lastTouchPoint.x == self.firstTouchPoint.x + 2 * kSVSquareSize ||
-//                  self.lastTouchPoint.y == self.firstTouchPoint.y + 2 * kSVSquareSize ||
-//                  self.lastTouchPoint.x == self.firstTouchPoint.x - 2 * kSVSquareSize ||
-//                  self.lastTouchPoint.y == self.firstTouchPoint.y - 2 * kSVSquareSize)) {
-//                
-//                //Don't draw if the point is not in the wall
-//                if (self.currentWallOrientation == kSVHorizontalOrientation) {
-//                    if ((self.currentWallBuildingDirection == kSVLeftDirection && newPoint.x > self.lastTouchPoint.x) ||
-//                        (self.currentWallBuildingDirection == kSVRightDirection && newPoint.x < self.lastTouchPoint.x))
-//                        return;
-//                }
-//                else {
-//                    if ((self.currentWallBuildingDirection == kSVTopDirection && newPoint.y > self.lastTouchPoint.y) ||
-//                        (self.currentWallBuildingDirection == kSVBottomDirection && newPoint.y < self.lastTouchPoint.y))
-//                        return;
-//                }
-//                
-//                //Match the last point with the end of the wall
-//                if (length > 2 * kSVSquareSize) {
-//                    if (self.currentWallOrientation == kSVHorizontalOrientation) {
-//                        if (self.currentWallBuildingDirection == kSVLeftDirection)
-//                            newPoint = CGPointMake(self.firstTouchPoint.x - 2 * kSVSquareSize, self.firstTouchPoint.y);
-//                        else
-//                            newPoint = CGPointMake(self.firstTouchPoint.x + 2 * kSVSquareSize, self.firstTouchPoint.y);
-//                    }
-//                    else {
-//                        if (self.currentWallBuildingDirection == kSVTopDirection)
-//                            newPoint = CGPointMake(self.firstTouchPoint.x, self.firstTouchPoint.y - 2 * kSVSquareSize);
-//                        else
-//                            newPoint = CGPointMake(self.firstTouchPoint.x, self.firstTouchPoint.y + 2 * kSVSquareSize);
-//                    }
-//                }
-//                [self.boardCanvas drawLineFrom:self.lastTouchPoint to:newPoint];
-//                self.lastTouchPoint = newPoint;
-//            }
-//        }
-//    }
 }
 
 - (void)didTapSquare:(UITapGestureRecognizer*)gestureRecognizer {
