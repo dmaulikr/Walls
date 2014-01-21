@@ -8,6 +8,6 @@
 
 #import <UIKit/UIKit.h>
 
-@interface SVGameViewController : UIViewController
+@interface SVGameViewController : UIViewController <UIGestureRecognizerDelegate>
 
 @end
