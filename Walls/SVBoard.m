@@ -77,31 +77,31 @@
         return NO;
     
     if (start.y > end.y &&
-        ([self.walls[kSVHorizontalOrientation] objectForKey:[[SVPosition alloc] initWithX:start.x - 1
-                                                           andY:start.y - 1]] ||
-         [self.walls[kSVHorizontalOrientation] objectForKey:[[SVPosition alloc] initWithX:start.x
-                                                           andY:start.y - 1]]))
+        ([self.walls[kSVHorizontalOrientation] objectForKey:[[SVPosition alloc] initWithX:start.x
+                                                           andY:start.y]] ||
+         [self.walls[kSVHorizontalOrientation] objectForKey:[[SVPosition alloc] initWithX:start.x + 1
+                                                           andY:start.y]]))
         return NO;
     
     if (start.x < end.x &&
-        ([self.walls[kSVVerticalOrientation] objectForKey:[[SVPosition alloc] initWithX:start.x
-                                                           andY:start.y - 1]] ||
-         [self.walls[kSVVerticalOrientation] objectForKey:[[SVPosition alloc] initWithX:start.x
-                                                           andY:start.y]]))
+        ([self.walls[kSVVerticalOrientation] objectForKey:[[SVPosition alloc] initWithX:start.x + 1
+                                                           andY:start.y]] ||
+         [self.walls[kSVVerticalOrientation] objectForKey:[[SVPosition alloc] initWithX:start.x + 1
+                                                           andY:start.y + 1]]))
         return NO;
     
     if (start.y < end.y &&
-        ([self.walls[kSVHorizontalOrientation] objectForKey:[[SVPosition alloc] initWithX:start.x - 1
-                                                           andY:start.y]] ||
-         [self.walls[kSVHorizontalOrientation] objectForKey:[[SVPosition alloc] initWithX:start.x
-                                                           andY:start.y]]))
+        ([self.walls[kSVHorizontalOrientation] objectForKey:[[SVPosition alloc] initWithX:start.x
+                                                           andY:start.y + 1]] ||
+         [self.walls[kSVHorizontalOrientation] objectForKey:[[SVPosition alloc] initWithX:start.x + 1
+                                                           andY:start.y + 1]]))
         return NO;
     
     if (start.x > end.x &&
-        ([self.walls[kSVVerticalOrientation] objectForKey:[[SVPosition alloc] initWithX:start.x - 1
-                                                           andY:start.y - 1]] ||
-         [self.walls[kSVVerticalOrientation] objectForKey:[[SVPosition alloc] initWithX:start.x - 1
-                                                           andY:start.y]]))
+        ([self.walls[kSVVerticalOrientation] objectForKey:[[SVPosition alloc] initWithX:start.x
+                                                           andY:start.y]] ||
+         [self.walls[kSVVerticalOrientation] objectForKey:[[SVPosition alloc] initWithX:start.x
+                                                           andY:start.y + 1]]))
         return NO;
     
     return YES;
@@ -138,6 +138,14 @@
         [wallsInOrientation objectForKey:[[SVPosition alloc] initWithX:position.x + xOffset andY:position.y + yOffset]])
         return NO;
     
+    //Add wall to test if goal reachable then remove it
+    [self.walls[orientation] setObject:[NSNumber numberWithBool:YES] forKey:position];
+    if (![self isGoalReachableByPlayer:kSVPlayer1] || ![self isGoalReachableByPlayer:kSVPlayer2]) {
+        [self.walls[orientation] removeObjectForKey:position];
+        return NO;
+    }
+    
+    [self.walls[orientation] removeObjectForKey:position];
     return YES;
 }
 
