@@ -330,17 +330,19 @@ const int kSVSquareSize = 46;
             [self.boardCanvas clear];
             
             if ([self.board isWallLegalAtPosition:self.wallPosition withOrientation:self.wallOrientation]) {
-                UIView* wallView;
-    
-                if (self.wallOrientation == kSVHorizontalOrientation)
-                    wallView = [[UIView alloc] initWithFrame:CGRectMake(minPoint.x, minPoint.y - 5, abs(maxPoint.x - minPoint.x), 10)];
-                else
-                    wallView = [[UIView alloc] initWithFrame:CGRectMake(minPoint.x - 5, minPoint.y, 10, abs(maxPoint.y - minPoint.y))];
-        
-                wallView.backgroundColor = [UIColor blackColor];
-                [self.wallViews setObject:wallView forKey:self.wallPosition];
-                [self.changes setObject:self.wallPosition forKey:@"newWall"];
-                [self.boardView addSubview:wallView];
+                if (CGPointEqualToPoint(self.lastWallPoint, [self.wallPoints[1] CGPointValue])) {
+                    UIView* wallView;
+                    
+                    if (self.wallOrientation == kSVHorizontalOrientation)
+                        wallView = [[UIView alloc] initWithFrame:CGRectMake(minPoint.x, minPoint.y - 5, abs(maxPoint.x - minPoint.x), 10)];
+                    else
+                        wallView = [[UIView alloc] initWithFrame:CGRectMake(minPoint.x - 5, minPoint.y, 10, abs(maxPoint.y - minPoint.y))];
+                    
+                    wallView.backgroundColor = [UIColor blackColor];
+                    [self.wallViews setObject:wallView forKey:self.wallPosition];
+                    [self.changes setObject:self.wallPosition forKey:@"newWall"];
+                    [self.boardView addSubview:wallView];
+                }
             }
             else {
                 UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Invalid build"
