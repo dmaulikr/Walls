@@ -319,9 +319,9 @@ const int kSVSquareSize = 46;
                 self.lastWallPoint = touchPoint;
             }
             else {
-                if (!CGPointEqualToPoint(self.lastWallPoint, maxPoint)) {
-                    [self.boardCanvas drawLineFrom:self.lastWallPoint to:maxPoint];
-                    self.lastWallPoint = maxPoint;
+                if (!CGPointEqualToPoint(self.lastWallPoint, [self.wallPoints[1] CGPointValue])) {
+                    [self.boardCanvas drawLineFrom:self.lastWallPoint to:[self.wallPoints[1] CGPointValue]];
+                    self.lastWallPoint = [self.wallPoints[1] CGPointValue];
                 }
             }
         }
