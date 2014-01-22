@@ -253,7 +253,9 @@ const int kSVSquareSize = 46;
             [self.board movePlayer:self.currentPlayer to:[self.changes objectForKey:(key)]];
         }
         else if ([key isEqualToString:@"newWall"]) {
-            [self.board addWallAtPosition:[self.changes objectForKey:(key)] withOrientation:self.wallOrientation];
+            [self.board addWallAtPosition:[self.changes objectForKey:(key)]
+                          withOrientation:self.wallOrientation
+                                  andType:kSVWallNormal];
             self.wallsRemaining[self.currentPlayer] = [NSNumber numberWithInt:[self.wallsRemaining[self.currentPlayer] intValue] - 1];
         }
     }
@@ -329,7 +331,7 @@ const int kSVSquareSize = 46;
             //Build the wall if needed and clear canvas
             [self.boardCanvas clear];
             
-            if ([self.board isWallLegalAtPosition:self.wallPosition withOrientation:self.wallOrientation]) {
+            if ([self.board isWallLegalAtPosition:self.wallPosition withOrientation:self.wallOrientation andType:kSVWallNormal]) {
                 if (abs(self.lastWallPoint.x - [self.wallPoints[1] CGPointValue].x) < 10 &&
                     abs(self.lastWallPoint.y - [self.wallPoints[1] CGPointValue].y) < 10) {
                     UIView* wallView;
