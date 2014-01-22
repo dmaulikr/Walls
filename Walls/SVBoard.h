@@ -28,5 +28,6 @@ typedef enum {
 - (void)movePlayer:(kSVPlayer)player to:(SVPosition*)end;
 - (BOOL)isWallLegalAtPosition:(SVPosition*)position withOrientation:(kSVWallOrientation)orientation;
 - (void)addWallAtPosition:(SVPosition*)position withOrientation:(kSVWallOrientation)orientation;
+- (BOOL)didPlayerWin:(kSVPlayer)player;
 
 @end

@@ -161,6 +161,10 @@
         [self.walls[orientation] setObject:[NSNumber numberWithBool:YES] forKey:position];
     }
 }
+
+- (BOOL)didPlayerWin:(kSVPlayer)player {
+    return ((SVPosition*)self.playerPositions[player]).y == [self.playerGoalsY[player] intValue];
+}
 //
 //- (BOOL)canMoveFrom:(SVPosition*)start to:(SVPosition*)end {
 //    int manhattanDistance = abs(start.x - end.x) + abs(start.y - end.y);

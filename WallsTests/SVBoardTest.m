@@ -592,4 +592,22 @@
     [board.walls[kSVHorizontalOrientation] setObject:[NSNumber numberWithBool:true] forKey:wallPosition];
     XCTAssertThrows([board addWallAtPosition:wallPosition withOrientation:kSVVerticalOrientation], @"Exception not throwned for invalid wall");
 }
+
+- (void)testDidPlayerWinFail {
+    SVBoard* board;
+    board = [[SVBoard alloc] init];
+    board.playerPositions[kSVPlayer1] = [[SVPosition alloc] initWithX:3 andY:3];
+    board.playerPositions[kSVPlayer2] = [[SVPosition alloc] initWithX:3 andY:3];
+    XCTAssertFalse([board didPlayerWin:kSVPlayer1], @"Player 1 should not have won");
+    XCTAssertFalse([board didPlayerWin:kSVPlayer2], @"Player 2 should not have won");
+}
+
+- (void)testDidPlayerWinSuccess {
+    SVBoard* board;
+    board = [[SVBoard alloc] init];
+    board.playerPositions[kSVPlayer1] = [[SVPosition alloc] initWithX:3 andY:0];
+    board.playerPositions[kSVPlayer2] = [[SVPosition alloc] initWithX:3 andY:board.size.height - 1];
+    XCTAssertTrue([board didPlayerWin:kSVPlayer1], @"Player 1 should have won");
+    XCTAssertTrue([board didPlayerWin:kSVPlayer2], @"Player 2 should have won");
+}
 @end
