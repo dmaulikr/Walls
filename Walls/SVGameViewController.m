@@ -21,8 +21,8 @@ typedef enum {
 const int kSVSquareSize = 46;
 
 @interface SVGameViewController ()
-@property (strong) NSMutableArray* squareViews;
-@property (strong) NSMutableArray* squarePositions;
+@property (strong) NSMutableDictionary* squareViews;
+@property (strong) NSMutableDictionary* wallViews;
 @property (strong) SVBoard* board;
 @property (strong) NSArray* playerColors;
 @property (strong) UIView* boardView;
@@ -30,6 +30,7 @@ const int kSVSquareSize = 46;
 
 @property (assign) kSVPlayer currentPlayer;
 @property (assign) int turn;
+@property (strong) NSMutableDictionary* changes;
 
 //Walls
 @property (strong) NSArray* wallPoints;
@@ -40,6 +41,12 @@ const int kSVSquareSize = 46;
 
 - (void)didPanOnBoard:(UIPanGestureRecognizer*)gestureRecognizer;
 - (void)didTapSquare:(UIGestureRecognizer*)gestureRecognizer;
+- (void)didClickCancel;
+- (void)didClickValidate;
+- (void)revertChanges;
+- (void)commitChanges;
+- (void)startTurn;
+- (void)endTurn;
 @end
 
 @implementation SVGameViewController
@@ -52,11 +59,12 @@ const int kSVSquareSize = 46;
 {
     self = [super init];
     if (self) {
-        _squareViews = [[NSMutableArray alloc] init];
-        _squarePositions = [[NSMutableArray alloc] init];
+        _squareViews = [[NSMutableDictionary alloc] init];
+        _wallViews = [[NSMutableDictionary alloc] init];
         _wallPoints = [[NSMutableArray alloc] init];
         _board = [[SVBoard alloc] init];
         _turn = 0;
+        _changes = [[NSMutableDictionary alloc] init];
         _playerColors = [[NSArray alloc] initWithObjects:[UIColor blueColor], [UIColor redColor], nil];
     }
     return self;
@@ -95,8 +103,7 @@ const int kSVSquareSize = 46;
             else
                 squareView.backgroundColor = [UIColor colorWithWhite:0.8 alpha:1.0];
             
-            [self.squareViews addObject:squareView];
-            [self.squarePositions addObject:[[SVPosition alloc] initWithX:j andY:i]];
+            [self.squareViews setObject:squareView forKey:[[SVPosition alloc] initWithX:j andY:i]];
             
             UITapGestureRecognizer* gestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(didTapSquare:)];
             [squareView addGestureRecognizer:gestureRecognizer];
@@ -105,14 +112,32 @@ const int kSVSquareSize = 46;
         }
     }
     
-    SVSquareView* player1View = [self.squareViews objectAtIndex:[self.squarePositions indexOfObject:self.board.playerPositions[kSVPlayer1]]];
+    SVSquareView* player1View = [self.squareViews objectForKey:self.board.playerPositions[kSVPlayer1]];
     player1View.backgroundColor = self.playerColors[kSVPlayer1];
-    SVSquareView* player2View = [self.squareViews objectAtIndex:[self.squarePositions indexOfObject:self.board.playerPositions[kSVPlayer2]]];
+    SVSquareView* player2View = [self.squareViews objectForKey:self.board.playerPositions[kSVPlayer2]];
     player2View.backgroundColor = self.playerColors[kSVPlayer2];
     
     self.boardCanvas = [[SVBoardCanvas alloc] initWithFrame:self.boardView.bounds];
     self.boardCanvas.userInteractionEnabled = NO;
     [self.boardView addSubview:self.boardCanvas];
+    
+    UIButton* cancel = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+    [cancel setTitle:@"Cancel" forState:UIControlStateNormal];
+    [cancel addTarget:self action:@selector(didClickCancel) forControlEvents:UIControlEventTouchUpInside];
+    cancel.frame = CGRectMake(20,
+                              self.view.bounds.size.height - 30 - 20,
+                              100,
+                              30);
+    [self.view addSubview:cancel];
+    
+    UIButton* validate = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+    [validate setTitle:@"Validate" forState:UIControlStateNormal];
+    [validate addTarget:self action:@selector(didClickValidate) forControlEvents:UIControlEventTouchUpInside];
+    validate.frame = CGRectMake(self.view.bounds.size.width - 100 - 20,
+                              self.view.bounds.size.height - 30 - 20,
+                              100,
+                              30);
+    [self.view addSubview:validate];
 }
 
 - (void)didReceiveMemoryWarning
@@ -130,6 +155,7 @@ const int kSVSquareSize = 46;
         self.currentPlayer = kSVPlayer1;
     else
         self.currentPlayer = kSVPlayer2;
+    self.changes = [[NSMutableDictionary alloc] init];
 }
 
 - (void)endTurn {
@@ -182,37 +208,41 @@ const int kSVSquareSize = 46;
     return array;
 }
 
-//- (SVPosition*)wallPositionForPoint:(CGPoint)point {
-//    return nil;
-//}
-//
-//- (CGPoint)pointForWallPosition:(SVPosition*)position {
-//    
-//}
-
-- (void)movePlayer:(kSVPlayer)player to:(SVPosition*)position {
-    SVPosition* lastPlayerPosition = self.board.playerPositions[self.currentPlayer];
-    SVSquareView* lastSquareView = [self.squareViews objectAtIndex:[self.squarePositions indexOfObject:lastPlayerPosition]];
-    if ((lastPlayerPosition.x + lastPlayerPosition.y) % 2 == 0)
-        lastSquareView.backgroundColor = [UIColor colorWithWhite:0.6 alpha:1.0];
-    else
-        lastSquareView.backgroundColor = [UIColor colorWithWhite:0.8 alpha:1.0];
-    SVSquareView* newSquareView =[self.squareViews objectAtIndex:[self.squarePositions indexOfObject:position]];
-    newSquareView.backgroundColor = self.playerColors[self.currentPlayer];
-    [self.board movePlayer:self.currentPlayer to:position];
+- (void)revertChanges {
+    NSArray* keys = [self.changes allKeys];
+    for (NSString* key in keys) {
+        if ([key isEqualToString:@"newPosition"]) {
+            SVPosition* newSquarePosition = [self.changes objectForKey:key];
+            SVSquareView* newSquareView = [self.squareViews objectForKey:newSquarePosition];
+            SVPosition* lastPosition = self.board.playerPositions[self.currentPlayer];
+            SVSquareView* lastSquareView = [self.squareViews objectForKey:lastPosition];
+            if ((newSquarePosition.x + newSquarePosition.y) % 2 == 0)
+                newSquareView.backgroundColor = [UIColor colorWithWhite:0.6 alpha:1.0];
+            else
+                newSquareView.backgroundColor = [UIColor colorWithWhite:0.8 alpha:1.0];
+            lastSquareView.backgroundColor = self.playerColors[self.currentPlayer];
+        }
+        else if ([key isEqualToString:@"newWall"]) {
+            UIView* wallView = [self.wallViews objectForKey:[self.changes objectForKey:key]];
+            [wallView removeFromSuperview];
+            [self.changes removeObjectForKey:key];
+        }
+    }
+    [self.changes removeAllObjects];
 }
 
-- (void)addWallAtPosition:(SVPosition*)position withOrientation:(kSVWallOrientation)orientation {
-//    CGRect frame;
-//    int x;
-//    int y;
-//    int width;
-//    int height;
-//    if (orientation == kSVHorizontalOrientation) {
-//        frame = CGRectMake(<#CGFloat x#>, <#CGFloat y#>, <#CGFloat width#>, <#CGFloat height#>)
-//    }
+- (void)commitChanges {
+    NSArray* keys = [self.changes allKeys];
+    for (NSString* key in keys) {
+        if ([key isEqualToString:@"newPosition"]) {
+            [self.board movePlayer:self.currentPlayer to:[self.changes objectForKey:(key)]];
+        }
+        else if ([key isEqualToString:@"newWall"]) {
+            [self.board addWallAtPosition:[self.changes objectForKey:(key)] withOrientation:self.wallOrientation];
+        }
+    }
+    [self.changes removeAllObjects];
 }
-
 
 - (void)didPanOnBoard:(UIPanGestureRecognizer*)gestureRecognizer {
     CGPoint touchPoint = [gestureRecognizer locationInView:self.boardView];
@@ -292,8 +322,9 @@ const int kSVSquareSize = 46;
                     wallView = [[UIView alloc] initWithFrame:CGRectMake(minPoint.x - 5, minPoint.y, 10, abs(maxPoint.y - minPoint.y))];
         
                 wallView.backgroundColor = [UIColor blackColor];
+                [self.wallViews setObject:wallView forKey:self.wallPosition];
+                [self.changes setObject:self.wallPosition forKey:@"newWall"];
                 [self.boardView addSubview:wallView];
-                [self.board addWallAtPosition:self.wallPosition withOrientation:self.wallOrientation];
             }
             else {
                 UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Invalid build"
@@ -309,7 +340,7 @@ const int kSVSquareSize = 46;
 
 - (void)didTapSquare:(UITapGestureRecognizer*)gestureRecognizer {
     SVSquareView* newSquareView = (SVSquareView*)gestureRecognizer.view;
-    SVPosition* newSquarePosition = [self.squarePositions objectAtIndex:[self.squareViews indexOfObject:newSquareView]];
+    SVPosition* newSquarePosition = [[self.squareViews allKeysForObject:newSquareView] objectAtIndex:0];
     if (![self.board canPlayer:self.currentPlayer moveTo:newSquarePosition]) {
         UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Invalid move"
                                                         message:@"Choose another square"
@@ -319,8 +350,38 @@ const int kSVSquareSize = 46;
         [alert show];
     }
     else {
-        [self movePlayer:self.currentPlayer to:newSquarePosition];
+        SVPosition* lastPlayerPosition = self.board.playerPositions[self.currentPlayer];
+        SVSquareView* lastSquareView = [self.squareViews objectForKey:lastPlayerPosition];
+        if ((lastPlayerPosition.x + lastPlayerPosition.y) % 2 == 0)
+            lastSquareView.backgroundColor = [UIColor colorWithWhite:0.6 alpha:1.0];
+        else
+            lastSquareView.backgroundColor = [UIColor colorWithWhite:0.8 alpha:1.0];
+        newSquareView.backgroundColor = self.playerColors[self.currentPlayer];
+        [self.changes setObject:newSquarePosition forKey:@"newPosition"];
     }
+}
+
+- (void)didClickCancel {
+    [self revertChanges];
+}
+
+- (void)didClickValidate {
+    if (self.changes.count == 0) {
+        UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Can't validate"
+                                                        message:@"Please play first"
+                                                       delegate:self
+                                              cancelButtonTitle:nil
+                                              otherButtonTitles:@"Ok", nil];
+        [alert show];
+        return;
+    }
+    [self commitChanges];
+    [self endTurn];
+    [self startTurn];
+}
+
+- (BOOL)canPlayAction {
+    return self.changes.count < 1;
 }
 
 //////////////////////////////////////////////////////
@@ -330,5 +391,10 @@ const int kSVSquareSize = 46;
 - (void)alertView:(UIAlertView*)alertView clickedButtonAtIndex:(NSInteger)index {
     [alertView dismissWithClickedButtonIndex:index animated:true];
 }
+
+- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer {
+    return [self canPlayAction];
+}
+
 
 @end
