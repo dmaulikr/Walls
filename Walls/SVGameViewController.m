@@ -26,6 +26,7 @@ const int kSVSquareSize = 46;
 @property (strong) SVBoard* board;
 @property (strong) NSArray* playerColors;
 @property (strong) NSMutableArray* wallsRemaining;
+@property (strong) NSMutableArray* specialWallsRemaining;
 @property (strong) UIView* boardView;
 @property (strong) SVBoardCanvas* boardCanvas;
 
@@ -67,8 +68,11 @@ const int kSVSquareSize = 46;
         _wallViews = [[NSMutableDictionary alloc] init];
         _wallPoints = [[NSMutableArray alloc] init];
         _wallsRemaining = [[NSMutableArray alloc] init];
-        [_wallsRemaining addObject:[NSNumber numberWithInt:8]];
-        [_wallsRemaining addObject:[NSNumber numberWithInt:8]];
+        [_wallsRemaining addObject:[NSNumber numberWithInt:6]];
+        [_wallsRemaining addObject:[NSNumber numberWithInt:6]];
+        _specialWallsRemaining = [[NSMutableArray alloc] init];
+        [_specialWallsRemaining addObject:[NSNumber numberWithInt:2]];
+        [_specialWallsRemaining addObject:[NSNumber numberWithInt:2]];
         _board = [[SVBoard alloc] init];
         _turn = 0;
         _changes = [[NSMutableDictionary alloc] init];
@@ -132,18 +136,18 @@ const int kSVSquareSize = 46;
     [cancel setTitle:@"Cancel" forState:UIControlStateNormal];
     [cancel addTarget:self action:@selector(didClickCancel) forControlEvents:UIControlEventTouchUpInside];
     cancel.frame = CGRectMake(20,
-                              self.view.bounds.size.height - 30 - 20,
+                              self.view.bounds.size.height - 50 - 10,
                               100,
-                              30);
+                              50);
     [self.view addSubview:cancel];
     
     UIButton* validate = [UIButton buttonWithType:UIButtonTypeRoundedRect];
     [validate setTitle:@"Validate" forState:UIControlStateNormal];
     [validate addTarget:self action:@selector(didClickValidate) forControlEvents:UIControlEventTouchUpInside];
     validate.frame = CGRectMake(self.view.bounds.size.width - 100 - 20,
-                              self.view.bounds.size.height - 30 - 20,
+                              self.view.bounds.size.height - 50 - 10,
                               100,
-                              30);
+                              50);
     [self.view addSubview:validate];
 }
 
@@ -178,7 +182,7 @@ const int kSVSquareSize = 46;
 }
 
 //Return start point and end point relative to direction
-- (NSArray*)wallPointsForPosition:(SVPosition*)position withOrientation:(kSVWallOrientation)orientation andDirection:(kSVWallDirection) direction{
+- (NSArray*)wallPointsForPosition:(SVPosition*)position withOrientation:(kSVWallOrientation)orientation andDirection:(kSVWallDirection)direction {
     NSArray* array;
     CGPoint start;
     CGPoint end;
@@ -238,7 +242,8 @@ const int kSVSquareSize = 46;
             lastSquareView.backgroundColor = self.playerColors[self.currentPlayer];
         }
         else if ([key isEqualToString:@"newWall"]) {
-            UIView* wallView = [self.wallViews objectForKey:[self.changes objectForKey:key]];
+            SVWall* wall = [self.changes objectForKey:key];
+            UIView* wallView = [self.wallViews objectForKey:wall.position];
             [wallView removeFromSuperview];
             [self.changes removeObjectForKey:key];
         }
@@ -253,10 +258,20 @@ const int kSVSquareSize = 46;
             [self.board movePlayer:self.currentPlayer to:[self.changes objectForKey:(key)]];
         }
         else if ([key isEqualToString:@"newWall"]) {
-            [self.board addWallAtPosition:[self.changes objectForKey:(key)]
-                          withOrientation:self.wallOrientation
-                                  andType:kSVWallNormal];
-            self.wallsRemaining[self.currentPlayer] = [NSNumber numberWithInt:[self.wallsRemaining[self.currentPlayer] intValue] - 1];
+            SVWall* wall = [self.changes objectForKey:(key)];
+            kSVWallType type;
+            if ((wall.type == kSVWallNormal && [self.wallsRemaining[self.currentPlayer] intValue] > 0) ||
+                [self.specialWallsRemaining[self.currentPlayer] intValue] <= 0) {
+                self.wallsRemaining[self.currentPlayer] = [NSNumber numberWithInt:[self.wallsRemaining[self.currentPlayer] intValue] - 1];
+                type = kSVWallNormal;
+            }
+            else {
+                self.specialWallsRemaining[self.currentPlayer] = [NSNumber numberWithInt:[self.specialWallsRemaining[self.currentPlayer] intValue] - 1];
+                type = self.currentPlayer == kSVPlayer1 ? kSVWallPlayer1 : kSVWallPlayer2;
+            }
+            [self.board addWallAtPosition:wall.position
+                          withOrientation:wall.orientation
+                                  andType:type];
         }
     }
     [self.changes removeAllObjects];
@@ -336,14 +351,32 @@ const int kSVSquareSize = 46;
                     abs(self.lastWallPoint.y - [self.wallPoints[1] CGPointValue].y) < 10) {
                     UIView* wallView;
                     
+                    //Just for test
+                    kSVWallType wallType;
+                    if ((self.wallDirection == kSVRightDirection ||
+                        self.wallDirection == kSVBottomDirection ||
+                        [self.specialWallsRemaining[self.currentPlayer] intValue] <= 0) &&
+                        [self.wallsRemaining[self.currentPlayer] intValue] > 0)
+                        wallType = kSVWallNormal;
+                    else
+                        wallType = self.currentPlayer == kSVPlayer1 ? kSVWallPlayer1 : kSVWallPlayer2;;
+                    
+                    
                     if (self.wallOrientation == kSVHorizontalOrientation)
                         wallView = [[UIView alloc] initWithFrame:CGRectMake(minPoint.x, minPoint.y - 5, abs(maxPoint.x - minPoint.x), 10)];
                     else
                         wallView = [[UIView alloc] initWithFrame:CGRectMake(minPoint.x - 5, minPoint.y, 10, abs(maxPoint.y - minPoint.y))];
                     
-                    wallView.backgroundColor = [UIColor blackColor];
+                    if ((wallType == kSVWallNormal || self.specialWallsRemaining[self.currentPlayer] <= 0) &&
+                        self.wallsRemaining[self.currentPlayer] > 0)
+                        wallView.backgroundColor = [UIColor blackColor];
+                    else
+                        wallView.backgroundColor = self.playerColors[self.currentPlayer];
                     [self.wallViews setObject:wallView forKey:self.wallPosition];
-                    [self.changes setObject:self.wallPosition forKey:@"newWall"];
+                    SVWall* newWall = [[SVWall alloc] initWithPosition:self.wallPosition
+                                                           orientation:self.wallOrientation
+                                                               andType:wallType];
+                    [self.changes setObject:newWall forKey:@"newWall"];
                     [self.boardView addSubview:wallView];
                 }
             }
@@ -402,7 +435,7 @@ const int kSVSquareSize = 46;
 }
 
 - (BOOL)canAddWall {
-    return self.changes.count < 1 && [self.wallsRemaining[self.currentPlayer] intValue] > 0;
+    return self.changes.count < 1 && [self.wallsRemaining[self.currentPlayer] intValue] + [self.specialWallsRemaining[self.currentPlayer] intValue] > 0;
 }
 
 - (BOOL)canMovePlayer {
