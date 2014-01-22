@@ -25,6 +25,7 @@ const int kSVSquareSize = 46;
 @property (strong) NSMutableDictionary* wallViews;
 @property (strong) SVBoard* board;
 @property (strong) NSArray* playerColors;
+@property (strong) NSMutableArray* wallsRemaining;
 @property (strong) UIView* boardView;
 @property (strong) SVBoardCanvas* boardCanvas;
 
@@ -39,6 +40,9 @@ const int kSVSquareSize = 46;
 @property (assign) kSVWallDirection wallDirection;
 @property (assign) CGPoint lastWallPoint;
 
+@property (strong) UIAlertView* playerDidWinAlert;
+
+- (NSArray*)wallPointsForPosition:(SVPosition*)position withOrientation:(kSVWallOrientation)orientation andDirection:(kSVWallDirection) direction;
 - (void)didPanOnBoard:(UIPanGestureRecognizer*)gestureRecognizer;
 - (void)didTapSquare:(UIGestureRecognizer*)gestureRecognizer;
 - (void)didClickCancel;
@@ -62,6 +66,9 @@ const int kSVSquareSize = 46;
         _squareViews = [[NSMutableDictionary alloc] init];
         _wallViews = [[NSMutableDictionary alloc] init];
         _wallPoints = [[NSMutableArray alloc] init];
+        _wallsRemaining = [[NSMutableArray alloc] init];
+        [_wallsRemaining addObject:[NSNumber numberWithInt:8]];
+        [_wallsRemaining addObject:[NSNumber numberWithInt:8]];
         _board = [[SVBoard alloc] init];
         _turn = 0;
         _changes = [[NSMutableDictionary alloc] init];
@@ -159,6 +166,14 @@ const int kSVSquareSize = 46;
 }
 
 - (void)endTurn {
+    if ([self.board didPlayerWin:self.currentPlayer]) {
+        self.playerDidWinAlert = [[UIAlertView alloc] initWithTitle:@"Congratulation"
+                                                        message:@"Player 1 has won"
+                                                       delegate:self
+                                              cancelButtonTitle:nil
+                                              otherButtonTitles:@"Restart", nil];
+        [self.playerDidWinAlert show];
+    }
     self.turn++;
 }
 
@@ -239,6 +254,7 @@ const int kSVSquareSize = 46;
         }
         else if ([key isEqualToString:@"newWall"]) {
             [self.board addWallAtPosition:[self.changes objectForKey:(key)] withOrientation:self.wallOrientation];
+            self.wallsRemaining[self.currentPlayer] = [NSNumber numberWithInt:[self.wallsRemaining[self.currentPlayer] intValue] - 1];
         }
     }
     [self.changes removeAllObjects];
@@ -380,7 +396,11 @@ const int kSVSquareSize = 46;
     [self startTurn];
 }
 
-- (BOOL)canPlayAction {
+- (BOOL)canAddWall {
+    return self.changes.count < 1 && [self.wallsRemaining[self.currentPlayer] intValue] > 0;
+}
+
+- (BOOL)canMovePlayer {
     return self.changes.count < 1;
 }
 
@@ -390,10 +410,17 @@ const int kSVSquareSize = 46;
 
 - (void)alertView:(UIAlertView*)alertView clickedButtonAtIndex:(NSInteger)index {
     [alertView dismissWithClickedButtonIndex:index animated:true];
+    if (alertView == self.playerDidWinAlert) {
+        SVGameViewController* newGameViewController = [[SVGameViewController alloc] init];
+        [[[UIApplication sharedApplication] delegate] window].rootViewController = newGameViewController;
+    }
 }
 
 - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer {
-    return [self canPlayAction];
+    if ([gestureRecognizer isKindOfClass:[UITapGestureRecognizer class]])
+        return [self canMovePlayer];
+    else
+        return [self canAddWall];
 }
 
 
