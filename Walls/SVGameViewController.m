@@ -330,7 +330,8 @@ const int kSVSquareSize = 46;
             [self.boardCanvas clear];
             
             if ([self.board isWallLegalAtPosition:self.wallPosition withOrientation:self.wallOrientation]) {
-                if (CGPointEqualToPoint(self.lastWallPoint, [self.wallPoints[1] CGPointValue])) {
+                if (abs(self.lastWallPoint.x - [self.wallPoints[1] CGPointValue].x) < 10 &&
+                    abs(self.lastWallPoint.y - [self.wallPoints[1] CGPointValue].y) < 10) {
                     UIView* wallView;
                     
                     if (self.wallOrientation == kSVHorizontalOrientation)
