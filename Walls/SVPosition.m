@@ -28,7 +28,7 @@
 }
 
 - (NSUInteger)hash {
-    return [[self description] hash];
+    return [[NSString stringWithFormat:@"(%d, %d)", self.x, self.y] hash];
 }
 
 - (BOOL)isEqual:(id)object {
