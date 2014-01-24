@@ -11,5 +11,12 @@
 @interface SVWallView : UIView
 @property (assign, readonly) CGRect shownRect;
 
-- (void)showRect:(CGRect)rect animated:(BOOL)animated;
+typedef enum {
+    kSVWallViewHalfCutedLeft,
+    kSVWallViewHalfCutedRight,
+    kSVWallViewRounded
+} kSVWallViewType;
+
+- (id)initWithFrame:(CGRect)frame startType:(kSVWallViewType)start endType:(kSVWallViewType)end;
+- (void)showRect:(CGRect)rect animated:(BOOL)animated withFinishBlock:(void(^)(void))block;
 @end

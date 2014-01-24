@@ -90,7 +90,7 @@
         return;
     
     int length = 92;
-    int thickness = 7;
+    int thickness = 8;
     
     if ((orientation == kSVHorizontalOrientation && wallPosition.x == 1) ||
         (orientation == kSVHorizontalOrientation && wallPosition.x == self.board.size.width - 1))
@@ -125,7 +125,7 @@
                           thickness);
     }
     self.buildingWallViewDirection = direction;
-    self.buildingWallView = [[SVWallView alloc] initWithFrame:rect];
+    self.buildingWallView = [[SVWallView alloc] initWithFrame:rect startType:kSVWallViewRounded endType:kSVWallViewRounded];
     [self.boardView addSubview:self.buildingWallView];
 }
 
@@ -158,7 +158,7 @@
                           self.buildingWallView.frame.size.width - (point.x - self.buildingWallView.frame.origin.x),
                           self.buildingWallView.frame.size.height);
     }
-    [self.buildingWallView showRect:rect animated:NO];
+    [self.buildingWallView showRect:rect animated:NO withFinishBlock:nil];
 }
 
 - (void)boardView:(SVBoardView *)boardView didEndPanAt:(CGPoint)point changeOfDirection:(BOOL)change {
@@ -167,7 +167,7 @@
     
     if (self.buildingWallView.shownRect.size.width >= self.buildingWallView.frame.size.width - 15 &&
         self.buildingWallView.shownRect.size.height >= self.buildingWallView.frame.size.height - 15) {
-        [self.buildingWallView showRect:self.buildingWallView.bounds animated:YES];
+        [self.buildingWallView showRect:self.buildingWallView.bounds animated:YES withFinishBlock:nil];
         //Add wall
     }
     else {
@@ -181,7 +181,9 @@
         else
             rect = CGRectMake(self.buildingWallView.frame.size.width, 0, 0, self.buildingWallView.frame.size.height);
             
-        [self.buildingWallView showRect:rect animated:!change];
+        [self.buildingWallView showRect:rect animated:!change withFinishBlock:^(void){
+            [self.buildingWallView removeFromSuperview];
+        }];
     }
 }
 
