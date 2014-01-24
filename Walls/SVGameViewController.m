@@ -18,8 +18,6 @@ typedef enum {
     kSVBottomDirection
 } kSVWallDirection;
 
-const int kSVSquareSize = 46;
-
 @interface SVGameViewController ()
 @property (strong) NSMutableDictionary* squareViews;
 @property (strong) NSMutableDictionary* wallViews;
@@ -84,7 +82,9 @@ const int kSVSquareSize = 46;
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    self.boardView = [[UIView alloc] initWithFrame:CGRectMake(0, 40, 320, self.board.size.height * kSVSquareSize)];
+    self.view.backgroundColor = [[UIColor alloc] initWithRed:0.44 green:0.44 blue:0.44 alpha:1.0];
+    
+    self.boardView = [[UIView alloc] initWithFrame:CGRectMake(0, 40, 320, 400)];
     UIPanGestureRecognizer* gestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(didPanOnBoard:)];
     gestureRecognizer.minimumNumberOfTouches = 1;
     gestureRecognizer.maximumNumberOfTouches = 1;
@@ -92,41 +92,39 @@ const int kSVSquareSize = 46;
     [self.boardView addGestureRecognizer:gestureRecognizer];
     [self.view addSubview:self.boardView];
     
+    SVSquareView* lastSquareView;
     for (int i = 0; i < self.board.size.height; i++) {
         for (int j = 0; j < self.board.size.width; j++) {
-            CGSize squareSize;
-            //Due to square with different sizes
-            int xOffset = 0;
+            CGPoint origin = CGPointZero;
+            kSVSquareViewType type;
+            kSVSquareViewColor color;
             
-            if (j == 0 || j == self.board.size.height - 1)
-                squareSize = CGSizeMake(kSVSquareSize - 1, kSVSquareSize);
-            else {
-                squareSize = CGSizeMake(kSVSquareSize, kSVSquareSize);
-                xOffset = -1;
+            if (lastSquareView && j == 0) {
+                origin.y = CGRectGetMaxY(lastSquareView.frame);
+            }
+            else if (lastSquareView) {
+                origin.x = CGRectGetMaxX(lastSquareView.frame);
+                origin.y = CGRectGetMinY(lastSquareView.frame);
             }
             
-            SVSquareView* squareView = [[SVSquareView alloc] initWithFrame:CGRectMake(j * kSVSquareSize + xOffset,
-                                                                                      i * kSVSquareSize,
-                                                                                      squareSize.width,
-                                                                                      squareSize.height)];
             if ((i + j) % 2 == 0)
-                squareView.backgroundColor = [UIColor colorWithWhite:0.6 alpha:1.0];
+                color = kSVSquareViewLight;
             else
-                squareView.backgroundColor = [UIColor colorWithWhite:0.8 alpha:1.0];
+                color = kSVSquareViewDark;
             
+            if (j == 0)
+                type = kSVSquareViewLeft;
+            else if (j == self.board.size.width - 1)
+                type = kSVSquareViewRight;
+            else
+                type = kSVSquareViewCenter;
+            
+            SVSquareView* squareView = [[SVSquareView alloc] initWithOrigin:origin type:type andColor:color];
+            lastSquareView = squareView;
             [self.squareViews setObject:squareView forKey:[[SVPosition alloc] initWithX:j andY:i]];
-            
-            UITapGestureRecognizer* gestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(didTapSquare:)];
-            [squareView addGestureRecognizer:gestureRecognizer];
-            gestureRecognizer.delegate = self;
             [self.boardView addSubview:squareView];
         }
     }
-    
-    SVSquareView* player1View = [self.squareViews objectForKey:self.board.playerPositions[kSVPlayer1]];
-    player1View.backgroundColor = self.playerColors[kSVPlayer1];
-    SVSquareView* player2View = [self.squareViews objectForKey:self.board.playerPositions[kSVPlayer2]];
-    player2View.backgroundColor = self.playerColors[kSVPlayer2];
     
     self.boardCanvas = [[SVBoardCanvas alloc] initWithFrame:self.boardView.bounds];
     self.boardCanvas.userInteractionEnabled = NO;
@@ -186,42 +184,42 @@ const int kSVSquareSize = 46;
     NSArray* array;
     CGPoint start;
     CGPoint end;
-    if (orientation == kSVHorizontalOrientation) {
-        CGPoint left;
-        CGPoint right;
-        if (position.x == 1) {
-            left = CGPointMake(0, position.y * kSVSquareSize);
-            right = CGPointMake(2 * kSVSquareSize - 1, left.y);
-        }
-        else if (position.x == self.board.size.width - 1) {
-            left = CGPointMake((position.x - 1) * kSVSquareSize - 1, position.y * kSVSquareSize);
-            right = CGPointMake(left.x + 2 * kSVSquareSize - 1, left.y);
-        }
-        else {
-            left = CGPointMake((position.x - 1) * kSVSquareSize - 1, position.y * kSVSquareSize);
-            right = CGPointMake(left.x + 2 * kSVSquareSize, left.y);
-        }
-        if (direction == kSVLeftDirection) {
-            start = right;
-            end = left;
-        }
-        else {
-            start = left;
-            end = right;
-        }
-    }
-    else {
-        CGPoint top = CGPointMake(position.x * kSVSquareSize - 1, (position.y - 1) * kSVSquareSize);
-        CGPoint bottom = CGPointMake(top.x, top.y + 2 * kSVSquareSize);
-        if (direction == kSVTopDirection) {
-            start = bottom;
-            end = top;
-        }
-        else {
-            start = top;
-            end = bottom;
-        }
-    }
+//    if (orientation == kSVHorizontalOrientation) {
+//        CGPoint left;
+//        CGPoint right;
+//        if (position.x == 1) {
+//            left = CGPointMake(0, position.y * kSquareViewSize);
+//            right = CGPointMake(2 * kSquareViewSize - 1, left.y);
+//        }
+//        else if (position.x == self.board.size.width - 1) {
+//            left = CGPointMake((position.x - 1) * kSquareViewSize - 1, position.y * kSquareViewSize);
+//            right = CGPointMake(left.x + 2 * kSquareViewSize - 1, left.y);
+//        }
+//        else {
+//            left = CGPointMake((position.x - 1) * kSquareViewSize - 1, position.y * kSquareViewSize);
+//            right = CGPointMake(left.x + 2 * kSquareViewSize, left.y);
+//        }
+//        if (direction == kSVLeftDirection) {
+//            start = right;
+//            end = left;
+//        }
+//        else {
+//            start = left;
+//            end = right;
+//        }
+//    }
+//    else {
+//        CGPoint top = CGPointMake(position.x * kSquareViewSize - 1, (position.y - 1) * kSquareViewSize);
+//        CGPoint bottom = CGPointMake(top.x, top.y + 2 * kSquareViewSize);
+//        if (direction == kSVTopDirection) {
+//            start = bottom;
+//            end = top;
+//        }
+//        else {
+//            start = top;
+//            end = bottom;
+//        }
+//    }
     array = [[NSArray alloc] initWithObjects:[NSValue valueWithCGPoint:start],
                                              [NSValue valueWithCGPoint:end], nil];
     return array;
@@ -283,8 +281,10 @@ const int kSVSquareSize = 46;
     if (gestureRecognizer.state == UIGestureRecognizerStateBegan) {
         //Find wall position and end points
         CGPoint velocity = [gestureRecognizer velocityInView:self.boardView];
-        int x = round(touchPoint.x / kSVSquareSize);
-        int y = round(touchPoint.y / kSVSquareSize);
+      //  int x = round(touchPoint.x / kSquareViewSize);
+       // int y = round(touchPoint.y / kSquareViewSize);
+        int x;
+        int y;
         
         if (abs(velocity.x) > abs(velocity.y)) {
             x = velocity.x > 0 ? x + 1: x - 1;

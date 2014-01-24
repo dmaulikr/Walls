@@ -8,6 +8,17 @@
 
 #import <UIKit/UIKit.h>
 
-@interface SVSquareView : UIView
+typedef enum {
+    kSVSquareViewLeft,
+    kSVSquareViewCenter,
+    kSVSquareViewRight
+} kSVSquareViewType;
 
+typedef enum {
+    kSVSquareViewLight,
+    kSVSquareViewDark
+} kSVSquareViewColor;
+
+@interface SVSquareView : UIView
+- (id)initWithOrigin:(CGPoint)origin type:(kSVSquareViewType)type andColor:(kSVSquareViewColor)color;
 @end
