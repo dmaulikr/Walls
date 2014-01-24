@@ -9,10 +9,16 @@
 #import <UIKit/UIKit.h>
 
 typedef enum {
-    kSVSquareViewLeft,
-    kSVSquareViewCenter,
-    kSVSquareViewRight
-} kSVSquareViewType;
+    kSVSquareViewColLeft,
+    kSVSquareViewColCenter,
+    kSVSquareViewColRight
+} kSVSquareViewCol;
+
+typedef enum {
+    kSVSquareViewRowTop,
+    kSVSquareViewRowCenter,
+    kSVSquareViewRowBottom
+} kSVSquareViewRow;
 
 typedef enum {
     kSVSquareViewLight,
@@ -20,5 +26,5 @@ typedef enum {
 } kSVSquareViewColor;
 
 @interface SVSquareView : UIView
-- (id)initWithOrigin:(CGPoint)origin type:(kSVSquareViewType)type andColor:(kSVSquareViewColor)color;
+- (id)initWithOrigin:(CGPoint)origin row:(kSVSquareViewRow)row col:(kSVSquareViewCol)col andColor:(kSVSquareViewColor)color;
 @end

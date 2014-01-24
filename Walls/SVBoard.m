@@ -21,7 +21,7 @@
 - (id)init {
     self = [super init];
     if (self) {
-        _size = CGSizeMake(7, 10);
+        _size = CGSizeMake(7, 9);
         _walls = [[NSMutableDictionary alloc] init];
         _playerPositions = [[NSMutableArray alloc] init];
         [_playerPositions addObject:[[SVPosition alloc] initWithX:floor(_size.width / 2) andY:_size.height - 1]];

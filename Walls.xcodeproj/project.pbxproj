@@ -18,6 +18,9 @@
 		4D06AC82188A976C00ED425F /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D06AC67188A976C00ED425F /* Foundation.framework */; };
 		4D06AC83188A976C00ED425F /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D06AC6B188A976C00ED425F /* UIKit.framework */; };
 		4D06AC8B188A976C00ED425F /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 4D06AC89188A976C00ED425F /* InfoPlist.strings */; };
+		4D154D841892B97100E8E303 /* SVPawnView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D154D831892B97100E8E303 /* SVPawnView.m */; };
+		4D154D871892BB0E00E8E303 /* SVBoardView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D154D861892BB0E00E8E303 /* SVBoardView.m */; };
+		4D154D8A1892D25500E8E303 /* SVWallView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D154D891892D25500E8E303 /* SVWallView.m */; };
 		4D1CEBF8189140D200757A75 /* GameKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D1CEBF7189140D200757A75 /* GameKit.framework */; };
 		4D499E45188AAA13000A48C6 /* SVBoard.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D499E44188AAA13000A48C6 /* SVBoard.m */; };
 		4DA11951188D89AB008A8688 /* SVGameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DA11950188D89AB008A8688 /* SVGameViewController.m */; };
@@ -56,6 +59,12 @@
 		4D06AC80188A976C00ED425F /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		4D06AC88188A976C00ED425F /* WallsTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "WallsTests-Info.plist"; sourceTree = "<group>"; };
 		4D06AC8A188A976C00ED425F /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		4D154D821892B97100E8E303 /* SVPawnView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVPawnView.h; sourceTree = "<group>"; };
+		4D154D831892B97100E8E303 /* SVPawnView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVPawnView.m; sourceTree = "<group>"; };
+		4D154D851892BB0E00E8E303 /* SVBoardView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVBoardView.h; sourceTree = "<group>"; };
+		4D154D861892BB0E00E8E303 /* SVBoardView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVBoardView.m; sourceTree = "<group>"; };
+		4D154D881892D25500E8E303 /* SVWallView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVWallView.h; sourceTree = "<group>"; };
+		4D154D891892D25500E8E303 /* SVWallView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVWallView.m; sourceTree = "<group>"; };
 		4D1CEBF7189140D200757A75 /* GameKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameKit.framework; path = System/Library/Frameworks/GameKit.framework; sourceTree = SDKROOT; };
 		4D499E43188AAA13000A48C6 /* SVBoard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVBoard.h; sourceTree = "<group>"; };
 		4D499E44188AAA13000A48C6 /* SVBoard.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVBoard.m; sourceTree = "<group>"; };
@@ -205,8 +214,14 @@
 			children = (
 				4DA11952188D89D7008A8688 /* SVSquareView.h */,
 				4DA11953188D89D7008A8688 /* SVSquareView.m */,
+				4D154D851892BB0E00E8E303 /* SVBoardView.h */,
+				4D154D861892BB0E00E8E303 /* SVBoardView.m */,
 				4DA11955188EAA0D008A8688 /* SVBoardCanvas.h */,
 				4DA11956188EAA0D008A8688 /* SVBoardCanvas.m */,
+				4D154D821892B97100E8E303 /* SVPawnView.h */,
+				4D154D831892B97100E8E303 /* SVPawnView.m */,
+				4D154D881892D25500E8E303 /* SVWallView.h */,
+				4D154D891892D25500E8E303 /* SVWallView.m */,
 			);
 			name = Views;
 			sourceTree = "<group>";
@@ -315,12 +330,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4D154D8A1892D25500E8E303 /* SVWallView.m in Sources */,
 				4D499E45188AAA13000A48C6 /* SVBoard.m in Sources */,
 				4DA11951188D89AB008A8688 /* SVGameViewController.m in Sources */,
+				4D154D871892BB0E00E8E303 /* SVBoardView.m in Sources */,
 				4DE07FF7188C477D00A3251A /* SVPosition.m in Sources */,
 				4D06AC74188A976C00ED425F /* main.m in Sources */,
 				4DD226F51890295D0095D71D /* SVWall.m in Sources */,
 				4DA11957188EAA0D008A8688 /* SVBoardCanvas.m in Sources */,
+				4D154D841892B97100E8E303 /* SVPawnView.m in Sources */,
 				4DA11954188D89D7008A8688 /* SVSquareView.m in Sources */,
 				4D06AC78188A976C00ED425F /* SVAppDelegate.m in Sources */,
 			);
