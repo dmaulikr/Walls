@@ -12,11 +12,15 @@
 @property (assign, readonly) CGRect shownRect;
 
 typedef enum {
-    kSVWallViewHalfCutedLeft,
-    kSVWallViewHalfCutedRight,
+    kSVWallViewTopOriented,
+    kSVWallViewBottomOriented,
     kSVWallViewRounded
 } kSVWallViewType;
 
-- (id)initWithFrame:(CGRect)frame startType:(kSVWallViewType)start endType:(kSVWallViewType)end;
+- (id)initWithFrame:(CGRect)frame startType:(kSVWallViewType)start
+            endType:(kSVWallViewType)end
+          leftColor:(UIColor*)leftColor
+        centerColor:(UIColor*)centerColor
+        rightColor:(UIColor*)rightColor;
 - (void)showRect:(CGRect)rect animated:(BOOL)animated withFinishBlock:(void(^)(void))block;
 @end

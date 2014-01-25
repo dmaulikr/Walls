@@ -29,6 +29,7 @@
 
 @property (strong) UIAlertView* playerDidWinAlert;
 @property (strong) SVWallView* wall;
+@property (strong, readonly) UIColor* normalWallColor;
 
 - (void)didTapSquare:(UIGestureRecognizer*)gestureRecognizer;
 - (void)didClickCancel;
@@ -56,6 +57,7 @@
         _specialWallsRemaining = [[NSMutableArray alloc] init];
         [_specialWallsRemaining addObject:[NSNumber numberWithInt:2]];
         [_specialWallsRemaining addObject:[NSNumber numberWithInt:2]];
+        _normalWallColor = [UIColor colorWithRed:0.64 green:0.64 blue:0.64 alpha:1.0];
         _board = [[SVBoard alloc] init];
         _turn = 0;
         _changes = [[NSMutableDictionary alloc] init];
@@ -125,7 +127,9 @@
                           thickness);
     }
     self.buildingWallViewDirection = direction;
-    self.buildingWallView = [[SVWallView alloc] initWithFrame:rect startType:kSVWallViewRounded endType:kSVWallViewRounded];
+    self.buildingWallView = [[SVWallView alloc] initWithFrame:rect
+                                                    startType:kSVWallViewTopOriented
+                                                      endType:kSVWallViewBottomOriented leftColor:self.normalWallColor centerColor:[UIColor blueColor] rightColor:self.normalWallColor];
     [self.boardView addSubview:self.buildingWallView];
 }
 
