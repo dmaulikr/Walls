@@ -75,29 +75,27 @@ const int kSVSquareViewSize = 46;
         [path fill];
     }
     
-    float topWidth = 0.5;
-    float bottomWidth = 0.5;
+    float borderWidth = 0.5;
     
-    if (self.row == kSVSquareViewRowTop)
-        topWidth = 1;
-    else if (self.row == kSVSquareViewRowBottom)
-        bottomWidth = 1;
+    if (self.row != kSVSquareViewRowTop) {
+        path = [UIBezierPath bezierPath];
+        [path moveToPoint:CGPointMake(0, 0)];
+        [path addLineToPoint:CGPointMake(self.frame.size.width, 0)];
+        [path addLineToPoint:CGPointMake(self.frame.size.width, borderWidth)];
+        [path addLineToPoint:CGPointMake(0, 0.5)];
+        [path closePath];
+        [path fill];
+    }
     
-    path = [UIBezierPath bezierPath];
-    [path moveToPoint:CGPointMake(0, 0)];
-    [path addLineToPoint:CGPointMake(self.frame.size.width, 0)];
-    [path addLineToPoint:CGPointMake(self.frame.size.width, topWidth)];
-    [path addLineToPoint:CGPointMake(0, topWidth)];
-    [path closePath];
-    [path fill];
-    
-    path = [UIBezierPath bezierPath];
-    [path moveToPoint:CGPointMake(0, self.frame.size.height - bottomWidth)];
-    [path addLineToPoint:CGPointMake(self.frame.size.width, self.frame.size.height - bottomWidth)];
-    [path addLineToPoint:CGPointMake(self.frame.size.width, self.frame.size.height)];
-    [path addLineToPoint:CGPointMake(0, self.frame.size.height)];
-    [path closePath];
-    [path fill];
+    if (self.row != kSVSquareViewRowBottom) {
+        path = [UIBezierPath bezierPath];
+        [path moveToPoint:CGPointMake(0, self.frame.size.height - borderWidth)];
+        [path addLineToPoint:CGPointMake(self.frame.size.width, self.frame.size.height - borderWidth)];
+        [path addLineToPoint:CGPointMake(self.frame.size.width, self.frame.size.height)];
+        [path addLineToPoint:CGPointMake(0, self.frame.size.height)];
+        [path closePath];
+        [path fill];
+    }
 }
 
 - (void)didTap:(UITapGestureRecognizer*)gestureRecognizer {
