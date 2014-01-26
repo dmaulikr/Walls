@@ -13,9 +13,6 @@
 @property (assign) CGRect shownRect;
 @property (assign, readonly) kSVWallViewType startType;
 @property (assign, readonly) kSVWallViewType endType;
-@property (strong, readonly) UIColor* leftColor;
-@property (strong, readonly) UIColor* centerColor;
-@property (strong, readonly) UIColor* rightColor;
 
 @property (strong) void(^maskAnimationBlock)(void);
 
@@ -115,6 +112,15 @@
         [self.leftColor setFill];
         [leftTop fill];
     }
+    else if (self.startType == kSVWallViewSquared) {
+        UIBezierPath* left = [UIBezierPath bezierPathWithRect:CGRectMake(0, 0, height / 2, height)];
+        [self.leftColor setFill];
+        [left fill];
+        
+        UIBezierPath* leftRight = [UIBezierPath bezierPathWithRect:CGRectMake(height / 2, 0, height / 2, height)];
+        [self.centerColor setFill];
+        [leftRight fill];
+    }
     
     //Center
     UIBezierPath* center = [UIBezierPath bezierPathWithRect:CGRectMake(height, 0, width - 2 * height, height)];
@@ -171,74 +177,44 @@
         [self.rightColor setFill];
         [rightTop fill];
     }
+    
+    else if (self.endType == kSVWallViewSquared) {
+        UIBezierPath* rightLeft = [UIBezierPath bezierPathWithRect:CGRectMake(width - height, 0, height / 2, height)];
+        [self.centerColor setFill];
+        [rightLeft fill];
+        
+        UIBezierPath* right = [UIBezierPath bezierPathWithRect:CGRectMake(width - height / 2, 0, height / 2, height)];
+        [self.rightColor setFill];
+        [right fill];
+    }
 }
 
 - (UIBezierPath*)pathForRect:(CGRect)rect {
-    //Trick to avoid transformation of wall because of flat rect
-    if (rect.origin.x == 0 && rect.origin.y == 0 && rect.size.width == 0) {
-        rect.origin.x = -20;
-        rect.size.width = 20;
-    }
-    else if (rect.origin.x == self.frame.size.width && rect.origin.y == 0 && rect.size.width == 0) {
-        rect.size.width = 20;
-    }
-    else if (rect.origin.x == 0 && rect.origin.y == self.frame.size.height && rect.size.height == 0) {
-        rect.size.height = 20;
-    }
-    else if (rect.origin.x == 0 && rect.origin.y == 0 && rect.size.height == 0) {
-        rect.origin.y = -20;
-        rect.size.height = 20;
-    }
+    //Trick to avoid transformation of wall because of flat rect and to show all the wall even with rounded rect
+    BOOL horizontal = self.frame.size.width > self.frame.size.height;
+    float height = self.frame.size.width > self.frame.size.height ? self.frame.size.height : self.frame.size.width;
     
-    //Change the path to non rounded if next to extremity
-    float width;
-    float height;
-    float rectWidth;
-    float rectHeight;
-    if (self.frame.size.width > self.frame.size.height) {
-        width = self.frame.size.width;
-        height = self.frame.size.height;
-        rectWidth = rect.size.width;
-        rectHeight = rect.size.height;
-    }
-    else {
-        width = self.frame.size.height;
-        height = self.frame.size.width;
-        rectWidth = rect.size.height;
-        rectHeight = rect.size.width;
-    }
-    
-    UIBezierPath* path;
-    
-    if (rectWidth < width - height / 2 && rectWidth > height / 2) {
-        if (self.frame.size.width > self.frame.size.height) {
-            if (CGPointEqualToPoint(rect.origin, CGPointZero)) {
-                path = [UIBezierPath bezierPathWithRoundedRect:rect
-                                             byRoundingCorners:UIRectCornerTopRight | UIRectCornerBottomRight
-                                                   cornerRadii:CGSizeMake(height/2, height/2)];
-            }
-            else {
-                path = [UIBezierPath bezierPathWithRoundedRect:rect
-                                             byRoundingCorners:UIRectCornerTopLeft| UIRectCornerBottomLeft
-                                                   cornerRadii:CGSizeMake(height/2, height/2)];
-            }
+    if (horizontal) {
+        if (rect.origin.x == 0) {
+            rect.origin.x -= height;
+            rect.size.width += height;
         }
-        else {
-            if (CGPointEqualToPoint(rect.origin, CGPointZero)) {
-                path = [UIBezierPath bezierPathWithRoundedRect:rect
-                                             byRoundingCorners:UIRectCornerBottomLeft | UIRectCornerBottomRight
-                                                   cornerRadii:CGSizeMake(height/2, height/2)];
-            }
-            else {
-                path = [UIBezierPath bezierPathWithRoundedRect:rect
-                                             byRoundingCorners:UIRectCornerTopLeft| UIRectCornerTopRight
-                                                   cornerRadii:CGSizeMake(height/2, height/2)];
-            }
+        if (rect.origin.x + rect.size.width == self.frame.size.width) {
+            rect.size.width += height;
         }
     }
-    else {
-        path = [UIBezierPath bezierPathWithRect:rect];
+    
+    if (!horizontal) {
+        if (rect.origin.y == 0) {
+            rect.origin.y -= height;
+            rect.size.height += height;
+        }
+        if (rect.origin.y + rect.size.height == self.frame.size.height) {
+            rect.size.height += height;
+        }
     }
+
+    UIBezierPath* path  = [UIBezierPath bezierPathWithRoundedRect:rect cornerRadius:height / 2];
     return path;
 }
 
@@ -253,14 +229,14 @@
     if (animated) {
         CGPathRef newPath = [self pathForRect:rect].CGPath;
         CABasicAnimation* animation = [CABasicAnimation animationWithKeyPath:@"path"];
-        animation.duration = 0.15;
+        animation.duration = 2;
         animation.fromValue = (__bridge id)(self.mask.path);
         animation.toValue = (__bridge id)newPath;
         animation.delegate = self;
         [animation setValue:@"SVWallViewMaskAnimation" forKey:@"id"];
         self.maskAnimationBlock = block;
         [self.mask addAnimation:animation forKey:@"SVWallViewMaskAnimation"];
-        self.mask.path = [self pathForRect:rect].CGPath;
+        self.mask.path = newPath;
     }
     else {
         self.mask.path = [self pathForRect:rect].CGPath;

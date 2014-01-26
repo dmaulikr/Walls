@@ -25,5 +25,7 @@ typedef enum {
 - (BOOL)isWallLegalAtPosition:(SVPosition*)position withOrientation:(kSVWallOrientation)orientation andType:(kSVWallType)type;
 - (void)addWallAtPosition:(SVPosition*)position withOrientation:(kSVWallOrientation)orientation andType:(kSVWallType)type;
 - (BOOL)didPlayerWin:(kSVPlayer)player;
+- (SVWall*)wallAtPosition:(SVPosition*)position withOrientation:(kSVWallOrientation)orientation;
+
 
 @end

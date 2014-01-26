@@ -10,11 +10,15 @@
 
 @interface SVWallView : UIView
 @property (assign, readonly) CGRect shownRect;
+@property (strong, readonly) UIColor* leftColor;
+@property (strong, readonly) UIColor* centerColor;
+@property (strong, readonly) UIColor* rightColor;
 
 typedef enum {
     kSVWallViewTopOriented,
     kSVWallViewBottomOriented,
-    kSVWallViewRounded
+    kSVWallViewRounded,
+    kSVWallViewSquared
 } kSVWallViewType;
 
 - (id)initWithFrame:(CGRect)frame startType:(kSVWallViewType)start

@@ -544,4 +544,27 @@
     XCTAssertTrue([board didPlayerWin:kSVPlayer1], @"Player 1 should have won");
     XCTAssertTrue([board didPlayerWin:kSVPlayer2], @"Player 2 should have won");
 }
+
+- (void)testWallAtPositionFail {
+    SVPosition* position = [[SVPosition alloc] initWithX:2 andY:3];
+    SVWall* wall = [[SVWall alloc] initWithPosition:position orientation:kSVHorizontalOrientation andType:kSVWallNormal];
+    SVBoard* board = [[SVBoard alloc] init];
+    [board.walls setObject:wall forKey:position];
+    XCTAssertEqualObjects(wall, [board wallAtPosition:position withOrientation:kSVHorizontalOrientation], @"Wall not retrieved");
+}
+
+- (void)testWallAtPositionSuccess {
+    SVWall* wall;
+    SVPosition* position;
+    SVBoard* board;
+    
+    board = [[SVBoard alloc] init];
+    XCTAssertNil([board wallAtPosition:position withOrientation:kSVHorizontalOrientation], @"Wall not nil");
+    
+    position = [[SVPosition alloc] initWithX:2 andY:3];
+    wall = [[SVWall alloc] initWithPosition:position orientation:kSVHorizontalOrientation andType:kSVWallNormal];
+    board = [[SVBoard alloc] init];
+    [board.walls setObject:wall forKey:position];
+    XCTAssertNil([board wallAtPosition:position withOrientation:kSVVerticalOrientation], @"Wall not nil");
+}
 @end

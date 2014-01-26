@@ -182,6 +182,14 @@
     return ((SVPosition*)self.playerPositions[player]).y == [self.playerGoalsY[player] intValue];
 }
 
+- (SVWall*)wallAtPosition:(SVPosition *)position withOrientation:(kSVWallOrientation)orientation {
+    SVWall* wall = [self.walls objectForKey:position];
+    if (wall && wall.orientation == orientation)
+        return wall;
+    else
+        return nil;
+}
+
 //////////////////////////////////////////////////////
 // Private
 //////////////////////////////////////////////////////
