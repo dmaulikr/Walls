@@ -11,6 +11,7 @@
 #import "SVWallView.h"
 #import "SVCustomView.h"
 #import "SVTheme.h"
+#import "SVColorButton.h"
 
 @interface SVGameViewController ()
 
@@ -24,7 +25,7 @@
 @property (strong) NSMutableDictionary* wallViews;
 @property (strong) SVBoardView* boardView;
 @property (strong) UIView* topView;
-@property (strong) SVCustomView* infoView;
+@property (strong) UIView* infoView;
 @property (strong) UIView* bottomView;
 
 //Turn info
@@ -41,6 +42,8 @@
 - (void)commitChanges;
 - (void)startTurn;
 - (void)endTurn;
+- (void)didClickColorButton:(id)sender;
+- (void)didSwipeBottomView;
 @end
 
 @implementation SVGameViewController
@@ -53,14 +56,6 @@
 {
     self = [super init];
     if (self) {
-        SVTheme* theme = [SVTheme sharedTheme];
-        theme.player1Color = [UIColor colorWithRed:0.44 green:0.76 blue:0.95 alpha:1.0];
-        theme.player2Color = [UIColor colorWithRed:0.4 green:0.82 blue:0.53 alpha:1.0];
-        theme.lightSquareColor = [[UIColor alloc] initWithRed:0.44 green:0.44 blue:0.44 alpha:1.0];
-        theme.darkSquareColor = [[UIColor alloc] initWithRed:0.41 green:0.41 blue:0.41 alpha:1.0];
-        theme.squareBorderColor = [[UIColor alloc] initWithRed:0.46 green:0.46 blue:0.46 alpha:1.0];
-        theme.normalWallColor = [[UIColor alloc] initWithRed:0.64 green:0.64 blue:0.64 alpha:1.0];
-        
         _wallViews = [[NSMutableDictionary alloc] init];
         _wallsRemaining = [[NSMutableArray alloc] init];
         [_wallsRemaining addObject:[NSNumber numberWithInt:6]];
@@ -73,7 +68,7 @@
         _board = [[SVBoard alloc] init];
         _turn = 0;
         _turnChanges = [[NSMutableDictionary alloc] init];
-        _playerColors = [[NSArray alloc] initWithObjects:theme.player1Color, theme.player2Color, nil];
+        _playerColors = [[NSArray alloc] initWithObjects:[SVTheme sharedTheme].player1Color, [SVTheme sharedTheme].player2Color, nil];
     }
     return self;
 }
@@ -81,26 +76,91 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    
+    //Top
     self.topView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 49)];
     self.topView.backgroundColor = self.playerColors[1];
     [self.view addSubview:self.topView];
+    UILabel* topLabel = [[UILabel alloc] initWithFrame:CGRectMake((self.topView.frame.size.width - 200) / 2,
+                                                                  (self.topView.frame.size.height - 30) / 2,
+                                                                  200,
+                                                                  30)];
+    NSMutableAttributedString *topString = [[NSMutableAttributedString alloc] initWithString:@"Walls"];
+    [topString addAttribute:NSKernAttributeName value:@3 range:NSMakeRange(0, 4)];
+    topLabel.attributedText = topString;
+    topLabel.textColor = [UIColor whiteColor];
+    topLabel.textAlignment = NSTextAlignmentCenter;
+    topLabel.font = [UIFont fontWithName:@"HelveticaNeue" size:24];
+    [self.topView addSubview:topLabel];
     
-    self.boardView = [[SVBoardView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.topView.frame), self.view.frame.size.width, 414)];
+    //Board
+    self.boardView = [[SVBoardView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.topView.frame), self.view.frame.size.width, 415)];
     self.boardView.delegate = self;
     [self.view addSubview:self.boardView];
     
-    self.infoView = [[SVCustomView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.boardView.frame), self.view.frame.size.width, 45)];
-    self.infoView.backgroundColor = [SVTheme sharedTheme].lightSquareColor;
-    [self.infoView drawBlock:^(CGContextRef context) {
-        UIBezierPath* path = [UIBezierPath bezierPathWithRect:CGRectMake(0, 0, self.view.frame.size.width, 1)];
-        [[SVTheme sharedTheme].squareBorderColor setFill];
-        [path fill];
-    }];
+    //Info
+    self.infoView = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.boardView.frame), self.view.frame.size.width, 44)];
+    self.infoView.backgroundColor = [SVTheme sharedTheme].darkSquareColor;
     [self.view addSubview:self.infoView];
     
+    SVCustomView* player1Circle = [[SVCustomView alloc] initWithFrame:CGRectMake(7, (self.infoView.frame.size.height - 24) / 2, 24, 24)];
+    [player1Circle drawBlock:^(CGContextRef context) {
+        UIBezierPath* largeCircle = [UIBezierPath bezierPathWithOvalInRect:player1Circle.bounds];
+        [[UIColor whiteColor] setFill];
+        [largeCircle fill];
+        
+        UIBezierPath* smallCircle = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(2, 2, player1Circle.bounds.size.width - 4, player1Circle.bounds.size.height - 4)];
+        [[SVTheme sharedTheme].player1Color setFill];
+        [smallCircle fill];
+    }];
+    [self.infoView addSubview:player1Circle];
+    UILabel* player1Label = [[UILabel alloc] initWithFrame:CGRectMake(2,
+                                                                      2,
+                                                                      player1Circle.frame.size.width - 4,
+                                                                      player1Circle.frame.size.height - 4)];
+    player1Label.textAlignment = NSTextAlignmentCenter;
+    player1Label.textColor = [UIColor whiteColor];
+    player1Label.font = [UIFont fontWithName:@"HelveticaNeue-Bold" size:10];
+    player1Label.text = @"SV";
+    player1Label.numberOfLines = 1;
+    [player1Circle addSubview:player1Label];
+    
+    SVCustomView* player2Circle = [[SVCustomView alloc] initWithFrame:CGRectMake(self.infoView.frame.size.width - 7 - 24,
+                                                                                 (self.infoView.frame.size.height - 24) / 2, 24, 24)];
+    [player2Circle drawBlock:^(CGContextRef context) {
+        UIBezierPath* largeCircle = [UIBezierPath bezierPathWithOvalInRect:player2Circle.bounds];
+        [[UIColor whiteColor] setFill];
+        [largeCircle fill];
+        
+        UIBezierPath* smallCircle = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(2, 2, player2Circle.bounds.size.width - 4, player2Circle.bounds.size.height - 4)];
+        [[SVTheme sharedTheme].player2Color setFill];
+        [smallCircle fill];
+    }];
+    [self.infoView addSubview:player2Circle];
+    UILabel* player2Label = [[UILabel alloc] initWithFrame:CGRectMake(2,
+                                                                      2,
+                                                                      player1Circle.frame.size.width - 4,
+                                                                      player1Circle.frame.size.height - 4)];
+    player2Label.textAlignment = NSTextAlignmentCenter;
+    player2Label.textColor = [UIColor whiteColor];
+    player2Label.font = [UIFont fontWithName:@"HelveticaNeue-Bold" size:10];
+    player2Label.text = @"MV";
+    player2Label.numberOfLines = 1;
+    [player2Circle addSubview:player2Label];
+    
+    SVColorButton* button = [[SVColorButton alloc] initWithFrame:CGRectMake((self.infoView.frame.size.width -  42) / 2,
+                                                                            (self.infoView.frame.size.height - 26) / 2, 42, 26)];
+    [button addTarget:self action:@selector(didClickColorButton:) forControlEvents:UIControlEventTouchUpInside];
+    [self.infoView addSubview:button];
+    
+    //Bottom
     self.bottomView = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.infoView.frame), self.view.frame.size.width, self.view.frame.size.height - CGRectGetMaxY(self.infoView.frame))];
     self.bottomView.backgroundColor = self.playerColors[1];
     [self.view addSubview:self.bottomView];
+    UISwipeGestureRecognizer* gestureRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(didSwipeBottomView)];
+    gestureRecognizer.numberOfTouchesRequired = 1;
+    gestureRecognizer.direction = UISwipeGestureRecognizerDirectionLeft;
+    [self.bottomView addGestureRecognizer:gestureRecognizer];
 }
 
 - (void)didReceiveMemoryWarning
@@ -244,7 +304,33 @@
 }
 
 - (void)commitChanges {
+    if ([self.turnChanges objectForKey:@"wall"]) {
+        NSDictionary* dictionary = [self.turnChanges objectForKey:@"wall"];
+        SVPosition* wallPosition = [dictionary objectForKey:@"position"];
+        [self.wallViews setObject:[dictionary objectForKey:@"view"] forKey:wallPosition];
+        [self.board addWallAtPosition:wallPosition
+                      withOrientation:((NSNumber*)[dictionary objectForKey:@"orientation"]).intValue
+                              andType:((NSNumber*)[dictionary objectForKey:@"type"]).intValue];
+    }
 }
+
+//////////////////////////////////////////////////////
+// Buttons targets
+//////////////////////////////////////////////////////
+
+- (void)didClickColorButton:(id)sender {
+    UIButton* button = (UIButton*)sender;
+    button.selected = !button.selected;
+    if (button.selected)
+        self.selectedWallColor = self.playerColors[self.currentPlayer];
+    else
+        self.selectedWallColor = self.normalWallColor;
+}
+
+- (void)didSwipeBottomView {
+    [self commitChanges];
+}
+
 
 //////////////////////////////////////////////////////
 // Delegates
@@ -375,6 +461,7 @@
     if (wallView.shownRect.size.width >= wallView.frame.size.width - 15 &&
         wallView.shownRect.size.height >= wallView.frame.size.height - 15) {
         [wallView showRect:wallView.bounds animated:YES withFinishBlock:nil];
+        [self.turnChanges setObject:self.buildingWallInfo forKey:@"wall"];
     }
     else {
         CGRect rect;

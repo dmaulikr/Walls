@@ -7,6 +7,7 @@
 //
 
 #import "SVBoardView.h"
+#import "SVTheme.h"
 
 @interface SVBoardView ()
 @property (strong) NSMutableArray* squareIntersections;
@@ -193,13 +194,11 @@
     }
 }
 
-/*
-// Only override drawRect: if you perform custom drawing.
-// An empty implementation adversely affects performance during animation.
 - (void)drawRect:(CGRect)rect
 {
-    // Drawing code
+    UIBezierPath* bezierPath = [UIBezierPath bezierPathWithRect:CGRectMake(0, self.frame.size.height - 1, self.frame.size.width, 1)];
+    [[SVTheme sharedTheme].squareBorderColor setFill];
+    [bezierPath fill];
 }
-*/
 
 @end
