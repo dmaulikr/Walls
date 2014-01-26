@@ -9,6 +9,8 @@
 #import "SVGameViewController.h"
 #import "SVBoard.h"
 #import "SVWallView.h"
+#import "SVCustomView.h"
+#import "SVTheme.h"
 
 @interface SVGameViewController ()
 
@@ -21,6 +23,9 @@
 //Views
 @property (strong) NSMutableDictionary* wallViews;
 @property (strong) SVBoardView* boardView;
+@property (strong) UIView* topView;
+@property (strong) SVCustomView* infoView;
+@property (strong) UIView* bottomView;
 
 //Turn info
 @property (strong) NSMutableDictionary* buildingWallInfo;
@@ -48,6 +53,14 @@
 {
     self = [super init];
     if (self) {
+        SVTheme* theme = [SVTheme sharedTheme];
+        theme.player1Color = [UIColor colorWithRed:0.44 green:0.76 blue:0.95 alpha:1.0];
+        theme.player2Color = [UIColor colorWithRed:0.4 green:0.82 blue:0.53 alpha:1.0];
+        theme.lightSquareColor = [[UIColor alloc] initWithRed:0.44 green:0.44 blue:0.44 alpha:1.0];
+        theme.darkSquareColor = [[UIColor alloc] initWithRed:0.41 green:0.41 blue:0.41 alpha:1.0];
+        theme.squareBorderColor = [[UIColor alloc] initWithRed:0.46 green:0.46 blue:0.46 alpha:1.0];
+        theme.normalWallColor = [[UIColor alloc] initWithRed:0.64 green:0.64 blue:0.64 alpha:1.0];
+        
         _wallViews = [[NSMutableDictionary alloc] init];
         _wallsRemaining = [[NSMutableArray alloc] init];
         [_wallsRemaining addObject:[NSNumber numberWithInt:6]];
@@ -55,14 +68,45 @@
         _specialWallsRemaining = [[NSMutableArray alloc] init];
         [_specialWallsRemaining addObject:[NSNumber numberWithInt:2]];
         [_specialWallsRemaining addObject:[NSNumber numberWithInt:2]];
-        _normalWallColor = [UIColor colorWithRed:0.64 green:0.64 blue:0.64 alpha:1.0];
+        _normalWallColor = [SVTheme sharedTheme].normalWallColor;
         _selectedWallColor = _normalWallColor;
         _board = [[SVBoard alloc] init];
         _turn = 0;
         _turnChanges = [[NSMutableDictionary alloc] init];
-        _playerColors = [[NSArray alloc] initWithObjects:[UIColor blueColor], [UIColor redColor], nil];
+        _playerColors = [[NSArray alloc] initWithObjects:theme.player1Color, theme.player2Color, nil];
     }
     return self;
+}
+
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+    self.topView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 49)];
+    self.topView.backgroundColor = self.playerColors[1];
+    [self.view addSubview:self.topView];
+    
+    self.boardView = [[SVBoardView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.topView.frame), self.view.frame.size.width, 414)];
+    self.boardView.delegate = self;
+    [self.view addSubview:self.boardView];
+    
+    self.infoView = [[SVCustomView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.boardView.frame), self.view.frame.size.width, 45)];
+    self.infoView.backgroundColor = [SVTheme sharedTheme].lightSquareColor;
+    [self.infoView drawBlock:^(CGContextRef context) {
+        UIBezierPath* path = [UIBezierPath bezierPathWithRect:CGRectMake(0, 0, self.view.frame.size.width, 1)];
+        [[SVTheme sharedTheme].squareBorderColor setFill];
+        [path fill];
+    }];
+    [self.view addSubview:self.infoView];
+    
+    self.bottomView = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.infoView.frame), self.view.frame.size.width, self.view.frame.size.height - CGRectGetMaxY(self.infoView.frame))];
+    self.bottomView.backgroundColor = self.playerColors[1];
+    [self.view addSubview:self.bottomView];
+}
+
+- (void)didReceiveMemoryWarning
+{
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
 }
 
 - (NSDictionary*)wallViewParametersForPosition:(SVPosition*)position andOrientation:(kSVWallOrientation)orientation {
@@ -178,22 +222,6 @@
     [dictionary setObject:self.selectedWallColor forKey:@"centerColor"];
     
     return dictionary;
-}
-
-- (void)viewDidLoad
-{
-    [super viewDidLoad];
-    self.view.backgroundColor = [[UIColor alloc] initWithRed:0.44 green:0.44 blue:0.44 alpha:1.0];
-    
-    self.boardView = [[SVBoardView alloc] initWithFrame:CGRectMake(0, 40, 320, 600)];
-    self.boardView.delegate = self;
-    [self.view addSubview:self.boardView];
-}
-
-- (void)didReceiveMemoryWarning
-{
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
 }
 
 //////////////////////////////////////////////////////

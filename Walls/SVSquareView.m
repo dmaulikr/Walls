@@ -7,12 +7,10 @@
 //
 
 #import "SVSquareView.h"
+#import "SVTheme.h"
+
 
 @interface SVSquareView ()
-@property (strong, readonly) UIColor* kLightColor;
-@property (strong, readonly) UIColor* kDarkColor;
-@property (strong, readonly) UIColor* kBorderColor;
-
 @property (assign) kSVSquareViewRow row;
 @property (assign) kSVSquareViewCol col;
 @property (assign) kSVSquareViewColor color;
@@ -29,20 +27,14 @@ const int kSVSquareViewSize = 46;
         _col = col;
         _color = color;
         
-        
-        //Constants
-        _kLightColor = [[UIColor alloc] initWithRed:0.41 green:0.41 blue:0.41 alpha:1.0];
-        _kDarkColor = [[UIColor alloc] initWithRed:0.44 green:0.44 blue:0.44 alpha:1.0];
-        _kBorderColor = [[UIColor alloc] initWithRed:0.46 green:0.46 blue:0.46 alpha:1.0];
-        
         if (col == kSVSquareViewColCenter)
             self.frame = CGRectMake(origin.x, origin.y, kSVSquareViewSize, kSVSquareViewSize);
         else
             self.frame = CGRectMake(origin.x, origin.y, kSVSquareViewSize - 1, kSVSquareViewSize);
         if (color == kSVSquareViewLight)
-            self.backgroundColor = _kLightColor;
+            self.backgroundColor = [SVTheme sharedTheme].lightSquareColor;
         else
-            self.backgroundColor = _kDarkColor;
+            self.backgroundColor = [SVTheme sharedTheme].darkSquareColor;
         UITapGestureRecognizer* gestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(didTap:)];
         [self addGestureRecognizer:gestureRecognizer];
     }
@@ -53,7 +45,7 @@ const int kSVSquareViewSize = 46;
 // Only override drawRect: if you perform custom drawing.
 // An empty implementation adversely affects performance during animation.
 - (void)drawRect:(CGRect)rect {
-    [self.kBorderColor setFill];
+    [[SVTheme sharedTheme].squareBorderColor setFill];
 
     UIBezierPath* path = [UIBezierPath bezierPath];
     if (self.col != kSVSquareViewColLeft) {
