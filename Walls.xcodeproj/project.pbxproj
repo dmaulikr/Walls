@@ -25,7 +25,6 @@
 		4D499E45188AAA13000A48C6 /* SVBoard.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D499E44188AAA13000A48C6 /* SVBoard.m */; };
 		4DA11951188D89AB008A8688 /* SVGameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DA11950188D89AB008A8688 /* SVGameViewController.m */; };
 		4DA11954188D89D7008A8688 /* SVSquareView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DA11953188D89D7008A8688 /* SVSquareView.m */; };
-		4DA11957188EAA0D008A8688 /* SVBoardCanvas.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DA11956188EAA0D008A8688 /* SVBoardCanvas.m */; };
 		4DD226F51890295D0095D71D /* SVWall.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DD226F41890295D0095D71D /* SVWall.m */; };
 		4DD226F7189033F70095D71D /* SVWallTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DD226F6189033F70095D71D /* SVWallTest.m */; };
 		4DD226F9189034020095D71D /* SVPositionTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DD226F8189034020095D71D /* SVPositionTest.m */; };
@@ -72,8 +71,6 @@
 		4DA11950188D89AB008A8688 /* SVGameViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVGameViewController.m; sourceTree = "<group>"; };
 		4DA11952188D89D7008A8688 /* SVSquareView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVSquareView.h; sourceTree = "<group>"; };
 		4DA11953188D89D7008A8688 /* SVSquareView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVSquareView.m; sourceTree = "<group>"; };
-		4DA11955188EAA0D008A8688 /* SVBoardCanvas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVBoardCanvas.h; sourceTree = "<group>"; };
-		4DA11956188EAA0D008A8688 /* SVBoardCanvas.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVBoardCanvas.m; sourceTree = "<group>"; };
 		4DD226F31890295D0095D71D /* SVWall.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVWall.h; sourceTree = "<group>"; };
 		4DD226F41890295D0095D71D /* SVWall.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVWall.m; sourceTree = "<group>"; };
 		4DD226F6189033F70095D71D /* SVWallTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVWallTest.m; sourceTree = "<group>"; };
@@ -216,8 +213,6 @@
 				4DA11953188D89D7008A8688 /* SVSquareView.m */,
 				4D154D851892BB0E00E8E303 /* SVBoardView.h */,
 				4D154D861892BB0E00E8E303 /* SVBoardView.m */,
-				4DA11955188EAA0D008A8688 /* SVBoardCanvas.h */,
-				4DA11956188EAA0D008A8688 /* SVBoardCanvas.m */,
 				4D154D821892B97100E8E303 /* SVPawnView.h */,
 				4D154D831892B97100E8E303 /* SVPawnView.m */,
 				4D154D881892D25500E8E303 /* SVWallView.h */,
@@ -337,7 +332,6 @@
 				4DE07FF7188C477D00A3251A /* SVPosition.m in Sources */,
 				4D06AC74188A976C00ED425F /* main.m in Sources */,
 				4DD226F51890295D0095D71D /* SVWall.m in Sources */,
-				4DA11957188EAA0D008A8688 /* SVBoardCanvas.m in Sources */,
 				4D154D841892B97100E8E303 /* SVPawnView.m in Sources */,
 				4DA11954188D89D7008A8688 /* SVSquareView.m in Sources */,
 				4D06AC78188A976C00ED425F /* SVAppDelegate.m in Sources */,
