@@ -193,27 +193,28 @@
     //Trick to avoid transformation of wall because of flat rect and to show all the wall even with rounded rect
     BOOL horizontal = self.frame.size.width > self.frame.size.height;
     float height = self.frame.size.width > self.frame.size.height ? self.frame.size.height : self.frame.size.width;
+    float offset = 2 * height;
     
     if (horizontal) {
         if (rect.origin.x == 0) {
-            rect.origin.x -= height;
-            rect.size.width += height;
+            rect.origin.x -= offset;
+            rect.size.width += offset;
         }
         if (rect.origin.x + rect.size.width == self.frame.size.width) {
-            rect.size.width += height;
+            rect.size.width += offset;
         }
     }
     
     if (!horizontal) {
         if (rect.origin.y == 0) {
-            rect.origin.y -= height;
-            rect.size.height += height;
+            rect.origin.y -= offset;
+            rect.size.height += offset;
         }
         if (rect.origin.y + rect.size.height == self.frame.size.height) {
-            rect.size.height += height;
+            rect.size.height += offset;
         }
     }
-
+    
     UIBezierPath* path  = [UIBezierPath bezierPathWithRoundedRect:rect cornerRadius:height / 2];
     return path;
 }
@@ -229,7 +230,7 @@
     if (animated) {
         CGPathRef newPath = [self pathForRect:rect].CGPath;
         CABasicAnimation* animation = [CABasicAnimation animationWithKeyPath:@"path"];
-        animation.duration = 2;
+        animation.duration = 0.15;
         animation.fromValue = (__bridge id)(self.mask.path);
         animation.toValue = (__bridge id)newPath;
         animation.delegate = self;
