@@ -28,6 +28,8 @@
 @property (strong) UIView* topView;
 @property (strong) UIView* infoView;
 @property (strong) UIView* bottomView;
+@property (strong) UILabel* bottomLabel;
+@property (strong) UILabel* bottomLabel2;
 @property (strong) NSMutableArray* infoWallViews;
 
 //Turn info
@@ -39,15 +41,17 @@
 @property (strong) UIColor* selectedWallColor;
 
 @property (strong, readonly) UIColor* normalWallColor;
+@property (strong) UIPanGestureRecognizer* bottomViewGestureRecognizer;
 
 - (void)revertChanges;
 - (void)commitChanges;
 - (void)startTurn;
 - (void)endTurn;
 - (void)didClickColorButton:(id)sender;
-- (void)didSwipeBottomView;
+- (void)didPanBottomView:(UIPanGestureRecognizer*)gestureRecognizer;
 - (SVInfoWallView*)firstInfoWallForType:(kSVWallType)type andPlayer:(kSVPlayer)player;
 - (void)removeInfoWallAtIndex:(int)index forPlayer:(kSVPlayer)player;
+- (BOOL)canPlayNewAction;
 @end
 
 @implementation SVGameViewController
@@ -86,7 +90,7 @@
     
     //Top
     self.topView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 49)];
-    self.topView.backgroundColor = self.playerColors[1];
+    self.topView.backgroundColor = self.playerColors[kSVPlayer1];
     [self.view addSubview:self.topView];
     UILabel* topLabel = [[UILabel alloc] initWithFrame:CGRectMake((self.topView.frame.size.width - 200) / 2,
                                                                   (self.topView.frame.size.height - 30) / 2,
@@ -192,12 +196,33 @@
     
     //Bottom
     self.bottomView = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.infoView.frame), self.view.frame.size.width, self.view.frame.size.height - CGRectGetMaxY(self.infoView.frame))];
-    self.bottomView.backgroundColor = self.playerColors[1];
+    self.bottomView.backgroundColor = self.playerColors[kSVPlayer1];
     [self.view addSubview:self.bottomView];
-    UISwipeGestureRecognizer* gestureRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(didSwipeBottomView)];
-    gestureRecognizer.numberOfTouchesRequired = 1;
-    gestureRecognizer.direction = UISwipeGestureRecognizerDirectionLeft;
-    [self.bottomView addGestureRecognizer:gestureRecognizer];
+    self.bottomViewGestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(didPanBottomView:)];
+    self.bottomViewGestureRecognizer.minimumNumberOfTouches = 1;
+    self.bottomViewGestureRecognizer.maximumNumberOfTouches = 1;
+    self.bottomViewGestureRecognizer.delegate = self;
+    [self.bottomView addGestureRecognizer:self.bottomViewGestureRecognizer];
+    
+    self.bottomLabel = [[UILabel alloc] initWithFrame:CGRectMake((self.bottomView.frame.size.width - 200) / 2,
+                                                                     0,
+                                                                     200,
+                                                                     self.bottomView.frame.size.height)];
+    self.bottomLabel.textColor = [UIColor whiteColor];
+    self.bottomLabel.font = [UIFont fontWithName:@"HelveticaNeue" size:20];
+    self.bottomLabel.text = @"Your turn";
+    self.bottomLabel.textAlignment = NSTextAlignmentCenter;
+    [self.bottomView addSubview:self.bottomLabel];
+    
+    self.bottomLabel2 = [[UILabel alloc] initWithFrame:CGRectMake(self.bottomView.frame.size.width,
+                                                                 0,
+                                                                 200,
+                                                                 self.bottomView.frame.size.height)];
+    self.bottomLabel2.textColor = [UIColor whiteColor];
+    self.bottomLabel2.font = [UIFont fontWithName:@"HelveticaNeue" size:20];
+    self.bottomLabel2.text = @"Your turn";
+    self.bottomLabel2.textAlignment = NSTextAlignmentCenter;
+    [self.bottomView addSubview:self.bottomLabel2];
 }
 
 - (void)didReceiveMemoryWarning
@@ -334,7 +359,9 @@
 }
 
 - (void)endTurn {
+    [self commitChanges];
     self.turn++;
+    self.currentPlayer = (self.currentPlayer + 1) % 2;
 }
 
 - (void)revertChanges {
@@ -343,12 +370,22 @@
 - (void)commitChanges {
     if ([self.turnChanges objectForKey:@"wall"]) {
         NSDictionary* dictionary = [self.turnChanges objectForKey:@"wall"];
+        kSVWallType wallType = ((NSNumber*)[dictionary objectForKey:@"type"]).intValue;
         SVPosition* wallPosition = [dictionary objectForKey:@"position"];
         [self.wallViews setObject:[dictionary objectForKey:@"view"] forKey:wallPosition];
         [self.board addWallAtPosition:wallPosition
                       withOrientation:((NSNumber*)[dictionary objectForKey:@"orientation"]).intValue
-                              andType:((NSNumber*)[dictionary objectForKey:@"type"]).intValue];
+                              andType:wallType];
+        if (wallType == kSVWallNormal) {
+            int count = ((NSNumber*)[self.normalWallsRemaining objectAtIndex:self.currentPlayer]).intValue;
+            [self.normalWallsRemaining replaceObjectAtIndex:self.currentPlayer withObject:[NSNumber numberWithInt:count - 1]];
+        }
+        else {
+            int count = ((NSNumber*)[self.specialWallsRemaining objectAtIndex:self.currentPlayer]).intValue;
+            [self.specialWallsRemaining replaceObjectAtIndex:self.currentPlayer withObject:[NSNumber numberWithInt:count - 1]];
+        }
     }
+    [self.turnChanges removeAllObjects];
 }
 
 -(SVInfoWallView*)firstInfoWallForType:(kSVWallType)type andPlayer:(kSVPlayer)player {
@@ -374,6 +411,10 @@
     }
 }
 
+- (BOOL)canPlayNewAction {
+    return self.turnChanges.count == 0;
+}
+
 //////////////////////////////////////////////////////
 // Buttons targets
 //////////////////////////////////////////////////////
@@ -387,8 +428,82 @@
         self.selectedWallColor = self.normalWallColor;
 }
 
-- (void)didSwipeBottomView {
-    [self commitChanges];
+- (void)didPanBottomView:(UIPanGestureRecognizer*)gestureRecognizer {
+    CGPoint point = [gestureRecognizer translationInView:self.bottomView];
+    CGPoint velocity = [gestureRecognizer velocityInView:self.bottomView];
+    
+    if (gestureRecognizer.state == UIGestureRecognizerStateChanged) {
+        self.bottomLabel.frame = CGRectMake((self.bottomView.frame.size.width - self.bottomLabel.frame.size.width) / 2 + point.x,
+                                            self.bottomLabel.frame.origin.y,
+                                            self.bottomLabel.frame.size.width,
+                                            self.bottomLabel.frame.size.height);
+        const CGFloat *startComponents = CGColorGetComponents(((UIColor*)self.playerColors[self.currentPlayer]).CGColor);
+        const CGFloat *endComponents = CGColorGetComponents(((UIColor*)self.playerColors[(self.currentPlayer + 1) % 2]).CGColor);
+        float ratio = abs(point.x) / self.bottomView.frame.size.height / 2;
+        ratio = ratio > 1 ? 1 : ratio;
+        UIColor* color = [UIColor colorWithRed:(1 - ratio) * startComponents[0] + ratio * endComponents[0]
+                                         green:(1 - ratio) * startComponents[1] + ratio * endComponents[1]
+                                          blue:(1 - ratio) * startComponents[2] + ratio * endComponents[2]
+                                         alpha:(1 - ratio) * startComponents[3] + ratio * endComponents[3]];
+        self.bottomView.backgroundColor = color;
+        self.topView.backgroundColor = color;
+        
+        self.bottomLabel2.frame = CGRectMake(self.bottomView.frame.size.width + point.x,
+                                             self.bottomLabel2.frame.origin.y,
+                                             self.bottomLabel2.frame.size.width,
+                                             self.bottomLabel2.frame.size.height);
+    }
+    else if (gestureRecognizer.state == UIGestureRecognizerStateEnded) {
+        //Accept swipe
+        if (point.x < -80) {
+            float duration;
+            if (velocity.x >= 0)
+                duration = 0.3;
+            else {
+                duration = fabs(self.bottomLabel.frame.origin.x + self.bottomLabel.frame.size.width) / fabs(velocity.x);
+                duration = duration > 0.3 ? 0.3 : duration;
+            }
+            [UIView animateWithDuration:duration animations:^{
+                self.bottomLabel.frame = CGRectMake((- self.bottomLabel.frame.size.width),
+                                                    self.bottomLabel.frame.origin.y,
+                                                    self.bottomLabel.frame.size.width,
+                                                    self.bottomLabel.frame.size.height);
+                self.bottomLabel2.frame = CGRectMake((self.bottomView.frame.size.width - self.bottomLabel2.frame.size.width) / 2,
+                                                     self.bottomLabel2.frame.origin.y,
+                                                     self.bottomLabel2.frame.size.width,
+                                                     self.bottomLabel2.frame.size.height);
+            } completion:^(BOOL finished) {
+                self.bottomLabel.frame = CGRectMake(self.bottomView.frame.size.width,
+                                                    self.bottomLabel.frame.origin.y,
+                                                    self.bottomLabel.frame.size.width,
+                                                    self.bottomLabel.frame.size.height);
+                UILabel* bottomLabel1 = self.bottomLabel;
+                self.bottomLabel = self.bottomLabel2;
+                self.bottomLabel2 = bottomLabel1;
+            }];
+            [self endTurn];
+        }
+        //Deny swipe
+        else {
+            float duration;
+            if (velocity.x < 0)
+                duration = 0.3;
+            else {
+                duration = fabs(self.bottomLabel.frame.origin.x + self.bottomLabel.frame.size.width) / fabs(velocity.x);
+                duration = duration > 0.3 ? 0.3 : duration;
+            }
+            [UIView animateWithDuration:duration animations:^{
+                self.bottomLabel.frame = CGRectMake((self.bottomView.frame.size.width - self.bottomLabel.frame.size.width) / 2,
+                                                    self.bottomLabel.frame.origin.y,
+                                                    self.bottomLabel.frame.size.width,
+                                                    self.bottomLabel.frame.size.height);
+                self.bottomLabel2.frame = CGRectMake(self.bottomView.frame.size.width,
+                                                     self.bottomLabel2.frame.origin.y,
+                                                     self.bottomLabel2.frame.size.width,
+                                                     self.bottomLabel2.frame.size.height);
+            }];
+        }
+    }
 }
 
 
@@ -417,7 +532,8 @@
         wallPosition = [[SVPosition alloc] initWithX:position.x andY:position.y + 1];
     }
     
-    self.ignoreBuildingWall = ![self.board isWallLegalAtPosition:wallPosition withOrientation:wallOrientation andType:normal];
+    self.ignoreBuildingWall = ![self.board isWallLegalAtPosition:wallPosition withOrientation:wallOrientation andType:normal] ||
+                              ![self canPlayNewAction];
     if (self.ignoreBuildingWall)
         return;
     
@@ -564,6 +680,14 @@
                                             andPlayer:self.currentPlayer];
         [infoWall showRect:infoWall.bounds animated:YES withFinishBlock:nil];
     }
+}
+
+- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer {
+    if (gestureRecognizer == self.bottomViewGestureRecognizer) {
+        CGPoint velocity = [self.bottomViewGestureRecognizer velocityInView:self.bottomView];
+        return velocity.x < 0;
+    }
+    return YES;
 }
 
 

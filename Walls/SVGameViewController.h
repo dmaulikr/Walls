@@ -9,6 +9,6 @@
 #import <UIKit/UIKit.h>
 #import "SVBoardView.h"
 
-@interface SVGameViewController : UIViewController <SVBoardViewDelegate>
+@interface SVGameViewController : UIViewController <SVBoardViewDelegate, UIGestureRecognizerDelegate>
 
 @end
