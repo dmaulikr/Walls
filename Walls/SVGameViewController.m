@@ -39,7 +39,7 @@
 @property (strong) NSMutableDictionary* buildingWallInfo;
 @property (strong) NSMutableDictionary* turnChanges;
 @property (assign) kSVPlayer currentPlayer;
-@property (assign) BOOL ignoreBuildingWall;
+@property (assign) BOOL canBuildWall;
 @property (assign) int turn;
 @property (strong) UIColor* selectedWallColor;
 
@@ -53,7 +53,7 @@
 - (void)didPanBottomView:(UIPanGestureRecognizer*)gestureRecognizer;
 - (SVInfoWallView*)firstInfoWallForType:(kSVWallType)type andPlayer:(kSVPlayer)player;
 - (void)removeInfoWallAtIndex:(int)index forPlayer:(kSVPlayer)player;
-- (BOOL)canPlayNewAction;
+- (BOOL)canPlayAction:(NSString*)action withInfo:(NSDictionary*)info;
 @end
 
 @implementation SVGameViewController
@@ -362,6 +362,15 @@
     
     //Center
     [dictionary setObject:self.selectedWallColor forKey:@"centerColor"];
+    
+    kSVWallType wallType;
+    if (!self.colorButton.selected) {
+        wallType = kSVWallNormal;
+    }
+    else {
+        wallType = self.currentPlayer == kSVPlayer1 ? kSVWallPlayer1 : kSVWallPlayer2;
+    }
+    [dictionary setObject:[NSNumber numberWithInt:wallType] forKey:@"type"];
     return dictionary;
 }
 
@@ -379,7 +388,12 @@
     self.turn++;
     self.currentPlayer = (self.currentPlayer + 1) % 2;
     self.selectedWallColor = [SVTheme sharedTheme].normalWallColor;
-    self.colorButton.selected = NO;
+    
+    //Adjust the color dependent on the number of walls remaining
+    if (((NSNumber*)([self.normalWallsRemaining objectAtIndex:self.currentPlayer])).intValue > 0)
+        self.colorButton.selected = NO;
+    else
+        self.colorButton.selected = YES;
 }
 
 - (void)revertChanges {
@@ -433,8 +447,28 @@
     }
 }
 
-- (BOOL)canPlayNewAction {
-    return self.turnChanges.count == 0;
+- (BOOL)canPlayAction:(NSString*)action withInfo:(NSDictionary*)info {
+    if (self.turnChanges.count > 0)
+        return NO;
+    if ([action isEqualToString:@"wall"]) {
+        kSVWallOrientation orientation = ((NSNumber*)[info objectForKey:@"orientation"]).intValue;
+        kSVWallType type = ((NSNumber*)[info objectForKey:@"type"]).intValue;
+        SVPosition* position = [info objectForKey:@"position"];
+        if (![self.board isWallLegalAtPosition:position withOrientation:orientation andType:type]) {
+            return NO;
+        }
+        if (type == kSVWallNormal) {
+            return ((NSNumber*)[self.normalWallsRemaining objectAtIndex:self.currentPlayer]).intValue > 0;
+        }
+        else {
+            return ((NSNumber*)[self.specialWallsRemaining objectAtIndex:self.currentPlayer]).intValue > 0;
+        }
+    }
+    else if ([action isEqualToString:@"move"]) {
+        SVPosition* position = [info objectForKey:@"position"];
+        return [self.board canPlayer:self.currentPlayer moveTo:position];
+    }
+    return YES;
 }
 
 //////////////////////////////////////////////////////
@@ -443,11 +477,14 @@
 
 - (void)didClickColorButton:(id)sender {
     UIButton* button = (UIButton*)sender;
-    button.selected = !button.selected;
-    if (button.selected)
-        self.selectedWallColor = self.playerColors[self.currentPlayer];
-    else
+    if (button.selected && ((NSNumber*)[self.normalWallsRemaining objectAtIndex:self.currentPlayer]).intValue > 0) {
         self.selectedWallColor = [SVTheme sharedTheme].normalWallColor;
+        button.selected = !button.selected;
+    }
+    else if (((NSNumber*)[self.specialWallsRemaining objectAtIndex:self.currentPlayer]).intValue > 0) {
+        self.selectedWallColor = [self.playerColors objectAtIndex:self.currentPlayer];
+        button.selected = !button.selected;
+    }
 }
 
 - (void)didPanBottomView:(UIPanGestureRecognizer*)gestureRecognizer {
@@ -554,9 +591,15 @@
         wallPosition = [[SVPosition alloc] initWithX:position.x andY:position.y + 1];
     }
     
-    self.ignoreBuildingWall = ![self.board isWallLegalAtPosition:wallPosition withOrientation:wallOrientation andType:normal] ||
-                              ![self canPlayNewAction];
-    if (self.ignoreBuildingWall)
+    NSDictionary* parameters = [self wallViewParametersForPosition:wallPosition andOrientation:wallOrientation];
+
+
+    NSMutableDictionary* info = [[NSMutableDictionary alloc] init];
+    [info setObject:wallPosition forKey:@"position"];
+    [info setObject:[[NSNumber alloc] initWithInt:wallOrientation] forKey:@"orientation"];
+    [info setObject:[parameters objectForKey:@"type"] forKey:@"type"];
+    self.canBuildWall = [self canPlayAction:@"wall" withInfo:info];
+    if (!self.canBuildWall)
         return;
     
     int length = 92;
@@ -569,9 +612,8 @@
              (wallOrientation == kSVVerticalOrientation && wallPosition.y == self.board.size.height - 1))
         length = 91.5;
     
-    NSDictionary* dictionary = [self wallViewParametersForPosition:wallPosition andOrientation:wallOrientation];
-    float leftOffset = ((NSNumber*)[dictionary objectForKey:@"leftOffset"]).floatValue;
-    float rightOffset = ((NSNumber*)[dictionary objectForKey:@"rightOffset"]).floatValue;
+    float leftOffset = ((NSNumber*)[parameters objectForKey:@"leftOffset"]).floatValue;
+    float rightOffset = ((NSNumber*)[parameters objectForKey:@"rightOffset"]).floatValue;
     
     CGRect rect;
     if (direction == kSVTopDirection) {
@@ -599,15 +641,15 @@
                           thickness);
     }
     SVWallView* wallView = [[SVWallView alloc] initWithFrame:rect
-                                                   startType:((NSNumber*)[dictionary objectForKey:@"leftType"]).floatValue
-                                                     endType:((NSNumber*)[dictionary objectForKey:@"rightType"]).floatValue
-                                                   leftColor:[dictionary objectForKey:@"leftColor"]
-                                                 centerColor:[dictionary objectForKey:@"centerColor"]
-                                                  rightColor:[dictionary objectForKey:@"rightColor"]];
+                                                   startType:((NSNumber*)[parameters objectForKey:@"leftType"]).floatValue
+                                                     endType:((NSNumber*)[parameters objectForKey:@"rightType"]).floatValue
+                                                   leftColor:[parameters objectForKey:@"leftColor"]
+                                                 centerColor:[parameters objectForKey:@"centerColor"]
+                                                  rightColor:[parameters objectForKey:@"rightColor"]];
     [self.boardView addSubview:wallView];
     
     kSVWallType wallType;
-    if ([self.selectedWallColor isEqual:[SVTheme sharedTheme].normalWallColor]) {
+    if (!self.colorButton.selected) {
         wallType = kSVWallNormal;
     }
     else {
@@ -616,14 +658,14 @@
     self.buildingWallInfo = [[NSMutableDictionary alloc] init];
     [self.buildingWallInfo setObject:[NSNumber numberWithInt:direction] forKey:@"direction"];
     [self.buildingWallInfo setObject:[NSNumber numberWithInt:wallOrientation] forKey:@"orientation"];
-    [self.buildingWallInfo setObject:[NSNumber numberWithInt:wallType] forKey:@"type"];
+    [self.buildingWallInfo setObject:[parameters objectForKey:@"type"] forKey:@"type"];
     [self.buildingWallInfo setObject:wallPosition forKey:@"position"];
     [self.buildingWallInfo setObject:self.selectedWallColor forKey:@"color"];
     [self.buildingWallInfo setObject:wallView forKey:@"view"];
 }
 
 - (void)boardView:(SVBoardView *)boardView didChangePanTo:(CGPoint)point {
-    if (self.ignoreBuildingWall)
+    if (!self.canBuildWall)
         return;
     
     kSVPanDirection wallDirection = ((NSNumber*)[self.buildingWallInfo objectForKey:@"direction"]).intValue;
@@ -674,7 +716,7 @@
 }
 
 - (void)boardView:(SVBoardView *)boardView didEndPanAt:(CGPoint)point changeOfDirection:(BOOL)change {
-    if (self.ignoreBuildingWall)
+    if (!self.canBuildWall)
         return;
     
     SVWallView* wallView = [self.buildingWallInfo objectForKey:@"view"];
@@ -712,8 +754,7 @@
 }
 
 - (void)boardView:(SVBoardView *)boardView didTapSquare:(SVPosition *)position {
-    if ([self.board canPlayer:self.currentPlayer moveTo:position] &&
-        [self canPlayNewAction]) {
+    if ([self canPlayAction:@"move" withInfo:[NSDictionary dictionaryWithObject:position forKey:@"position"]]) {
         CGPoint point = [boardView squareCenterForPosition:position];
         SVPawnView* pawnView = [self.pawnViews objectAtIndex:self.currentPlayer];
         [UIView animateWithDuration:0.3 animations:^{
