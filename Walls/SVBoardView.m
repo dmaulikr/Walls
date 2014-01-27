@@ -12,6 +12,7 @@
 @interface SVBoardView ()
 @property (strong) NSMutableArray* squareIntersections;
 @property (strong) NSMutableDictionary* positionsForIntersection;
+@property (strong) NSMutableDictionary* squareViewForPosition;
 @property (assign) kSVPanDirection initialPanDirection;
 @property (assign) CGPoint initialPoint;
 @property (assign) CGPoint nearestIntersectionPoint;
@@ -24,9 +25,10 @@
 {
     self = [super initWithFrame:frame];
     if (self) {
-        self.squareIntersections = [[NSMutableArray alloc] init];
-        self.positionsForIntersection = [[NSMutableDictionary alloc] init];
-        self.initialPanDirection = kSVNoDirection;
+        _squareIntersections = [[NSMutableArray alloc] init];
+        _positionsForIntersection = [[NSMutableDictionary alloc] init];
+        _squareViewForPosition = [[NSMutableDictionary alloc] init];
+        _initialPanDirection = kSVNoDirection;
         
         UIPanGestureRecognizer* gestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(didPan:)];
         gestureRecognizer.minimumNumberOfTouches = 1;
@@ -72,6 +74,8 @@
                     col = kSVSquareViewColCenter;
                 
                 SVSquareView* squareView = [[SVSquareView alloc] initWithOrigin:origin row:row col:col andColor:color];
+                squareView.delegate = self;
+                [_squareViewForPosition setObject:squareView forKey:[[SVPosition alloc] initWithX:j andY:i]];
                 lastSquareView = squareView;
                 [self addSubview:squareView];
                 
@@ -194,11 +198,29 @@
     }
 }
 
+- (CGPoint)squareCenterForPosition:(SVPosition *)position {
+    SVSquareView* squareView = [self.squareViewForPosition objectForKey:position];
+    CGPoint point = CGPointMake(squareView.frame.origin.x + squareView.frame.size.width / 2,
+                                squareView.frame.origin.y + squareView.frame.size.height / 2);
+    return point;
+}
+
 - (void)drawRect:(CGRect)rect
 {
     UIBezierPath* bezierPath = [UIBezierPath bezierPathWithRect:CGRectMake(0, self.frame.size.height - 1, self.frame.size.width, 1)];
     [[SVTheme sharedTheme].squareBorderColor setFill];
     [bezierPath fill];
+}
+
+//////////////////////////////////////////////////////
+// Buttons targets
+//////////////////////////////////////////////////////
+
+- (void)squareViewDidTap:(SVSquareView *)squareView {
+    if (self.delegate && [self.delegate respondsToSelector:@selector(boardView:didTapSquare:)]) {
+        SVPosition* position = [[self.squareViewForPosition allKeysForObject:squareView] objectAtIndex:0];
+        [self.delegate boardView:self didTapSquare:position];
+    }
 }
 
 @end

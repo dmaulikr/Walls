@@ -91,7 +91,8 @@ const int kSVSquareViewSize = 46;
 }
 
 - (void)didTap:(UITapGestureRecognizer*)gestureRecognizer {
-    NSLog(@"tap");
+    if (self.delegate && [self.delegate respondsToSelector:@selector(squareViewDidTap:)])
+        [self.delegate squareViewDidTap:self];
 }
 
 @end

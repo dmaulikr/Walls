@@ -18,14 +18,16 @@ typedef enum {
     kSVBottomDirection
 } kSVPanDirection;
 
-@interface SVBoardView : UIView
+@interface SVBoardView : UIView <SVSquareViewDelegate>
 @property (weak) id delegate;
 
 - (SVPosition*)intersectionPositionForPoint:(CGPoint)point;
+- (CGPoint)squareCenterForPosition:(SVPosition*)position;
 @end
 
 @protocol SVBoardViewDelegate <NSObject>
 - (void)boardView:(SVBoardView*)boardView didStartPanAt:(CGPoint)point withDirection:(kSVPanDirection)direction;
 - (void)boardView:(SVBoardView*)boardView didChangePanTo:(CGPoint)point;
 - (void)boardView:(SVBoardView*)boardView didEndPanAt:(CGPoint)point changeOfDirection:(BOOL)change;
+- (void)boardView:(SVBoardView*)boardView didTapSquare:(SVPosition*)position;
 @end

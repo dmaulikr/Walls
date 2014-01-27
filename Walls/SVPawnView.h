@@ -9,5 +9,5 @@
 #import <UIKit/UIKit.h>
 
 @interface SVPawnView : UIView
-
+- (id)initWithFrame:(CGRect)frame color1:(UIColor*)color1 andColor2:(UIColor*)color2;
 @end

@@ -13,6 +13,7 @@
 #import "SVTheme.h"
 #import "SVColorButton.h"
 #import "SVInfoWallView.h"
+#import "SVPawnView.h"
 
 @interface SVGameViewController ()
 
@@ -31,6 +32,8 @@
 @property (strong) UILabel* bottomLabel;
 @property (strong) UILabel* bottomLabel2;
 @property (strong) NSMutableArray* infoWallViews;
+@property (strong) NSMutableArray* pawnViews;
+@property (strong) SVColorButton* colorButton;
 
 //Turn info
 @property (strong) NSMutableDictionary* buildingWallInfo;
@@ -40,7 +43,6 @@
 @property (assign) int turn;
 @property (strong) UIColor* selectedWallColor;
 
-@property (strong, readonly) UIColor* normalWallColor;
 @property (strong) UIPanGestureRecognizer* bottomViewGestureRecognizer;
 
 - (void)revertChanges;
@@ -71,8 +73,7 @@
         _specialWallsRemaining = [[NSMutableArray alloc] init];
         [_specialWallsRemaining addObject:[NSNumber numberWithInt:2]];
         [_specialWallsRemaining addObject:[NSNumber numberWithInt:2]];
-        _normalWallColor = [SVTheme sharedTheme].normalWallColor;
-        _selectedWallColor = _normalWallColor;
+        _selectedWallColor = [SVTheme sharedTheme].normalWallColor;
         _board = [[SVBoard alloc] init];
         _turn = 0;
         _turnChanges = [[NSMutableDictionary alloc] init];
@@ -80,6 +81,11 @@
         _infoWallViews = [[NSMutableArray alloc] init];
         [_infoWallViews addObject:[[NSMutableArray alloc] init]];
         [_infoWallViews addObject:[[NSMutableArray alloc] init]];
+        _bottomViewGestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(didPanBottomView:)];
+        _bottomViewGestureRecognizer.minimumNumberOfTouches = 1;
+        _bottomViewGestureRecognizer.maximumNumberOfTouches = 1;
+        _bottomViewGestureRecognizer.delegate = self;
+        _pawnViews = [[NSMutableArray alloc] init];
     }
     return self;
 }
@@ -108,6 +114,20 @@
     self.boardView = [[SVBoardView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.topView.frame), self.view.frame.size.width, 415)];
     self.boardView.delegate = self;
     [self.view addSubview:self.boardView];
+    
+    CGPoint point1 = [self.boardView squareCenterForPosition:self.board.playerPositions[kSVPlayer1]];
+    SVPawnView* pawnView1 = [[SVPawnView alloc] initWithFrame:CGRectMake(point1.x - 15, point1.y - 15, 30, 30)
+                                                       color1:[SVTheme sharedTheme].player1Color
+                                                    andColor2:[SVTheme sharedTheme].player1LightColor];
+    [self.pawnViews addObject:pawnView1];
+    [self.boardView addSubview:pawnView1];
+    
+    CGPoint point2 = [self.boardView squareCenterForPosition:self.board.playerPositions[kSVPlayer2]];
+    SVPawnView* pawnView2 = [[SVPawnView alloc] initWithFrame:CGRectMake(point2.x - 15, point2.y - 15, 30, 30)
+                                                       color1:[SVTheme sharedTheme].player2Color
+                                                    andColor2:[SVTheme sharedTheme].player2LightColor];
+    [self.pawnViews addObject:pawnView2];
+    [self.boardView addSubview:pawnView2];
     
     //Info
     self.infoView = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.boardView.frame), self.view.frame.size.width, 44)];
@@ -159,10 +179,10 @@
     player2Label.numberOfLines = 1;
     [player2Circle addSubview:player2Label];
     
-    SVColorButton* button = [[SVColorButton alloc] initWithFrame:CGRectMake((self.infoView.frame.size.width -  42) / 2,
+    self.colorButton = [[SVColorButton alloc] initWithFrame:CGRectMake((self.infoView.frame.size.width -  42) / 2,
                                                                             (self.infoView.frame.size.height - 26) / 2, 42, 26)];
-    [button addTarget:self action:@selector(didClickColorButton:) forControlEvents:UIControlEventTouchUpInside];
-    [self.infoView addSubview:button];
+    [self.colorButton addTarget:self action:@selector(didClickColorButton:) forControlEvents:UIControlEventTouchUpInside];
+    [self.infoView addSubview:self.colorButton];
     
     int leftOffset = 38;
     int rightOffset = self.infoView.frame.size.width - 38 - 4;
@@ -198,10 +218,6 @@
     self.bottomView = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.infoView.frame), self.view.frame.size.width, self.view.frame.size.height - CGRectGetMaxY(self.infoView.frame))];
     self.bottomView.backgroundColor = self.playerColors[kSVPlayer1];
     [self.view addSubview:self.bottomView];
-    self.bottomViewGestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(didPanBottomView:)];
-    self.bottomViewGestureRecognizer.minimumNumberOfTouches = 1;
-    self.bottomViewGestureRecognizer.maximumNumberOfTouches = 1;
-    self.bottomViewGestureRecognizer.delegate = self;
     [self.bottomView addGestureRecognizer:self.bottomViewGestureRecognizer];
     
     self.bottomLabel = [[UILabel alloc] initWithFrame:CGRectMake((self.bottomView.frame.size.width - 200) / 2,
@@ -231,6 +247,10 @@
     // Dispose of any resources that can be recreated.
 }
 
+//////////////////////////////////////////////////////
+// Private
+//////////////////////////////////////////////////////
+
 - (NSDictionary*)wallViewParametersForPosition:(SVPosition*)position andOrientation:(kSVWallOrientation)orientation {
     NSMutableDictionary* dictionary = [[NSMutableDictionary alloc] init];
     SVWall* topLeft;
@@ -253,11 +273,11 @@
         bottomRight = [self.board wallAtPosition:[[SVPosition alloc] initWithX:position.x + 1 andY:position.y + 1]
                                  withOrientation:kSVVerticalOrientation];;
         leftSameOrientation = [self.board wallAtPosition:[[SVPosition alloc] initWithX:position.x - 2 andY:position.y]
-                                          withOrientation:kSVHorizontalOrientation];
+                                         withOrientation:kSVHorizontalOrientation];
         rightSameOrientation = [self.board wallAtPosition:[[SVPosition alloc] initWithX:position.x + 2 andY:position.y]
                                           withOrientation:kSVHorizontalOrientation];
         leftOtherOrientation = [self.board wallAtPosition:[[SVPosition alloc] initWithX:position.x - 1 andY:position.y]
-                                           withOrientation:kSVVerticalOrientation];
+                                          withOrientation:kSVVerticalOrientation];
         rightOtherOrientation = [self.board wallAtPosition:[[SVPosition alloc] initWithX:position.x + 1 andY:position.y]
                                            withOrientation:kSVVerticalOrientation];
     }
@@ -342,13 +362,9 @@
     
     //Center
     [dictionary setObject:self.selectedWallColor forKey:@"centerColor"];
-    
     return dictionary;
 }
 
-//////////////////////////////////////////////////////
-// Private
-//////////////////////////////////////////////////////
 
 - (void)startTurn {
     if (self.turn % 2 == 0)
@@ -362,6 +378,8 @@
     [self commitChanges];
     self.turn++;
     self.currentPlayer = (self.currentPlayer + 1) % 2;
+    self.selectedWallColor = [SVTheme sharedTheme].normalWallColor;
+    self.colorButton.selected = NO;
 }
 
 - (void)revertChanges {
@@ -384,6 +402,10 @@
             int count = ((NSNumber*)[self.specialWallsRemaining objectAtIndex:self.currentPlayer]).intValue;
             [self.specialWallsRemaining replaceObjectAtIndex:self.currentPlayer withObject:[NSNumber numberWithInt:count - 1]];
         }
+    }
+    
+    else if ([self.turnChanges objectForKey:@"move"]) {
+        [self.board movePlayer:self.currentPlayer to:[self.turnChanges objectForKey:@"move"]];
     }
     [self.turnChanges removeAllObjects];
 }
@@ -425,7 +447,7 @@
     if (button.selected)
         self.selectedWallColor = self.playerColors[self.currentPlayer];
     else
-        self.selectedWallColor = self.normalWallColor;
+        self.selectedWallColor = [SVTheme sharedTheme].normalWallColor;
 }
 
 - (void)didPanBottomView:(UIPanGestureRecognizer*)gestureRecognizer {
@@ -584,10 +606,17 @@
                                                   rightColor:[dictionary objectForKey:@"rightColor"]];
     [self.boardView addSubview:wallView];
     
+    kSVWallType wallType;
+    if ([self.selectedWallColor isEqual:[SVTheme sharedTheme].normalWallColor]) {
+        wallType = kSVWallNormal;
+    }
+    else {
+        wallType = self.currentPlayer == kSVPlayer1 ? kSVWallPlayer1 : kSVWallPlayer2;
+    }
     self.buildingWallInfo = [[NSMutableDictionary alloc] init];
     [self.buildingWallInfo setObject:[NSNumber numberWithInt:direction] forKey:@"direction"];
     [self.buildingWallInfo setObject:[NSNumber numberWithInt:wallOrientation] forKey:@"orientation"];
-    [self.buildingWallInfo setObject:[NSNumber numberWithInt:kSVWallNormal] forKey:@"type"];
+    [self.buildingWallInfo setObject:[NSNumber numberWithInt:wallType] forKey:@"type"];
     [self.buildingWallInfo setObject:wallPosition forKey:@"position"];
     [self.buildingWallInfo setObject:self.selectedWallColor forKey:@"color"];
     [self.buildingWallInfo setObject:wallView forKey:@"view"];
@@ -679,6 +708,21 @@
         SVInfoWallView* infoWall = [self firstInfoWallForType:((NSNumber*)[self.buildingWallInfo objectForKey:@"type"]).intValue
                                             andPlayer:self.currentPlayer];
         [infoWall showRect:infoWall.bounds animated:YES withFinishBlock:nil];
+    }
+}
+
+- (void)boardView:(SVBoardView *)boardView didTapSquare:(SVPosition *)position {
+    if ([self.board canPlayer:self.currentPlayer moveTo:position] &&
+        [self canPlayNewAction]) {
+        CGPoint point = [boardView squareCenterForPosition:position];
+        SVPawnView* pawnView = [self.pawnViews objectAtIndex:self.currentPlayer];
+        [UIView animateWithDuration:0.3 animations:^{
+            pawnView.frame = CGRectMake(point.x - pawnView.frame.size.width / 2,
+                                        point.y - pawnView.frame.size.height / 2,
+                                        pawnView.frame.size.width,
+                                        pawnView.frame.size.height);
+        }];
+        [self.turnChanges setObject:position forKey:@"move"];
     }
 }
 

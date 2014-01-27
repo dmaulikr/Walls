@@ -8,24 +8,32 @@
 
 #import "SVPawnView.h"
 
+@interface SVPawnView ()
+@property (strong) UIColor* color1;
+@property (strong) UIColor* color2;
+@end
+
 @implementation SVPawnView
 
-- (id)initWithFrame:(CGRect)frame
-{
+- (id)initWithFrame:(CGRect)frame color1:(UIColor *)color1 andColor2:(UIColor *)color2 {
     self = [super initWithFrame:frame];
     if (self) {
-        
+        self.backgroundColor = [UIColor clearColor];
+        _color1 = color1;
+        _color2 = color2;
     }
     return self;
 }
 
-/*
-// Only override drawRect: if you perform custom drawing.
-// An empty implementation adversely affects performance during animation.
-- (void)drawRect:(CGRect)rect
-{
-    // Drawing code
+- (void)drawRect:(CGRect)rect {
+    UIBezierPath* largeCircle = [UIBezierPath bezierPathWithOvalInRect:self.bounds];
+    [self.color2 setFill];
+    [largeCircle fill];
+    
+    UIBezierPath* smallCircle = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(4, 4, self.frame.size.width - 8, self.frame.size.height - 8)];
+    [self.color1 setFill];
+    [smallCircle fill];
 }
-*/
+
 
 @end
