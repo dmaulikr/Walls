@@ -387,13 +387,16 @@
     [self commitChanges];
     self.turn++;
     self.currentPlayer = (self.currentPlayer + 1) % 2;
-    self.selectedWallColor = [SVTheme sharedTheme].normalWallColor;
     
     //Adjust the color dependent on the number of walls remaining
-    if (((NSNumber*)([self.normalWallsRemaining objectAtIndex:self.currentPlayer])).intValue > 0)
+    if (((NSNumber*)([self.normalWallsRemaining objectAtIndex:self.currentPlayer])).intValue > 0) {
         self.colorButton.selected = NO;
-    else
+        self.selectedWallColor = [SVTheme sharedTheme].normalWallColor;
+    }
+    else {
         self.colorButton.selected = YES;
+        self.selectedWallColor = self.playerColors[self.currentPlayer];
+    }
 }
 
 - (void)revertChanges {
@@ -730,7 +733,7 @@
         SVInfoWallView* infoWall = [self firstInfoWallForType:((NSNumber*)[self.buildingWallInfo objectForKey:@"type"]).intValue
                                             andPlayer:self.currentPlayer];
         NSMutableArray* infoWallArray = self.infoWallViews[self.currentPlayer];
-        [self removeInfoWallAtIndex:[infoWallArray indexOfObject:infoWall] forPlayer:self.currentPlayer];
+        [self removeInfoWallAtIndex:(int)[infoWallArray indexOfObject:infoWall] forPlayer:self.currentPlayer];
     }
     else {
         CGRect rect;
@@ -770,7 +773,7 @@
 - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer {
     if (gestureRecognizer == self.bottomViewGestureRecognizer) {
         CGPoint velocity = [self.bottomViewGestureRecognizer velocityInView:self.bottomView];
-        return velocity.x < 0;
+        return velocity.x < 0 && self.turnChanges.count > 0;
     }
     return YES;
 }
