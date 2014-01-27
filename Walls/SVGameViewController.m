@@ -12,13 +12,14 @@
 #import "SVCustomView.h"
 #import "SVTheme.h"
 #import "SVColorButton.h"
+#import "SVInfoWallView.h"
 
 @interface SVGameViewController ()
 
 //Game data
 @property (strong) SVBoard* board;
 @property (strong) NSArray* playerColors;
-@property (strong) NSMutableArray* wallsRemaining;
+@property (strong) NSMutableArray* normalWallsRemaining;
 @property (strong) NSMutableArray* specialWallsRemaining;
 
 //Views
@@ -27,6 +28,7 @@
 @property (strong) UIView* topView;
 @property (strong) UIView* infoView;
 @property (strong) UIView* bottomView;
+@property (strong) NSMutableArray* infoWallViews;
 
 //Turn info
 @property (strong) NSMutableDictionary* buildingWallInfo;
@@ -44,6 +46,8 @@
 - (void)endTurn;
 - (void)didClickColorButton:(id)sender;
 - (void)didSwipeBottomView;
+- (SVInfoWallView*)firstInfoWallForType:(kSVWallType)type andPlayer:(kSVPlayer)player;
+- (void)removeInfoWallAtIndex:(int)index forPlayer:(kSVPlayer)player;
 @end
 
 @implementation SVGameViewController
@@ -57,9 +61,9 @@
     self = [super init];
     if (self) {
         _wallViews = [[NSMutableDictionary alloc] init];
-        _wallsRemaining = [[NSMutableArray alloc] init];
-        [_wallsRemaining addObject:[NSNumber numberWithInt:6]];
-        [_wallsRemaining addObject:[NSNumber numberWithInt:6]];
+        _normalWallsRemaining = [[NSMutableArray alloc] init];
+        [_normalWallsRemaining addObject:[NSNumber numberWithInt:6]];
+        [_normalWallsRemaining addObject:[NSNumber numberWithInt:6]];
         _specialWallsRemaining = [[NSMutableArray alloc] init];
         [_specialWallsRemaining addObject:[NSNumber numberWithInt:2]];
         [_specialWallsRemaining addObject:[NSNumber numberWithInt:2]];
@@ -69,6 +73,9 @@
         _turn = 0;
         _turnChanges = [[NSMutableDictionary alloc] init];
         _playerColors = [[NSArray alloc] initWithObjects:[SVTheme sharedTheme].player1Color, [SVTheme sharedTheme].player2Color, nil];
+        _infoWallViews = [[NSMutableArray alloc] init];
+        [_infoWallViews addObject:[[NSMutableArray alloc] init]];
+        [_infoWallViews addObject:[[NSMutableArray alloc] init]];
     }
     return self;
 }
@@ -152,6 +159,36 @@
                                                                             (self.infoView.frame.size.height - 26) / 2, 42, 26)];
     [button addTarget:self action:@selector(didClickColorButton:) forControlEvents:UIControlEventTouchUpInside];
     [self.infoView addSubview:button];
+    
+    int leftOffset = 38;
+    int rightOffset = self.infoView.frame.size.width - 38 - 4;
+    int specialWallsCount = ((NSNumber*)[self.specialWallsRemaining objectAtIndex:0]).intValue;
+    int normalWallsCount = ((NSNumber*)[self.normalWallsRemaining objectAtIndex:0]).intValue;
+    for (int i = 0; i <  specialWallsCount + normalWallsCount ; i++) {
+        UIColor* color;
+        if (i < specialWallsCount)
+            color = self.playerColors[kSVPlayer1];
+        else
+            color = [SVTheme sharedTheme].normalWallColor;
+        
+        SVInfoWallView* wall = [[SVInfoWallView alloc] initWithFrame:CGRectMake(leftOffset, (self.infoView.frame.size.height - 15) / 2, 4, 15)
+                                                            andColor:color];
+        leftOffset = CGRectGetMaxX(wall.frame) + 3;
+        [[self.infoWallViews objectAtIndex:kSVPlayer1] addObject:wall];
+        [self.infoView addSubview:wall];
+        
+        if (i < specialWallsCount)
+            color = self.playerColors[kSVPlayer2];
+        else
+            color = [SVTheme sharedTheme].normalWallColor;
+       
+        wall = [[SVInfoWallView alloc] initWithFrame:CGRectMake(rightOffset, (self.infoView.frame.size.height - 15) / 2, 4, 15)
+                                            andColor:color];
+        
+        rightOffset = CGRectGetMinX(wall.frame) - 3 - 4;
+        [[self.infoWallViews objectAtIndex:kSVPlayer2] addObject:wall];
+        [self.infoView addSubview:wall];
+    }
     
     //Bottom
     self.bottomView = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.infoView.frame), self.view.frame.size.width, self.view.frame.size.height - CGRectGetMaxY(self.infoView.frame))];
@@ -314,6 +351,29 @@
     }
 }
 
+-(SVInfoWallView*)firstInfoWallForType:(kSVWallType)type andPlayer:(kSVPlayer)player {
+    NSMutableArray* array = [self.infoWallViews objectAtIndex:player];
+    for (SVInfoWallView* wall in array) {
+        if ([wall.backgroundColor isEqual:((UIColor*)[self.buildingWallInfo objectForKey:@"color"])])
+            return wall;
+    }
+    return nil;
+}
+
+- (void)removeInfoWallAtIndex:(int)index forPlayer:(kSVPlayer)player {
+    NSMutableArray* array = [self.infoWallViews objectAtIndex:player];
+    SVInfoWallView* wall = [array objectAtIndex:index];
+    [wall removeFromSuperview];
+    [array removeObject:wall];
+    int offset = player == kSVPlayer1 ? -7 : 7;
+    for (int i = index; i < array.count; i++) {
+        [UIView animateWithDuration:0.5 animations:^{
+            SVInfoWallView* wall = [array objectAtIndex:i];
+            wall.frame = CGRectMake(wall.frame.origin.x + offset, wall.frame.origin.y, wall.frame.size.width, wall.frame.size.height);
+        }];
+    }
+}
+
 //////////////////////////////////////////////////////
 // Buttons targets
 //////////////////////////////////////////////////////
@@ -413,7 +473,7 @@
     [self.buildingWallInfo setObject:[NSNumber numberWithInt:wallOrientation] forKey:@"orientation"];
     [self.buildingWallInfo setObject:[NSNumber numberWithInt:kSVWallNormal] forKey:@"type"];
     [self.buildingWallInfo setObject:wallPosition forKey:@"position"];
-    [self.buildingWallInfo setObject:self.normalWallColor forKey:@"color"];
+    [self.buildingWallInfo setObject:self.selectedWallColor forKey:@"color"];
     [self.buildingWallInfo setObject:wallView forKey:@"view"];
 }
 
@@ -423,6 +483,7 @@
     
     kSVPanDirection wallDirection = ((NSNumber*)[self.buildingWallInfo objectForKey:@"direction"]).intValue;
     SVWallView* wallView = [self.buildingWallInfo objectForKey:@"view"];
+    float sizeRatio;
     
     CGRect rect;
     if (wallDirection == kSVTopDirection) {
@@ -430,26 +491,41 @@
                           point.y - wallView.frame.origin.y,
                           wallView.frame.size.width,
                           wallView.frame.size.height - (point.y - wallView.frame.origin.y));
+        sizeRatio = rect.size.height / wallView.frame.size.height;
     }
     else if (wallDirection == kSVRightDirection) {
         rect = CGRectMake(0,
                           0,
                           point.x - wallView.frame.origin.x,
                           wallView.frame.size.height);
+        sizeRatio = rect.size.width / wallView.frame.size.width;
     }
     else if (wallDirection == kSVBottomDirection) {
         rect = CGRectMake(0,
                           0,
                           wallView.frame.size.width,
                           point.y - wallView.frame.origin.y);
+        sizeRatio = rect.size.height / wallView.frame.size.height;
     }
     else {
         rect = CGRectMake(point.x - wallView.frame.origin.x,
                           0,
                           wallView.frame.size.width - (point.x - wallView.frame.origin.x),
                           wallView.frame.size.height);
+        sizeRatio = rect.size.width / wallView.frame.size.width;
     }
     [wallView showRect:rect animated:NO withFinishBlock:nil];
+
+    sizeRatio = sizeRatio > 1 ? 1 : sizeRatio;
+    
+    //Hide info wall
+    SVInfoWallView* infoWall = [self firstInfoWallForType:((NSNumber*)[self.buildingWallInfo objectForKey:@"type"]).intValue
+                                        andPlayer:self.currentPlayer];
+    CGRect infoWallRect = CGRectMake(0,
+                                     infoWall.frame.size.height * sizeRatio,
+                                     infoWall.frame.size.width,
+                                     infoWall.frame.size.height * (1 - sizeRatio));
+    [infoWall showRect:infoWallRect animated:NO withFinishBlock:nil];
 }
 
 - (void)boardView:(SVBoardView *)boardView didEndPanAt:(CGPoint)point changeOfDirection:(BOOL)change {
@@ -462,6 +538,12 @@
         wallView.shownRect.size.height >= wallView.frame.size.height - 15) {
         [wallView showRect:wallView.bounds animated:YES withFinishBlock:nil];
         [self.turnChanges setObject:self.buildingWallInfo forKey:@"wall"];
+        
+        //Remove info wall
+        SVInfoWallView* infoWall = [self firstInfoWallForType:((NSNumber*)[self.buildingWallInfo objectForKey:@"type"]).intValue
+                                            andPlayer:self.currentPlayer];
+        NSMutableArray* infoWallArray = self.infoWallViews[self.currentPlayer];
+        [self removeInfoWallAtIndex:[infoWallArray indexOfObject:infoWall] forPlayer:self.currentPlayer];
     }
     else {
         CGRect rect;
@@ -478,6 +560,9 @@
         [wallView showRect:rect animated:!change withFinishBlock:^(void){
             [wallView removeFromSuperview];
         }];
+        SVInfoWallView* infoWall = [self firstInfoWallForType:((NSNumber*)[self.buildingWallInfo objectForKey:@"type"]).intValue
+                                            andPlayer:self.currentPlayer];
+        [infoWall showRect:infoWall.bounds animated:YES withFinishBlock:nil];
     }
 }
 

@@ -33,6 +33,7 @@
 		4DE07FF7188C477D00A3251A /* SVPosition.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DE07FF6188C477D00A3251A /* SVPosition.m */; };
 		4DF62C32188C28AB00ED83D4 /* SVBoardTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DF62C31188C28AB00ED83D4 /* SVBoardTest.m */; };
 		4DFEBBDC1895A1CE0051274A /* SVColorButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DFEBBDB1895A1CE0051274A /* SVColorButton.m */; };
+		4DFEBBE2189691F30051274A /* SVInfoWallView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DFEBBE1189691F30051274A /* SVInfoWallView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -88,6 +89,8 @@
 		4DF62C31188C28AB00ED83D4 /* SVBoardTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVBoardTest.m; sourceTree = "<group>"; };
 		4DFEBBDA1895A1CE0051274A /* SVColorButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVColorButton.h; sourceTree = "<group>"; };
 		4DFEBBDB1895A1CE0051274A /* SVColorButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVColorButton.m; sourceTree = "<group>"; };
+		4DFEBBE0189691F30051274A /* SVInfoWallView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVInfoWallView.h; sourceTree = "<group>"; };
+		4DFEBBE1189691F30051274A /* SVInfoWallView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVInfoWallView.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -233,6 +236,8 @@
 				4DA80C3718955B8600C7F541 /* SVCustomView.m */,
 				4DFEBBDA1895A1CE0051274A /* SVColorButton.h */,
 				4DFEBBDB1895A1CE0051274A /* SVColorButton.m */,
+				4DFEBBE0189691F30051274A /* SVInfoWallView.h */,
+				4DFEBBE1189691F30051274A /* SVInfoWallView.m */,
 			);
 			name = Views;
 			sourceTree = "<group>";
@@ -355,6 +360,7 @@
 				4DA11951188D89AB008A8688 /* SVGameViewController.m in Sources */,
 				4D154D871892BB0E00E8E303 /* SVBoardView.m in Sources */,
 				4DE07FF7188C477D00A3251A /* SVPosition.m in Sources */,
+				4DFEBBE2189691F30051274A /* SVInfoWallView.m in Sources */,
 				4D06AC74188A976C00ED425F /* main.m in Sources */,
 				4DD226F51890295D0095D71D /* SVWall.m in Sources */,
 				4D154D841892B97100E8E303 /* SVPawnView.m in Sources */,
