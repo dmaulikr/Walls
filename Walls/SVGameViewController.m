@@ -17,6 +17,8 @@
 
 @interface SVGameViewController ()
 
+@property (strong) GKTurnBasedMatch* match;
+
 //Game data
 @property (strong) SVBoard* board;
 @property (strong) NSArray* playerColors;
@@ -62,10 +64,15 @@
 // Public
 //////////////////////////////////////////////////////
 
-- (id)init
-{
+- (id)initWithMatch:(GKTurnBasedMatch*)match {
     self = [super init];
     if (self) {
+        _match = match;
+//        GKLocalPlayer* localPlayer = [GKLocalPlayer localPlayer];
+//        GKTurnBasedParticipant* firstPlayer = [_match.participants objectAtIndex:0];
+//        if ([firstPlayer.playerID isEqualToString:localPlayer.playerID]) {
+//            
+//        }
         _wallViews = [[NSMutableDictionary alloc] init];
         _normalWallsRemaining = [[NSMutableArray alloc] init];
         [_normalWallsRemaining addObject:[NSNumber numberWithInt:6]];

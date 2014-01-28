@@ -7,8 +7,9 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <GameKit/GameKit.h>
 #import "SVBoardView.h"
 
 @interface SVGameViewController : UIViewController <SVBoardViewDelegate, UIGestureRecognizerDelegate>
-
+- (id)initWithMatch:(GKTurnBasedMatch*)match;
 @end
