@@ -263,4 +263,30 @@
     return legalPositions;
 }
 
+- (void)flipBoard {
+    NSArray* keys = [self.walls allKeys];
+    NSMutableDictionary* newWalls = [[NSMutableDictionary alloc] init];
+    for (id key in keys) {
+        SVWall* wall = [self.walls objectForKey:key];
+        wall.position = [[SVPosition alloc] initWithX:self.size.width - wall.position.x
+                                                 andY:self.size.height - wall.position.y];
+        [newWalls setObject:wall forKey:wall.position];
+    }
+    self.walls = newWalls;
+    
+    //Player 2 becomes Player
+    [self.playerPositions exchangeObjectAtIndex:kSVPlayer1 withObjectAtIndex:kSVPlayer2];
+    SVPosition* oldPlayer1Position = [self.playerPositions objectAtIndex:kSVPlayer1];
+    SVPosition* oldPlayer2Position = [self.playerPositions objectAtIndex:kSVPlayer2];
+    SVPosition* newPlayer1Position = [[SVPosition alloc] initWithX:self.size.width - 1 - oldPlayer1Position.x
+                                                              andY:self.size.height - 1 - oldPlayer1Position.y];
+    SVPosition* newPlayer2Position = [[SVPosition alloc] initWithX:self.size.width - 1 - oldPlayer2Position.x
+                                                              andY:self.size.height - 1 - oldPlayer2Position.y];
+    [self.playerPositions replaceObjectAtIndex:kSVPlayer1 withObject:newPlayer1Position];
+    [self.playerPositions replaceObjectAtIndex:kSVPlayer2 withObject:newPlayer2Position];
+    
+    [self.normalWallsRemaining exchangeObjectAtIndex:kSVPlayer1 withObjectAtIndex:kSVPlayer2];
+    [self.specialWallsRemaining exchangeObjectAtIndex:kSVPlayer1 withObjectAtIndex:kSVPlayer2];
+}
+
 @end

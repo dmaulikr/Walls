@@ -18,5 +18,6 @@
 
 - (NSArray*)movesForPlayer:(kSVPlayer)player;
 - (BOOL)isGoalReachableByPlayer:(kSVPlayer)player;
+- (void)flipBoard;
 
 @end
