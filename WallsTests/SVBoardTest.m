@@ -238,6 +238,8 @@
     XCTAssertEqualObjects(board.walls, copy.walls, @"Walls not equal");
     XCTAssertEqual(board.size, copy.size, @"Sizes not equal");
     XCTAssertEqualObjects(board.playerGoalsY, copy.playerGoalsY, @"Sizes not equal");
+    XCTAssertEqualObjects(board.normalWallsRemaining, copy.normalWallsRemaining, @"NormalWallsRemaining not equal");
+    XCTAssertEqualObjects(board.specialWallsRemaining, copy.specialWallsRemaining, @"SpecialWallsRemaining not equal");
 }
 
 - (void)testIsEqualFail {
@@ -275,6 +277,14 @@
     board2 = [[SVBoard alloc] init];
     XCTAssertFalse([board1 isEqual:board2], @"Boards equal while shouldn't because of player 1 position");
     XCTAssertFalse([board2 isEqual:board1], @"Boards equal while shouldn't because of player 1 position");
+    
+    //Different number of normal walls remaining
+    board1 = [[SVBoard alloc] init];
+    [board1.normalWallsRemaining replaceObjectAtIndex:0
+                                           withObject:[NSNumber numberWithInt:0]];
+    board2 = [[SVBoard alloc] init];
+    XCTAssertFalse([board1 isEqual:board2], @"Boards equal while shouldn't because of normalWalls remaining");
+    XCTAssertFalse([board2 isEqual:board1], @"Boards equal while shouldn't because of normalWalls remaining");
 }
 
 - (void)testIsEqualSuccess {
@@ -345,7 +355,8 @@
     [board.walls setObject:wall forKey:wall.position];
     XCTAssertFalse([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:2 andY:2]
                                 withOrientation:kSVHorizontalOrientation
-                                        andType:kSVWallNormal],
+                                           type:kSVWallNormal
+                                      forPlayer:kSVPlayer1],
                    @"2 horizontal walls on same position not rejected");
     
     board = [[SVBoard alloc] init];
@@ -353,7 +364,8 @@
     [board.walls setObject:wall forKey:wall.position];
     XCTAssertFalse([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:2 andY:2]
                                 withOrientation:kSVVerticalOrientation
-                                        andType:kSVWallNormal],
+                                           type:kSVWallNormal
+                                      forPlayer:kSVPlayer2],
                    @"2 vertical walls on same position not rejected");
     
     //2 walls of different orientation at same position
@@ -362,7 +374,8 @@
     [board.walls setObject:wall forKey:wall.position];
     XCTAssertFalse([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:2 andY:2]
                                 withOrientation:kSVVerticalOrientation
-                                        andType:kSVWallNormal],
+                                           type:kSVWallNormal
+                                      forPlayer:kSVPlayer1],
                    @"1 horizontal wall and 1 vertical wall on same position not rejected");
     
     board = [[SVBoard alloc] init];
@@ -370,7 +383,8 @@
     [board.walls setObject:wall forKey:wall.position];
     XCTAssertFalse([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:2 andY:2]
                                 withOrientation:kSVHorizontalOrientation
-                                        andType:kSVWallNormal],
+                                           type:kSVWallNormal
+                                      forPlayer:kSVPlayer2],
                    @"1 vertical wall and 1 horizontal wall on same position not rejected");
     
     //Horizontal walls interleaving
@@ -379,7 +393,8 @@
     [board.walls setObject:wall forKey:wall.position];
     XCTAssertFalse([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:3 andY:2]
                                 withOrientation:kSVHorizontalOrientation
-                                        andType:kSVWallNormal],
+                                           type:kSVWallNormal
+                                      forPlayer:kSVPlayer1],
                    @"2 horizontal walls interleaving not rejected");
     
     board = [[SVBoard alloc] init];
@@ -387,7 +402,8 @@
     [board.walls setObject:wall forKey:wall.position];
     XCTAssertFalse([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:1 andY:2]
                                 withOrientation:kSVHorizontalOrientation
-                                        andType:kSVWallNormal],
+                                        type:kSVWallNormal
+                                      forPlayer:kSVPlayer2],
                    @"2 horizontal walls interleaving not rejected");
 
     
@@ -397,7 +413,8 @@
     [board.walls setObject:wall forKey:wall.position];
     XCTAssertFalse([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:2 andY:3]
                                 withOrientation:kSVVerticalOrientation
-                                        andType:kSVWallNormal],
+                                           type:kSVWallNormal
+                                      forPlayer:kSVPlayer1],
                    @"2 vertical walls interleaving not rejected");
     
     board = [[SVBoard alloc] init];
@@ -405,7 +422,8 @@
     [board.walls setObject:wall forKey:wall.position];
     XCTAssertFalse([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:2 andY:1]
                                 withOrientation:kSVVerticalOrientation
-                                        andType:kSVWallNormal],
+                                           type:kSVWallNormal
+                                      forPlayer:kSVPlayer2],
                    @"2 vertical walls interleaving not rejected");
     
     //Goal not reachable
@@ -420,8 +438,26 @@
     [board.walls setObject:wall forKey:wall.position];
     XCTAssertFalse([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:5 andY:2]
                                 withOrientation:kSVVerticalOrientation
-                                        andType:kSVWallNormal],
+                                           type:kSVWallNormal
+                                      forPlayer:kSVPlayer1],
                    @"goal not reachable not detected");
+    
+    //No normal wall remaining
+    board = [[SVBoard alloc] init];
+    [board.normalWallsRemaining replaceObjectAtIndex:kSVPlayer1 withObject:[NSNumber numberWithInt:0]];
+    XCTAssertFalse([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:2 andY:3]
+                                withOrientation:kSVVerticalOrientation
+                                           type:kSVWallNormal
+                                      forPlayer:kSVPlayer1],
+                   @"No normal wall remaining not detected");
+    //No special wall remaining
+    board = [[SVBoard alloc] init];
+    [board.specialWallsRemaining replaceObjectAtIndex:kSVPlayer2 withObject:[NSNumber numberWithInt:0]];
+    XCTAssertFalse([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:2 andY:3]
+                                withOrientation:kSVVerticalOrientation
+                                           type:kSVWallPlayer2
+                                      forPlayer:kSVPlayer2],
+                   @"No special wall remaining not detected");
 }
 
 - (void)testIsWallLegalSuccess {
@@ -434,7 +470,8 @@
     [board.walls setObject:wall forKey:wall.position];
     XCTAssertTrue([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:1 andY:2]
                                withOrientation:kSVHorizontalOrientation
-                                       andType:kSVWallNormal],
+                                          type:kSVWallNormal
+                                     forPlayer:kSVPlayer1],
                    @"2 horizontal walls not interleaving rejected");
     
     board = [[SVBoard alloc] init];
@@ -442,7 +479,8 @@
     [board.walls setObject:wall forKey:wall.position];
     XCTAssertTrue([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:4 andY:2]
                                withOrientation:kSVHorizontalOrientation
-                                       andType:kSVWallNormal],
+                                          type:kSVWallNormal
+                                     forPlayer:kSVPlayer2],
                   @"2 horizontal walls not interleaving rejected");
     
     board = [[SVBoard alloc] init];
@@ -450,7 +488,8 @@
     [board.walls setObject:wall forKey:wall.position];
     XCTAssertTrue([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:2 andY:1]
                                withOrientation:kSVVerticalOrientation
-                                       andType:kSVWallNormal],
+                                          type:kSVWallNormal
+                                     forPlayer:kSVPlayer1],
                   @"2 vertical walls not interleaving rejected");
     
     board = [[SVBoard alloc] init];
@@ -458,7 +497,8 @@
     [board.walls setObject:wall forKey:wall.position];
     XCTAssertTrue([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:2 andY:5]
                                withOrientation:kSVVerticalOrientation
-                                       andType:kSVWallNormal],
+                                          type:kSVWallNormal
+                                     forPlayer:kSVPlayer2],
                   @"2 vertical walls not interleaving rejected");
     
     //2 adjacent walls of different orientation
@@ -467,7 +507,8 @@
     [board.walls setObject:wall forKey:wall.position];
     XCTAssertTrue([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:1 andY:2]
                                withOrientation:kSVVerticalOrientation
-                                       andType:kSVWallNormal],
+                                          type:kSVWallNormal
+                                     forPlayer:kSVPlayer1],
                   @"2 walls not interleaving rejected");
     
     board = [[SVBoard alloc] init];
@@ -475,7 +516,8 @@
     [board.walls setObject:wall forKey:wall.position];
     XCTAssertTrue([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:3 andY:2]
                                withOrientation:kSVVerticalOrientation
-                                       andType:kSVWallNormal],
+                                          type:kSVWallNormal
+                                     forPlayer:kSVPlayer2],
                   @"2 walls not interleaving rejected");
     
     board = [[SVBoard alloc] init];
@@ -483,7 +525,8 @@
     [board.walls setObject:wall forKey:wall.position];
     XCTAssertTrue([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:2 andY:1]
                                withOrientation:kSVHorizontalOrientation
-                                       andType:kSVWallNormal],
+                                          type:kSVWallNormal
+                                     forPlayer:kSVPlayer1],
                   @"2 walls not interleaving rejected");
     
     board = [[SVBoard alloc] init];
@@ -491,7 +534,8 @@
     [board.walls setObject:wall forKey:wall.position];
     XCTAssertTrue([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:2 andY:3]
                                withOrientation:kSVHorizontalOrientation
-                                       andType:kSVWallNormal],
+                                          type:kSVWallNormal
+                                     forPlayer:kSVPlayer2],
                   @"2 walls not interleaving rejected");
 }
 
@@ -504,7 +548,10 @@
     board = [[SVBoard alloc] init];
     wallOrientation = kSVHorizontalOrientation;
     wallPosition = [[SVPosition alloc] initWithX:2 andY:2];
-    [board addWallAtPosition:wallPosition withOrientation:wallOrientation andType:kSVWallNormal];
+    [board addWallAtPosition:wallPosition
+             withOrientation:wallOrientation
+                        type:kSVWallNormal
+                   forPlayer:kSVPlayer1];
     XCTAssertTrue([board.walls objectForKey:wallPosition], @"Wall %@ was not added", wallPosition);
     XCTAssertEqual((int)((NSDictionary*)board.walls).count, 1, @"Number of walls incorrect");
     
@@ -512,7 +559,10 @@
     board = [[SVBoard alloc] init];
     wallOrientation = kSVVerticalOrientation;
     wallPosition = [[SVPosition alloc] initWithX:2 andY:2];
-    [board addWallAtPosition:wallPosition withOrientation:wallOrientation andType:kSVWallNormal];
+    [board addWallAtPosition:wallPosition
+             withOrientation:wallOrientation
+                        type:kSVWallNormal
+                   forPlayer:kSVPlayer2];
     XCTAssertTrue([board.walls objectForKey:wallPosition], @"Wall %@ was not added", wallPosition);
     XCTAssertEqual((int)((NSDictionary*)board.walls).count, 1, @"Number of walls incorrect");
 }
@@ -524,7 +574,10 @@
     board = [[SVBoard alloc] init];
     wall = [[SVWall alloc] initWithPosition:[[SVPosition alloc] initWithX:2 andY:2] orientation:kSVHorizontalOrientation andType:kSVWallNormal];
     [board.walls setObject:wall forKey:wall.position];
-    XCTAssertThrows([board addWallAtPosition:wall.position withOrientation:kSVHorizontalOrientation andType:kSVWallNormal], @"Exception not throwned for invalid wall");
+    XCTAssertThrows([board addWallAtPosition:wall.position
+                             withOrientation:kSVHorizontalOrientation
+                                        type:kSVWallNormal
+                                   forPlayer:kSVPlayer1], @"Exception not throwned for invalid wall");
 }
 
 - (void)testDidPlayerWinFail {

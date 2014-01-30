@@ -415,9 +415,9 @@
         kSVWallType wallType = ((NSNumber*)[dictionary objectForKey:@"type"]).intValue;
         SVPosition* wallPosition = [dictionary objectForKey:@"position"];
         [self.wallViews setObject:[dictionary objectForKey:@"view"] forKey:wallPosition];
-        [self.board addWallAtPosition:wallPosition
-                      withOrientation:((NSNumber*)[dictionary objectForKey:@"orientation"]).intValue
-                              andType:wallType];
+//        [self.board addWallAtPosition:wallPosition
+//                      withOrientation:((NSNumber*)[dictionary objectForKey:@"orientation"]).intValue
+//                              andType:wallType];
         if (wallType == kSVWallNormal) {
             int count = ((NSNumber*)[self.normalWallsRemaining objectAtIndex:self.currentPlayer]).intValue;
             [self.normalWallsRemaining replaceObjectAtIndex:self.currentPlayer withObject:[NSNumber numberWithInt:count - 1]];
@@ -464,9 +464,9 @@
         kSVWallOrientation orientation = ((NSNumber*)[info objectForKey:@"orientation"]).intValue;
         kSVWallType type = ((NSNumber*)[info objectForKey:@"type"]).intValue;
         SVPosition* position = [info objectForKey:@"position"];
-        if (![self.board isWallLegalAtPosition:position withOrientation:orientation andType:type]) {
-            return NO;
-        }
+//        if (![self.board isWallLegalAtPosition:position withOrientation:orientation andType:type]) {
+//            return NO;
+//        }
         if (type == kSVWallNormal) {
             return ((NSNumber*)[self.normalWallsRemaining objectAtIndex:self.currentPlayer]).intValue > 0;
         }

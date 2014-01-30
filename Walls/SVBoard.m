@@ -28,6 +28,10 @@
         [_playerPositions addObject:[[SVPosition alloc] initWithX:floor(_size.width / 2) andY:0]];
         _playerGoalsY = [[NSMutableArray alloc] initWithObjects:[NSNumber numberWithInt:0],
                                                                 [NSNumber numberWithInt:_size.height - 1], nil];
+        _normalWallsRemaining = [[NSMutableArray alloc] initWithObjects:[NSNumber numberWithInt:6],
+                                                                        [NSNumber numberWithInt:6], nil];
+        _specialWallsRemaining = [[NSMutableArray alloc] initWithObjects:[NSNumber numberWithInt:2],
+                                                                         [NSNumber numberWithInt:2], nil];
     }
     return self;
 }
@@ -44,6 +48,8 @@
     copy.walls = wallsCopy;
     copy.playerPositions = [self.playerPositions mutableCopy];
     copy.playerGoalsY = [self.playerGoalsY mutableCopy];
+    copy.normalWallsRemaining = [[NSMutableArray alloc] initWithObjects:[NSNumber numberWithInt:((NSNumber*)[self.normalWallsRemaining objectAtIndex:0]).intValue], [NSNumber numberWithInt:((NSNumber*)[self.normalWallsRemaining objectAtIndex:1]).intValue], nil];
+    copy.specialWallsRemaining = [[NSMutableArray alloc] initWithObjects:[NSNumber numberWithInt:((NSNumber*)[self.specialWallsRemaining objectAtIndex:0]).intValue], [NSNumber numberWithInt:((NSNumber*)[self.specialWallsRemaining objectAtIndex:1]).intValue], nil];
     return copy;
     return nil;
 }
@@ -56,16 +62,20 @@
            [self.walls isEqualToDictionary:otherBoard.walls] &&
            [self.playerPositions[kSVPlayer1] isEqual:otherBoard.playerPositions[kSVPlayer1]] &&
            [self.playerPositions[kSVPlayer2] isEqual:otherBoard.playerPositions[kSVPlayer2]] &&
-           [self.playerGoalsY isEqual:otherBoard.playerGoalsY];
+           [self.playerGoalsY isEqual:otherBoard.playerGoalsY] &&
+           [self.normalWallsRemaining isEqualToArray:otherBoard.normalWallsRemaining] &&
+           [self.specialWallsRemaining isEqualToArray:otherBoard.specialWallsRemaining];
     return true;
 }
 
 - (NSUInteger)hash {
-    return [[NSString stringWithFormat:@"%@,%@,%@, %@",
+    return [[NSString stringWithFormat:@"%@,%@,%@,%@,%@,%@",
                      NSStringFromCGSize(self.size),
                      self.walls,
                      self.playerPositions,
-                     self.playerGoalsY] hash];
+                     self.playerGoalsY,
+                     self.normalWallsRemaining,
+                     self.specialWallsRemaining] hash];
 }
 
 - (BOOL)canPlayer:(kSVPlayer)player moveTo:(SVPosition*)end {
@@ -136,11 +146,23 @@
     }
 }
 
-- (BOOL)isWallLegalAtPosition:(SVPosition*)position withOrientation:(kSVWallOrientation)orientation andType:(kSVWallType)type {
+- (BOOL)isWallLegalAtPosition:(SVPosition*)position
+              withOrientation:(kSVWallOrientation)orientation
+                         type:(kSVWallType)type
+                    forPlayer:(kSVPlayer)player {
     if (position.x <= 0 || position.x >= self.size.width || position.y <= 0 || position.y >= self.size.height)
         return NO;
     
     if ([self.walls objectForKey:position])
+        return NO;
+    
+    if (type == kSVWallNormal && ((NSNumber*)[self.normalWallsRemaining objectAtIndex:player]).intValue <= 0)
+        return NO;
+    
+    if (type == kSVWallPlayer1 && player == kSVPlayer1 && ((NSNumber*)[self.specialWallsRemaining objectAtIndex:player]).intValue <= 0)
+        return NO;
+    
+    if (type == kSVWallPlayer2 && player == kSVPlayer2 && ((NSNumber*)[self.specialWallsRemaining objectAtIndex:player]).intValue <= 0)
         return NO;
     
     int xOffset = orientation == kSVHorizontalOrientation ? 1 : 0;
@@ -164,8 +186,11 @@
     return YES;
 }
 
-- (void)addWallAtPosition:(SVPosition*)position withOrientation:(kSVWallOrientation)orientation andType:(kSVWallType)type {
-    if (![self isWallLegalAtPosition:position withOrientation:orientation andType:type]) {
+- (void)addWallAtPosition:(SVPosition*)position
+          withOrientation:(kSVWallOrientation)orientation
+                     type:(kSVWallType)type
+                forPlayer:(kSVPlayer)player {
+    if (![self isWallLegalAtPosition:position withOrientation:orientation type:type forPlayer:player]) {
         NSException* exception = [NSException
                                   exceptionWithName:@"SVInvalidWallException"
                                   reason:[NSString stringWithFormat:@"Wall of orientation %d can't be built at %@", orientation, position]
