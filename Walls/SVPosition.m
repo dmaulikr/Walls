@@ -23,6 +23,10 @@
     return self;
 }
 
+//////////////////////////////////////////////////////
+// Protocols
+//////////////////////////////////////////////////////
+
 - (NSString*)description {
     return [NSString stringWithFormat:@"(%d, %d)", self.x, self.y];
 }
@@ -43,5 +47,19 @@
     copy.x = self.x;
     copy.y = self.y;
     return copy;
+}
+
+- (id)initWithCoder:(NSCoder *)aDecoder {
+    self = [super init];
+    if (self) {
+        _x = [aDecoder decodeIntForKey:@"x"];
+        _y = [aDecoder decodeIntForKey:@"y"];
+    }
+    return self;
+}
+
+- (void)encodeWithCoder:(NSCoder *)aCoder {
+    [aCoder encodeInt:self.x forKey:@"x"];
+    [aCoder encodeInt:self.y forKey:@"y"];
 }
 @end

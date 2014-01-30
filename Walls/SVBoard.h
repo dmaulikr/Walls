@@ -15,7 +15,7 @@ typedef enum {
     kSVPlayer2
 } kSVPlayer;
 
-@interface SVBoard : NSObject <NSCopying>
+@interface SVBoard : NSObject <NSCopying, NSCoding>
 @property (assign, readonly) CGSize size;
 @property (strong, readonly) NSMutableDictionary* walls;
 @property (strong, readonly) NSMutableArray* playerPositions;

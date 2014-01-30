@@ -90,4 +90,13 @@
     XCTAssertTrue([wall1 isEqual:wall2], @"Walls should be equal");
 }
 
+- (void)testEncoding {
+    SVWall* wall = [[SVWall alloc] initWithPosition:[[SVPosition alloc] initWithX:2 andY:4]
+                                        orientation:kSVHorizontalOrientation
+                                            andType:kSVWallNormal];
+    NSData* data = [NSKeyedArchiver archivedDataWithRootObject:wall];
+    SVWall* newWall = [NSKeyedUnarchiver unarchiveObjectWithData:data];
+    XCTAssertEqualObjects(wall, newWall, @"Walls not equal after encoding");
+}
+
 @end

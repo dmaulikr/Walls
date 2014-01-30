@@ -20,7 +20,7 @@ typedef enum {
     kSVHorizontalOrientation
 } kSVWallOrientation;
 
-@interface SVWall : NSObject <NSCopying>
+@interface SVWall : NSObject <NSCopying, NSCoding>
 @property (strong) SVPosition* position;
 @property (assign) kSVWallType type;
 @property (assign) kSVWallOrientation orientation;

@@ -705,6 +705,23 @@
     XCTAssertEqualObjects([board.specialWallsRemaining objectAtIndex:kSVPlayer2],
                           [specialWallsRemaining objectAtIndex:kSVPlayer2],
                           @"Special walls remaining not flipped");
-    
 }
+
+- (void)testEncoding {
+    SVBoard* board = [[SVBoard alloc] init];
+    board.size = CGSizeMake(2, 3);
+    SVWall* wall = [[SVWall alloc] initWithPosition:[[SVPosition alloc] initWithX:2 andY:4]
+                                        orientation:kSVHorizontalOrientation
+                                            andType:kSVWallPlayer1];
+    [board.walls setObject:wall forKey:wall.position];
+    [board.playerPositions replaceObjectAtIndex:kSVPlayer1 withObject:[[SVPosition alloc] initWithX:2 andY:3]];
+    [board.playerGoalsY replaceObjectAtIndex:kSVPlayer1 withObject:[NSNumber numberWithInt:2]];
+    [board.normalWallsRemaining replaceObjectAtIndex:kSVPlayer1 withObject:[[NSNumber alloc] initWithInt:2]];
+    [board.specialWallsRemaining replaceObjectAtIndex:kSVPlayer2 withObject:[[NSNumber alloc] initWithInt:8]];
+    
+    NSData* data = [NSKeyedArchiver archivedDataWithRootObject:board];
+    SVBoard* newBoard = [NSKeyedUnarchiver unarchiveObjectWithData:data];
+    XCTAssertEqualObjects(board, newBoard, @"Boards not equal after encoding");
+}
+
 @end

@@ -64,4 +64,11 @@
     XCTAssertTrue([position1 isEqual:position2], @"Positions should be equal");
 }
 
+- (void)testEncoding {
+    SVPosition* position = [[SVPosition alloc] initWithX:2 andY:4];
+    NSData* data = [NSKeyedArchiver archivedDataWithRootObject:position];
+    SVPosition* newPosition = [NSKeyedUnarchiver unarchiveObjectWithData:data];
+    XCTAssertEqualObjects(position, newPosition, @"Positions not equal after encoding");
+}
+
 @end

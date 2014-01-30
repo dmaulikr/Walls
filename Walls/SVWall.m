@@ -20,6 +20,10 @@
     return self;
 }
 
+//////////////////////////////////////////////////////
+// Protocols
+//////////////////////////////////////////////////////
+
 - (id)copyWithZone:(NSZone *)zone {
     SVWall* copy = [SVWall allocWithZone:zone];
     copy.position = [self.position copy];
@@ -42,5 +46,21 @@
              self.position,
              self.orientation,
              self.type] hash];
+}
+
+- (id)initWithCoder:(NSCoder *)aDecoder {
+    self = [super init];
+    if (self) {
+        _position = [aDecoder decodeObjectForKey:@"position"];
+        _orientation = [aDecoder decodeIntForKey:@"orientation"];
+        _type = [aDecoder decodeIntForKey:@"type"];
+    }
+    return self;
+}
+
+- (void)encodeWithCoder:(NSCoder *)aCoder {
+    [aCoder encodeObject:self.position forKey:@"position"];
+    [aCoder encodeInt:self.orientation forKey:@"orientation"];
+    [aCoder encodeInt:self.type forKey:@"type"];
 }
 @end

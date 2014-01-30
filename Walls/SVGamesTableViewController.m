@@ -63,10 +63,10 @@
 //////////////////////////////////////////////////////
 
 - (void)turnBasedMatchmakerViewController:(GKTurnBasedMatchmakerViewController *)viewController didFindMatch:(GKTurnBasedMatch *)match {
-    [self dismissViewControllerAnimated:YES completion:nil];
     SVGameViewController* controller = [[SVGameViewController alloc] initWithMatch:match];
     [self addChildViewController:controller];
     [self.view addSubview:controller.view];
+    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)turnBasedMatchmakerViewController:(GKTurnBasedMatchmakerViewController *)viewController playerQuitForMatch:(GKTurnBasedMatch *)match {

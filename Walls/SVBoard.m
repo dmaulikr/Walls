@@ -32,50 +32,9 @@
                                                                         [NSNumber numberWithInt:6], nil];
         _specialWallsRemaining = [[NSMutableArray alloc] initWithObjects:[NSNumber numberWithInt:2],
                                                                          [NSNumber numberWithInt:2], nil];
+        _flipped = NO;
     }
     return self;
-}
-
-- (id)copyWithZone:(NSZone *)zone {
-    SVBoard* copy = [SVBoard allocWithZone:zone];
-    copy.size = self.size;
-    NSMutableDictionary* wallsCopy = [[NSMutableDictionary alloc] init];
-    for (id key in self.walls) {
-        SVWall* wall = [self.walls objectForKey:key];
-        SVWall* wallCopy = [wall copy];
-        [wallsCopy setObject:wallCopy forKey:key];
-    }
-    copy.walls = wallsCopy;
-    copy.playerPositions = [self.playerPositions mutableCopy];
-    copy.playerGoalsY = [self.playerGoalsY mutableCopy];
-    copy.normalWallsRemaining = [[NSMutableArray alloc] initWithObjects:[NSNumber numberWithInt:((NSNumber*)[self.normalWallsRemaining objectAtIndex:0]).intValue], [NSNumber numberWithInt:((NSNumber*)[self.normalWallsRemaining objectAtIndex:1]).intValue], nil];
-    copy.specialWallsRemaining = [[NSMutableArray alloc] initWithObjects:[NSNumber numberWithInt:((NSNumber*)[self.specialWallsRemaining objectAtIndex:0]).intValue], [NSNumber numberWithInt:((NSNumber*)[self.specialWallsRemaining objectAtIndex:1]).intValue], nil];
-    return copy;
-    return nil;
-}
-
-- (BOOL)isEqual:(id)object {
-    if (![object isKindOfClass:[self class]])
-        return NO;
-    SVBoard* otherBoard = (SVBoard*)object;
-    return CGSizeEqualToSize(self.size, otherBoard.size) &&
-           [self.walls isEqualToDictionary:otherBoard.walls] &&
-           [self.playerPositions[kSVPlayer1] isEqual:otherBoard.playerPositions[kSVPlayer1]] &&
-           [self.playerPositions[kSVPlayer2] isEqual:otherBoard.playerPositions[kSVPlayer2]] &&
-           [self.playerGoalsY isEqual:otherBoard.playerGoalsY] &&
-           [self.normalWallsRemaining isEqualToArray:otherBoard.normalWallsRemaining] &&
-           [self.specialWallsRemaining isEqualToArray:otherBoard.specialWallsRemaining];
-    return true;
-}
-
-- (NSUInteger)hash {
-    return [[NSString stringWithFormat:@"%@,%@,%@,%@,%@,%@",
-                     NSStringFromCGSize(self.size),
-                     self.walls,
-                     self.playerPositions,
-                     self.playerGoalsY,
-                     self.normalWallsRemaining,
-                     self.specialWallsRemaining] hash];
 }
 
 - (BOOL)canPlayer:(kSVPlayer)player moveTo:(SVPosition*)end {
@@ -287,6 +246,75 @@
     
     [self.normalWallsRemaining exchangeObjectAtIndex:kSVPlayer1 withObjectAtIndex:kSVPlayer2];
     [self.specialWallsRemaining exchangeObjectAtIndex:kSVPlayer1 withObjectAtIndex:kSVPlayer2];
+    self.flipped = !self.flipped;
 }
 
+//////////////////////////////////////////////////////
+// Protocols
+//////////////////////////////////////////////////////
+
+- (id)copyWithZone:(NSZone *)zone {
+    SVBoard* copy = [SVBoard allocWithZone:zone];
+    copy.size = self.size;
+    NSMutableDictionary* wallsCopy = [[NSMutableDictionary alloc] init];
+    for (id key in self.walls) {
+        SVWall* wall = [self.walls objectForKey:key];
+        SVWall* wallCopy = [wall copy];
+        [wallsCopy setObject:wallCopy forKey:key];
+    }
+    copy.walls = wallsCopy;
+    copy.playerPositions = [self.playerPositions mutableCopy];
+    copy.playerGoalsY = [self.playerGoalsY mutableCopy];
+    copy.normalWallsRemaining = [[NSMutableArray alloc] initWithObjects:[NSNumber numberWithInt:((NSNumber*)[self.normalWallsRemaining objectAtIndex:0]).intValue], [NSNumber numberWithInt:((NSNumber*)[self.normalWallsRemaining objectAtIndex:1]).intValue], nil];
+    copy.specialWallsRemaining = [[NSMutableArray alloc] initWithObjects:[NSNumber numberWithInt:((NSNumber*)[self.specialWallsRemaining objectAtIndex:0]).intValue], [NSNumber numberWithInt:((NSNumber*)[self.specialWallsRemaining objectAtIndex:1]).intValue], nil];
+    return copy;
+    return nil;
+}
+
+- (BOOL)isEqual:(id)object {
+    if (![object isKindOfClass:[self class]])
+        return NO;
+    SVBoard* otherBoard = (SVBoard*)object;
+    return CGSizeEqualToSize(self.size, otherBoard.size) &&
+    [self.walls isEqualToDictionary:otherBoard.walls] &&
+    [self.playerPositions[kSVPlayer1] isEqual:otherBoard.playerPositions[kSVPlayer1]] &&
+    [self.playerPositions[kSVPlayer2] isEqual:otherBoard.playerPositions[kSVPlayer2]] &&
+    [self.playerGoalsY isEqual:otherBoard.playerGoalsY] &&
+    [self.normalWallsRemaining isEqualToArray:otherBoard.normalWallsRemaining] &&
+    [self.specialWallsRemaining isEqualToArray:otherBoard.specialWallsRemaining];
+    return true;
+}
+
+- (NSUInteger)hash {
+    return [[NSString stringWithFormat:@"%@,%@,%@,%@,%@,%@",
+             NSStringFromCGSize(self.size),
+             self.walls,
+             self.playerPositions,
+             self.playerGoalsY,
+             self.normalWallsRemaining,
+             self.specialWallsRemaining] hash];
+}
+
+- (id)initWithCoder:(NSCoder *)aDecoder {
+    self = [super init];
+    if (self) {
+        _size = [aDecoder decodeCGSizeForKey:@"size"];
+        _walls = [aDecoder decodeObjectForKey:@"walls"];
+        _playerPositions = [aDecoder decodeObjectForKey:@"playerPositions"];
+        _playerGoalsY = [aDecoder decodeObjectForKey:@"playerGoals"];
+        _normalWallsRemaining = [aDecoder decodeObjectForKey:@"normalWallsRemaining"];
+        _specialWallsRemaining = [aDecoder decodeObjectForKey:@"specialWallsRemaining"];
+        _flipped = NO;
+    }
+    return self;
+}
+
+- (void)encodeWithCoder:(NSCoder *)aCoder {
+    [aCoder encodeCGSize:self.size forKey:@"size"];
+    [aCoder encodeObject:self.walls forKey:@"walls"];
+    [aCoder encodeObject:self.playerPositions forKey:@"playerPositions"];
+    [aCoder encodeObject:self.playerGoalsY forKey:@"playerGoals"];
+    [aCoder encodeObject:self.normalWallsRemaining forKey:@"normalWallsRemaining"];
+    [aCoder encodeObject:self.specialWallsRemaining forKey:@"specialWallsRemaining"];
+}
 @end
