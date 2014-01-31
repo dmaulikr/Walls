@@ -18,6 +18,13 @@
 // Public
 //////////////////////////////////////////////////////
 
++ (SVBoard*)boardFromData:(NSData*)data flipped:(BOOL)flipped {
+    SVBoard* board = [NSKeyedUnarchiver unarchiveObjectWithData:data];
+    if (flipped)
+        [board flipBoard];
+    return board;
+}
+
 - (id)init {
     self = [super init];
     if (self) {
