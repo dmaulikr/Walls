@@ -637,13 +637,13 @@
     position = [[SVPosition alloc] initWithX:4 andY:1];
     wall = [[SVWall alloc] initWithPosition:position
                                 orientation:kSVHorizontalOrientation
-                                    andType:kSVWallNormal];
+                                    andType:kSVWallPlayer1];
     [board.walls setObject:wall forKey:position];
     
     position = [[SVPosition alloc] initWithX:4 andY:2];
     wall = [[SVWall alloc] initWithPosition:position
                                 orientation:kSVHorizontalOrientation
-                                    andType:kSVWallNormal];
+                                    andType:kSVWallPlayer2];
     [board.walls setObject:wall forKey:position];
     
     position = [[SVPosition alloc] initWithX:2 andY:4];
@@ -667,13 +667,13 @@
     position = [[SVPosition alloc] initWithX:board.size.width - 4 andY:board.size.height - 1];
     wall = [[SVWall alloc] initWithPosition:position
                                 orientation:kSVHorizontalOrientation
-                                    andType:kSVWallNormal];
+                                    andType:kSVWallPlayer2];
     [walls setObject:wall forKey:position];
     
     position = [[SVPosition alloc] initWithX:board.size.width - 4 andY: board.size.height - 2];
     wall = [[SVWall alloc] initWithPosition:position
                                 orientation:kSVHorizontalOrientation
-                                    andType:kSVWallNormal];
+                                    andType:kSVWallPlayer1];
     [walls setObject:wall forKey:position];
     
     position = [[SVPosition alloc] initWithX:board.size.width - 2 andY:board.size.height - 4];
@@ -684,7 +684,7 @@
     
     XCTAssertEqualObjects(board.walls,
                           walls,
-                          @"Wall positions not flipped");
+                          @"Walls not corrrect");
     XCTAssertEqualObjects([board.playerPositions objectAtIndex:kSVPlayer1],
                           [[SVPosition alloc] initWithX:board.size.width - 1 - 4 andY:board.size.height - 1 - 4],
                           @"Player positions not flipped");

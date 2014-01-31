@@ -248,6 +248,11 @@
         SVWall* wall = [self.walls objectForKey:key];
         wall.position = [[SVPosition alloc] initWithX:self.size.width - wall.position.x
                                                  andY:self.size.height - wall.position.y];
+        if (wall.type == kSVWallPlayer1)
+            wall.type = kSVWallPlayer2;
+        else if (wall.type == kSVWallPlayer2)
+            wall.type = kSVWallPlayer1;
+        
         [newWalls setObject:wall forKey:wall.position];
     }
     self.walls = newWalls;
