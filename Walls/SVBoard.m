@@ -166,6 +166,14 @@
     else {
         SVWall* newWall = [[SVWall alloc] initWithPosition:position orientation:orientation andType:type];
         [self.walls setObject:newWall forKey:position];
+        if (type == kSVWallNormal) {
+            int count = ((NSNumber*)[self.normalWallsRemaining objectAtIndex:player]).intValue;
+            [self.normalWallsRemaining replaceObjectAtIndex:player withObject:[NSNumber numberWithInt:count - 1]];
+        }
+        else {
+            int count = ((NSNumber*)[self.specialWallsRemaining objectAtIndex:player]).intValue;
+            [self.specialWallsRemaining replaceObjectAtIndex:player withObject:[NSNumber numberWithInt:count - 1]];
+        }
     }
 }
 
@@ -179,6 +187,10 @@
         return wall;
     else
         return nil;
+}
+
+- (NSData*)data {
+    return [NSKeyedArchiver archivedDataWithRootObject:self];
 }
 
 //////////////////////////////////////////////////////
