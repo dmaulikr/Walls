@@ -546,17 +546,22 @@
     
     //Add 1 horizontal wall
     board = [[SVBoard alloc] init];
+    int wallsRemaining = ((NSNumber*)[board.specialWallsRemaining objectAtIndex:kSVPlayer1]).intValue;
     wallOrientation = kSVHorizontalOrientation;
     wallPosition = [[SVPosition alloc] initWithX:2 andY:2];
     [board addWallAtPosition:wallPosition
              withOrientation:wallOrientation
-                        type:kSVWallNormal
+                        type:kSVWallPlayer1
                    forPlayer:kSVPlayer1];
     XCTAssertTrue([board.walls objectForKey:wallPosition], @"Wall %@ was not added", wallPosition);
     XCTAssertEqual((int)((NSDictionary*)board.walls).count, 1, @"Number of walls incorrect");
+    XCTAssertEqual(((NSNumber*)[board.specialWallsRemaining objectAtIndex:kSVPlayer1]).intValue,
+                   wallsRemaining - 1,
+                   @"SpecialWalls walls remaining not correct");
     
     //Add 1 vertical wall
     board = [[SVBoard alloc] init];
+    wallsRemaining = ((NSNumber*)[board.normalWallsRemaining objectAtIndex:kSVPlayer2]).intValue;
     wallOrientation = kSVVerticalOrientation;
     wallPosition = [[SVPosition alloc] initWithX:2 andY:2];
     [board addWallAtPosition:wallPosition
@@ -565,6 +570,9 @@
                    forPlayer:kSVPlayer2];
     XCTAssertTrue([board.walls objectForKey:wallPosition], @"Wall %@ was not added", wallPosition);
     XCTAssertEqual((int)((NSDictionary*)board.walls).count, 1, @"Number of walls incorrect");
+    XCTAssertEqual(((NSNumber*)[board.normalWallsRemaining objectAtIndex:kSVPlayer2]).intValue,
+                   wallsRemaining - 1,
+                   @"Normal walls remaining not correct");
 }
 
 - (void)testAddWallFail {

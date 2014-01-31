@@ -32,6 +32,7 @@ typedef enum {
                 forPlayer:(kSVPlayer)player;
 - (BOOL)didPlayerWin:(kSVPlayer)player;
 - (SVWall*)wallAtPosition:(SVPosition*)position withOrientation:(kSVWallOrientation)orientation;
-
++ (SVBoard*)boardFromData:(NSData*)data flipped:(BOOL)flipped;
+- (NSData*)data;
 
 @end
