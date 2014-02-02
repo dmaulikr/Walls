@@ -13,6 +13,7 @@
 
 @interface SVRootViewController ()
 @property (strong) UIViewController* currentViewController;
+@property (strong) UINavigationController* navigationController;
 @end
 
 @implementation SVRootViewController
@@ -21,16 +22,15 @@
     self = [super init];
     if (self) {
         [self authenticateLocalPlayer];
+        _navigationController = [[UINavigationController alloc] init];
+        _navigationController.navigationBarHidden = YES;
     }
     return self;
 }
 
-- (void)showViewController:(UIViewController*)controller {
-    [self.view addSubview:controller.view];
-    [self addChildViewController:controller];
-    if (self.currentViewController)
-        [self.currentViewController.view removeFromSuperview];
-    self.currentViewController = controller;
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    [self.view addSubview:_navigationController.view];
 }
 
 - (void)authenticateLocalPlayer {
@@ -53,7 +53,7 @@
 
 - (void)didAuthenticateLocalPlayer:(GKLocalPlayer *)localPlayer {
     SVGamesTableViewController* controller = [[SVGamesTableViewController alloc] init];
-    [self showViewController:controller];
+    [self.navigationController pushViewController:controller animated:NO];
 }
 
 //////////////////////////////////////////////////////

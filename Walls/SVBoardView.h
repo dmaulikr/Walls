@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 #import "SVSquareView.h"
 #import "SVPosition.h"
+#import "SVWall.h"
 
 typedef enum {
     kSVNoDirection,
@@ -22,6 +23,7 @@ typedef enum {
 @property (weak) id delegate;
 
 - (SVPosition*)intersectionPositionForPoint:(CGPoint)point;
+- (CGPoint)intersectionPointForPosition:(SVPosition*)position;
 - (CGPoint)squareCenterForPosition:(SVPosition*)position;
 @end
 

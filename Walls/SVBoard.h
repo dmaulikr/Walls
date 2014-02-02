@@ -19,6 +19,8 @@ typedef enum {
 @property (assign, readonly) CGSize size;
 @property (strong, readonly) NSMutableDictionary* walls;
 @property (strong, readonly) NSMutableArray* playerPositions;
+@property (strong) NSMutableArray* normalWallsRemaining;
+@property (strong) NSMutableArray* specialWallsRemaining;
 
 - (BOOL)canPlayer:(kSVPlayer)player moveTo:(SVPosition*)end;
 - (void)movePlayer:(kSVPlayer)player to:(SVPosition*)end;

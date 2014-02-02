@@ -111,6 +111,13 @@
     return [self.positionsForIntersection objectForKey:[NSValue valueWithCGPoint:point]];
 }
 
+- (CGPoint)intersectionPointForPosition:(SVPosition*)position {
+    NSValue* value = [[self.positionsForIntersection allKeysForObject:position] objectAtIndex:0];
+    if (!value)
+        return CGPointZero;
+    return value.CGPointValue;
+}
+
 - (CGPoint)nearestIntersectionToPoint:(CGPoint)point {
     CGPoint nearestIntersection = CGPointZero;
     float nearestDistance = -1;

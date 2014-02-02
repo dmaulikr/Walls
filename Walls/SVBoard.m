@@ -190,7 +190,30 @@
 }
 
 - (NSData*)data {
-    return [NSKeyedArchiver archivedDataWithRootObject:self];
+    SVBoard* board = self;
+    if (self.flipped) {
+        board = [self copy];
+        [board flipBoard];
+    }
+    return [NSKeyedArchiver archivedDataWithRootObject:board];
+}
+
+- (NSString*)description {
+    NSString* description = [NSString stringWithFormat:@"Size: %@\n"
+                              "Walls: %@\n"
+                              "Player positions: %@\n"
+                              "Player goals: %@\n"
+                              "Normal walls remaining: %@\n"
+                              "Special walls remaining: %@\n"
+                              "Flipped: %d",
+                             NSStringFromCGSize(self.size),
+                             self.walls,
+                             self.playerPositions,
+                             self.playerGoalsY,
+                             self.normalWallsRemaining,
+                             self.specialWallsRemaining,
+                             self.flipped];
+    return description;
 }
 
 //////////////////////////////////////////////////////

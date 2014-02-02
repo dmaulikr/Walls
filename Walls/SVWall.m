@@ -20,6 +20,16 @@
     return self;
 }
 
+- (NSString*)description {
+    NSString* description = [NSString stringWithFormat:@"Position: %@, "
+                                                       "Orientation: %d, "
+                                                       "Type: %d",
+                             self.position,
+                             self.orientation,
+                             self.type];
+    return description;
+}
+
 //////////////////////////////////////////////////////
 // Protocols
 //////////////////////////////////////////////////////

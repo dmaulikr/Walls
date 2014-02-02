@@ -10,8 +10,10 @@
 #import "SVGamesTableViewController.h"
 #import "SVGameViewController.h"
 
-@interface SVGamesTableViewController ()
+static NSString *cellIdentifier = @"Cell";
 
+@interface SVGamesTableViewController ()
+@property (strong) NSMutableArray* matches;
 @end
 
 @implementation SVGamesTableViewController
@@ -20,7 +22,7 @@
 {
     self = [super initWithStyle:style];
     if (self) {
-        self.view.backgroundColor = [UIColor redColor];
+        _matches = [[NSMutableArray alloc] init];
     }
     return self;
 }
@@ -28,17 +30,18 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-
-    // Uncomment the following line to preserve selection between presentations.
-    // self.clearsSelectionOnViewWillAppear = NO;
- 
-    // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-    // self.navigationItem.rightBarButtonItem = self.editButtonItem;
+    [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:cellIdentifier];
+    UIButton* button = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+    [button setTitle:@"New" forState:UIControlStateNormal];
+    [button addTarget:self action:@selector(didClickAddButton) forControlEvents:UIControlEventTouchUpInside];
+    button.frame = CGRectMake(0, 500, 100, 30);
+    
+    [self.view addSubview:button];
+    [self loadMatches];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    [self newMatch];
 }
 
 - (void)didReceiveMemoryWarning
@@ -47,15 +50,46 @@
     // Dispose of any resources that can be recreated.
 }
 
+//////////////////////////////////////////////////////
+// Private
+//////////////////////////////////////////////////////
+
 - (void)newMatch {
     GKMatchRequest* request = [[GKMatchRequest alloc] init];
     request.minPlayers = 2;
     request.maxPlayers = 2;
     GKTurnBasedMatchmakerViewController* controller = [[GKTurnBasedMatchmakerViewController alloc] initWithMatchRequest:request];
-    [[[UIApplication sharedApplication] keyWindow].rootViewController presentViewController:controller
-                                                                                   animated:YES
-                                                                                 completion:nil];
+    [self presentViewController:controller
+                       animated:YES
+                     completion:nil];
     controller.turnBasedMatchmakerDelegate = self;
+}
+
+- (void)loadMatch:(GKTurnBasedMatch*)match {
+    SVGameViewController* controller = [[SVGameViewController alloc] initWithMatch:match];
+    [self.navigationController pushViewController:controller animated:NO];
+}
+
+- (void)loadMatches {
+    [GKTurnBasedMatch loadMatchesWithCompletionHandler:^(NSArray *matches, NSError *error) {
+        if (error) {
+            NSLog(@"error : %@", error);
+            return;
+        }
+        [self.matches addObjectsFromArray:matches];
+        for (GKTurnBasedMatch* match in self.matches) {
+            [match loadMatchDataWithCompletionHandler:nil];
+        }
+        [self.tableView reloadData];
+    }];
+}
+
+//////////////////////////////////////////////////////
+// Buttons Targets
+//////////////////////////////////////////////////////
+
+- (void)didClickAddButton {
+    [self newMatch];
 }
 
 //////////////////////////////////////////////////////
@@ -63,9 +97,7 @@
 //////////////////////////////////////////////////////
 
 - (void)turnBasedMatchmakerViewController:(GKTurnBasedMatchmakerViewController *)viewController didFindMatch:(GKTurnBasedMatch *)match {
-    SVGameViewController* controller = [[SVGameViewController alloc] initWithMatch:match];
-    [self addChildViewController:controller];
-    [self.view addSubview:controller.view];
+    [self loadMatch:match];
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
@@ -86,77 +118,28 @@
 
 #pragma mark - Table view data source
 
-- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
-{
-    // Return the number of sections.
-    return 0;
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+    return 1;
 }
 
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
-{
-    // Return the number of rows in the section.
-    return 0;
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return self.matches.count;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    static NSString *CellIdentifier = @"Cell";
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
-    
-    // Configure the cell...
-    
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:cellIdentifier forIndexPath:indexPath];
+    GKTurnBasedMatch* match = [self.matches objectAtIndex:indexPath.row];
+    cell.textLabel.text = match.matchID;
     return cell;
 }
 
-/*
-// Override to support conditional editing of the table view.
-- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    // Return NO if you do not want the specified item to be editable.
-    return YES;
+#pragma mark - Table view delegate
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    GKTurnBasedMatch* match = [self.matches objectAtIndex:indexPath.row];
+    //Check if data
+    [self loadMatch:match];
 }
-*/
-
-/*
-// Override to support editing the table view.
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    if (editingStyle == UITableViewCellEditingStyleDelete) {
-        // Delete the row from the data source
-        [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-    }   
-    else if (editingStyle == UITableViewCellEditingStyleInsert) {
-        // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-    }   
-}
-*/
-
-/*
-// Override to support rearranging the table view.
-- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath
-{
-}
-*/
-
-/*
-// Override to support conditional rearranging of the table view.
-- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    // Return NO if you do not want the item to be re-orderable.
-    return YES;
-}
-*/
-
-/*
-#pragma mark - Navigation
-
-// In a story board-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
-{
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
-}
-
- */
 
 @end
