@@ -23,6 +23,7 @@
         self.layer.borderWidth = 1;
         self.layer.borderColor = [SVTheme sharedTheme].normalWallColor.CGColor;
         self.adjustsImageWhenHighlighted = NO;
+        self.adjustsImageWhenDisabled = NO;
         [self setBackgroundImage:[UIImage imageNamed:@"drop_gray.png"] forState:UIControlStateNormal];
         [self setBackgroundImage:[UIImage imageNamed:@"drop_green.png"] forState:UIControlStateSelected];
     }

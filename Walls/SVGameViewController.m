@@ -291,10 +291,13 @@
 
 - (void)adjustUIColor {
     //Adjust the color dependent on the number of walls remaining
-    if (self.currentPlayer == self.opponentPlayer) {
-        self.colorButton.selected = NO;
+    if ((self.currentPlayer == self.opponentPlayer) ||
+        (((NSNumber*)([self.game.board.normalWallsRemaining objectAtIndex:self.localPlayer])).intValue <= 0 &&
+        ((NSNumber*)([self.game.board.specialWallsRemaining objectAtIndex:self.localPlayer])).intValue <= 0)) {
+        self.colorButton.enabled = NO;
     }
     else {
+        self.colorButton.enabled = YES;
         self.colorButton.selected = ((NSNumber*)([self.game.board.normalWallsRemaining objectAtIndex:self.localPlayer])).intValue <= 0;
     }
     
