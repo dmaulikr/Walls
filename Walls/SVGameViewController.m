@@ -32,6 +32,9 @@
 @property (strong) NSMutableArray* infoWallViews;
 @property (strong) NSMutableArray* pawnViews;
 @property (strong) SVColorButton* colorButton;
+@property (strong) UIButton* cancelButton;
+@property (strong) UIButton* validateButton;
+@property (strong) UILabel* opponentPlayerLabel;
 
 //Turn info
 @property (strong) SVTurn* currentTurn;
@@ -40,11 +43,12 @@
 @property (assign) kSVPlayer localPlayer;
 @property (assign) kSVPlayer opponentPlayer;
 @property (assign) BOOL canBuildWall;
+@property (strong) NSArray* opponentName;
 
 @property (strong) UIPanGestureRecognizer* bottomViewGestureRecognizer;
 
 //Private
-- (void)adjustUIColor;
+- (void)adjustUI;
 - (void)newTurn;
 - (void)displayLastTurn;
 - (UIColor*)colorForWall:(SVWall*)wall;
@@ -180,7 +184,14 @@
     localPlayerLabel.textAlignment = NSTextAlignmentCenter;
     localPlayerLabel.textColor = [UIColor whiteColor];
     localPlayerLabel.font = [UIFont fontWithName:@"HelveticaNeue-Bold" size:10];
-    localPlayerLabel.text = @"SV";
+    NSArray* words = [[GKLocalPlayer localPlayer].displayName componentsSeparatedByString:@" "];
+    if (words.count == 1) {
+        localPlayerLabel.text = [[words objectAtIndex:0] substringWithRange:NSMakeRange(0, 2)];
+    }
+    else {
+        localPlayerLabel.text = [[[words objectAtIndex:0] substringWithRange:NSMakeRange(0, 1)]
+                                 stringByAppendingString:[[words objectAtIndex:1] substringWithRange:NSMakeRange(0, 1)]];
+    }
     localPlayerLabel.numberOfLines = 1;
     [localPlayerCircle addSubview:localPlayerLabel];
     
@@ -203,8 +214,8 @@
     opponentPlayerLabel.textAlignment = NSTextAlignmentCenter;
     opponentPlayerLabel.textColor = [UIColor whiteColor];
     opponentPlayerLabel.font = [UIFont fontWithName:@"HelveticaNeue-Bold" size:10];
-    opponentPlayerLabel.text = @"MV";
     opponentPlayerLabel.numberOfLines = 1;
+    self.opponentPlayerLabel = opponentPlayerLabel;
     [opponentPlayerCircle addSubview:opponentPlayerLabel];
     
     self.colorButton = [[SVColorButton alloc] initWithFrame:CGRectMake((self.infoView.frame.size.width -  42) / 2,
@@ -252,17 +263,17 @@
     self.bottomView = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.infoView.frame), self.view.frame.size.width, self.view.frame.size.height - CGRectGetMaxY(self.infoView.frame))];
     [self.view addSubview:self.bottomView];
     
-    self.bottomLabel = [[UILabel alloc] initWithFrame:CGRectMake((self.bottomView.frame.size.width - 200) / 2,
+    self.bottomLabel = [[UILabel alloc] initWithFrame:CGRectMake((self.bottomView.frame.size.width - 250) / 2,
                                                                      0,
-                                                                     200,
+                                                                     250,
                                                                      self.bottomView.frame.size.height)];
     self.bottomLabel.textColor = [UIColor whiteColor];
     self.bottomLabel.font = [UIFont fontWithName:@"HelveticaNeue" size:20];
-    self.bottomLabel.text = @"Your turn";
+    self.bottomLabel.lineBreakMode = NSLineBreakByTruncatingTail;
     self.bottomLabel.textAlignment = NSTextAlignmentCenter;
     [self.bottomView addSubview:self.bottomLabel];
     
-    [self adjustUIColor];
+    [self adjustUI];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -284,14 +295,14 @@
     [self displayLastTurn];
     [self checkForWin];
     [self newTurn];
-    [self adjustUIColor];
+    [self adjustUI];
 }
 
 //////////////////////////////////////////////////////
 // Private
 //////////////////////////////////////////////////////
 
-- (void)adjustUIColor {
+- (void)adjustUI {
     //Adjust the color dependent on the number of walls remaining
     if ((self.currentPlayer == self.opponentPlayer) ||
         (((NSNumber*)([self.game.board.normalWallsRemaining objectAtIndex:self.localPlayer])).intValue <= 0 &&
@@ -306,6 +317,33 @@
     //Adjust the top and bottom colors
     self.bottomView.backgroundColor = [self.playerColors objectAtIndex:self.currentPlayer];
     self.topView.backgroundColor = [self.playerColors objectAtIndex:self.currentPlayer];
+    
+    if (self.opponentName) {
+        if (self.currentPlayer == self.localPlayer) {
+            self.bottomLabel.text = @"You turn";
+        }
+        else {
+            self.bottomLabel.text = [@"Waiting for " stringByAppendingString:[self.opponentName objectAtIndex:0]];
+        }
+        if (self.opponentName.count == 1) {
+            self.opponentPlayerLabel.text = [[self.opponentName objectAtIndex:0] substringWithRange:NSMakeRange(0, 2)];
+        }
+        else {
+            self.opponentPlayerLabel.text = [[[self.opponentName objectAtIndex:0] substringWithRange:NSMakeRange(0, 1)]
+                                        stringByAppendingString:[[self.opponentName objectAtIndex:1] substringWithRange:NSMakeRange(0, 1)]];
+        }
+    }
+    else {
+        int index = [((GKTurnBasedParticipant*)[self.game.match.participants objectAtIndex:0]).playerID isEqualToString:[GKLocalPlayer localPlayer].playerID] ? 1 : 0;
+        GKTurnBasedParticipant* opponent = [self.game.match.participants objectAtIndex:index];
+        [GKPlayer loadPlayersForIdentifiers:[NSArray arrayWithObject:opponent.playerID]
+                      withCompletionHandler:^(NSArray *players, NSError *error) {
+                          GKPlayer* player = [players objectAtIndex:0];
+                          NSArray* words = [player.displayName componentsSeparatedByString:@" "];
+                          self.opponentName = words;
+                          [self adjustUI];
+                      }];
+    }
 }
 
 - (void)newTurn {
@@ -553,8 +591,10 @@
                         animated:YES];
     }
     else if (self.currentTurn.action == kSVAddWallAction) {
-        SVWallView* wall = [self.buildingWallInfo objectForKey:@"view"];
-        [wall removeFromSuperview];
+        SVWallView* wallView = [self.buildingWallInfo objectForKey:@"view"];
+        [wallView showRect:CGRectZero animated:YES duration:0.3 withFinishBlock:^{
+            [wallView removeFromSuperview];
+        }];
         [self.buildingWallInfo removeAllObjects];
     }
     self.currentTurn.action = kSVNoAction;
@@ -613,18 +653,47 @@
 }
 
 - (void)didPlayAction {
-//    UIButton* cancelButton = [UIButton buttonWithType:UIButtonTypeSystem];
-//    [cancelButton setTitle:@"Cancel" forState:UIControlStateNormal];
-//    [cancelButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal | UIControlStateHighlighted];
-//    [cancelButton addTarget:self action:@selector(didClickCancelButton:) forControlEvents:UIControlEventTouchUpInside];
-//    [self.view addSubview:cancelButton];
+    UIButton* cancelButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    [cancelButton setTitle:@"Cancel" forState:UIControlStateNormal];
+    [cancelButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    cancelButton.titleLabel.font = [UIFont fontWithName:@"HelveticaNeue" size:20];
+    [cancelButton addTarget:self action:@selector(didClickCancelButton:) forControlEvents:UIControlEventTouchUpInside];
+    cancelButton.alpha = 0;
+    cancelButton.frame = CGRectMake((self.bottomView.frame.size.width - 100) / 2,
+                                      (self.bottomView.frame.size.height - 40) / 2,
+                                      100,
+                                      40);
+    [self.bottomView addSubview:cancelButton];
     
     UIButton* validateButton = [UIButton buttonWithType:UIButtonTypeSystem];
     [validateButton setTitle:@"Validate" forState:UIControlStateNormal];
-    [validateButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal | UIControlStateHighlighted];
+    [validateButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [validateButton addTarget:self action:@selector(didClickValidateButton:) forControlEvents:UIControlEventTouchUpInside];
-    validateButton.frame = CGRectMake(50, self.view.bounds.size.height - 40, 100, 30);
-    [self.view addSubview:validateButton];
+    validateButton.titleLabel.font = [UIFont fontWithName:@"HelveticaNeue" size:20];
+    validateButton.alpha = 0;
+    validateButton.frame = CGRectMake((self.bottomView.frame.size.width - 100) / 2,
+                                    (self.bottomView.frame.size.height - 40) / 2,
+                                    100,
+                                    40);
+
+    [self.bottomView addSubview:validateButton];
+    
+    [UIView animateWithDuration:0.3 animations:^{
+        self.bottomLabel.alpha = 0;
+        cancelButton.alpha = 1;
+        cancelButton.frame = CGRectMake(40,
+                                        cancelButton.frame.origin.y,
+                                        cancelButton.frame.size.width,
+                                        cancelButton.frame.size.height);
+        validateButton.alpha = 1;
+        validateButton.frame = CGRectMake(self.bottomView.frame.size.width - 40 - validateButton.frame.size.width,
+                                        validateButton.frame.origin.y,
+                                        validateButton.frame.size.width,
+                                        validateButton.frame.size.height);
+    }];
+    
+    self.cancelButton = cancelButton;
+    self.validateButton = validateButton;
 }
 
 - (void)movePawnToPosition:(SVPosition*)position forPlayer:(kSVPlayer)player animated:(BOOL)animated {
@@ -679,15 +748,51 @@
 }
 
 - (void)didClickCancelButton:(id)sender {
+    self.cancelButton.enabled = NO;
+    self.validateButton.enabled = NO;
+    [UIView animateWithDuration:0.3 animations:^{
+        self.bottomLabel.alpha = 1;
+        self.cancelButton.alpha = 0;
+        self.cancelButton.frame = CGRectMake((self.bottomView.frame.size.width - 100) / 2,
+                                        (self.bottomView.frame.size.height - 40) / 2,
+                                        100,
+                                        40);
+        self.validateButton.alpha = 0;
+        self.validateButton.frame = CGRectMake((self.bottomView.frame.size.width - 100) / 2,
+                                          (self.bottomView.frame.size.height - 40) / 2,
+                                          100,
+                                          40);
+    } completion:^(BOOL finished) {
+        self.cancelButton = nil;
+        self.validateButton = nil;
+    }];
     [self cancelCurrentTurn];
 }
 
 - (void)didClickValidateButton:(id)sender {
-    UIButton* button = sender;
-    [button removeFromSuperview];
+    self.cancelButton.enabled = NO;
+    self.validateButton.enabled = NO;
+    self.bottomLabel.text = @"Waiting for jsqdofjqosjfoipjqsodfjpsdoijqjsfpoidfj";
+    [UIView animateWithDuration:0.3 animations:^{
+        self.bottomLabel.alpha = 1;
+        self.cancelButton.alpha = 0;
+        self.cancelButton.frame = CGRectMake((self.bottomView.frame.size.width - 100) / 2,
+                                             (self.bottomView.frame.size.height - 40) / 2,
+                                             100,
+                                             40);
+        self.validateButton.alpha = 0;
+        self.validateButton.frame = CGRectMake((self.bottomView.frame.size.width - 100) / 2,
+                                               (self.bottomView.frame.size.height - 40) / 2,
+                                               100,
+                                               40);
+        self.bottomView.backgroundColor = [self.playerColors objectAtIndex:self.opponentPlayer];
+    } completion:^(BOOL finished) {
+        self.cancelButton = nil;
+        self.validateButton = nil;
+    }];
     [self commitCurrentTurn];
     [self newTurn];
-    [self adjustUIColor];
+    [self adjustUI];
 }
 
 
