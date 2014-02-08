@@ -595,6 +595,9 @@
         [wallView showRect:CGRectZero animated:YES duration:0.3 withFinishBlock:^{
             [wallView removeFromSuperview];
         }];
+        SVInfoWallView* infoWall = [self firstInfoWallOfType:((NSNumber*)[self.buildingWallInfo objectForKey:@"type"]).intValue
+                                                   andPlayer:self.currentPlayer];
+        [infoWall showRect:infoWall.bounds animated:YES withFinishBlock:nil];
         [self.buildingWallInfo removeAllObjects];
     }
     self.currentTurn.action = kSVNoAction;
