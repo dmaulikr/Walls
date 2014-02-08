@@ -21,14 +21,17 @@
 
 @implementation SVBoardView
 
-- (id)initWithFrame:(CGRect)frame
-{
+- (id)initWithFrame:(CGRect)frame rotated:(BOOL)rotated {
     self = [super initWithFrame:frame];
     if (self) {
         _squareIntersections = [[NSMutableArray alloc] init];
         _positionsForIntersection = [[NSMutableDictionary alloc] init];
         _squareViewForPosition = [[NSMutableDictionary alloc] init];
         _initialPanDirection = kSVNoDirection;
+        
+        if (rotated) {
+            self.transform = CGAffineTransformMakeRotation(M_PI);
+        }
         
         UIPanGestureRecognizer* gestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(didPan:)];
         gestureRecognizer.minimumNumberOfTouches = 1;
@@ -210,13 +213,6 @@
     CGPoint point = CGPointMake(squareView.frame.origin.x + squareView.frame.size.width / 2,
                                 squareView.frame.origin.y + squareView.frame.size.height / 2);
     return point;
-}
-
-- (void)drawRect:(CGRect)rect
-{
-    UIBezierPath* bezierPath = [UIBezierPath bezierPathWithRect:CGRectMake(0, self.frame.size.height - 1, self.frame.size.width, 1)];
-    [[SVTheme sharedTheme].squareBorderColor setFill];
-    [bezierPath fill];
 }
 
 //////////////////////////////////////////////////////

@@ -21,10 +21,10 @@ static SVTheme* singleton;
 - (id)init {
     self = [super init];
     if (self) {
-        self.player1Color = [UIColor colorWithRed:0.4 green:0.82 blue:0.53 alpha:1.0];
-        self.player1LightColor = [UIColor colorWithRed:0.73 green:0.92 blue:0.79 alpha:1.0];
-        self.player2Color = [UIColor colorWithRed:0.96 green:0.67 blue:0.36 alpha:1.0];
-        self.player2LightColor = [UIColor colorWithRed:0.96 green:0.82 blue:0.69 alpha:1.0];
+        self.localPlayerColor = [UIColor colorWithRed:0.4 green:0.82 blue:0.53 alpha:1.0];
+        self.localPlayerLightColor = [UIColor colorWithRed:0.73 green:0.92 blue:0.79 alpha:1.0];
+        self.opponentPlayerColor = [UIColor colorWithRed:0.96 green:0.67 blue:0.36 alpha:1.0];
+        self.opponentPlayerLightColor = [UIColor colorWithRed:0.96 green:0.82 blue:0.69 alpha:1.0];
         self.lightSquareColor = [[UIColor alloc] initWithRed:0.44 green:0.44 blue:0.44 alpha:1.0];
         self.darkSquareColor = [[UIColor alloc] initWithRed:0.41 green:0.41 blue:0.41 alpha:1.0];
         self.squareBorderColor = [[UIColor alloc] initWithRed:0.46 green:0.46 blue:0.46 alpha:1.0];

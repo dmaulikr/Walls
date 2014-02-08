@@ -14,6 +14,7 @@ static NSString *cellIdentifier = @"Cell";
 
 @interface SVGamesTableViewController ()
 @property (strong) NSMutableArray* matches;
+@property (strong) SVGameViewController* currentController;
 @end
 
 @implementation SVGamesTableViewController
@@ -23,6 +24,8 @@ static NSString *cellIdentifier = @"Cell";
     self = [super initWithStyle:style];
     if (self) {
         _matches = [[NSMutableArray alloc] init];
+        [[GKLocalPlayer localPlayer] unregisterAllListeners];
+        [[GKLocalPlayer localPlayer] registerListener:self];
     }
     return self;
 }
@@ -66,8 +69,11 @@ static NSString *cellIdentifier = @"Cell";
 }
 
 - (void)loadMatch:(GKTurnBasedMatch*)match {
-    SVGameViewController* controller = [[SVGameViewController alloc] initWithMatch:match];
+    SVGame* game = [SVGame gameWithMatch:match];
+    SVGameViewController* controller = [[SVGameViewController alloc] initWithGame:game];
+    controller.delegate = self;
     [self.navigationController pushViewController:controller animated:NO];
+    self.currentController = controller;
 }
 
 - (void)loadMatches {
@@ -97,6 +103,7 @@ static NSString *cellIdentifier = @"Cell";
 //////////////////////////////////////////////////////
 
 - (void)turnBasedMatchmakerViewController:(GKTurnBasedMatchmakerViewController *)viewController didFindMatch:(GKTurnBasedMatch *)match {
+    NSLog(@"found match: %@", match.matchID);
     [self loadMatch:match];
     [self dismissViewControllerAnimated:YES completion:nil];
 }
@@ -116,6 +123,45 @@ static NSString *cellIdentifier = @"Cell";
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
+- (void)player:(GKPlayer *)player receivedTurnEventForMatch:(GKTurnBasedMatch *)match didBecomeActive:(BOOL)didBecomeActive {
+    if (self.currentController && [match.matchID isEqualToString:self.currentController.game.match.matchID]) {
+        [GKTurnBasedMatch loadMatchWithID:match.matchID withCompletionHandler:^(GKTurnBasedMatch *match, NSError *error) {
+            SVGame* game = [SVGame gameWithMatch:match];
+            if (game.turns.count > self.currentController.game.turns.count) {
+                [self.currentController opponentPlayerDidPlayTurn:game];
+                [[GKLocalPlayer localPlayer] unregisterAllListeners];
+                [[GKLocalPlayer localPlayer] registerListener:self];
+            }
+        }];
+    }
+    else {
+        //Refresh matches
+    }
+}
+
+- (void)player:(GKPlayer *)player didRequestMatchWithPlayers:(NSArray *)playerIDsToInvite {
+    NSLog(@"did request match");
+}
+
+- (void)player:(GKPlayer *)player matchEnded:(GKTurnBasedMatch *)match {
+    NSLog(@"match ended");
+}
+
+- (void)gameViewController:(SVGameViewController *)controller didPlayTurn:(SVGame *)game {
+    NSData* data = [game data];
+    GKTurnBasedParticipant* nextParticipant;
+    for (GKTurnBasedParticipant* participant in game.match.participants) {
+        if (![participant.playerID isEqualToString:game.match.currentParticipant.playerID])
+            nextParticipant = participant;
+    }
+    [game.match endTurnWithNextParticipants:[NSArray arrayWithObject:nextParticipant]
+                                turnTimeout:GKTurnTimeoutNone
+                                  matchData:data
+                          completionHandler:^(NSError *error) {
+                                   NSLog(@"sent");
+    }];
+}
+
 #pragma mark - Table view data source
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
@@ -130,7 +176,7 @@ static NSString *cellIdentifier = @"Cell";
 {
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:cellIdentifier forIndexPath:indexPath];
     GKTurnBasedMatch* match = [self.matches objectAtIndex:indexPath.row];
-    cell.textLabel.text = match.matchID;
+    cell.textLabel.text = match.creationDate.description;
     return cell;
 }
 

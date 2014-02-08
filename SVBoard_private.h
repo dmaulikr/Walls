@@ -13,10 +13,8 @@
 @property (strong) NSMutableDictionary* walls;
 @property (strong) NSMutableArray* playerPositions;
 @property (strong) NSMutableArray* playerGoalsY;
-@property (assign) BOOL flipped;
 
 - (NSArray*)movesForPlayer:(kSVPlayer)player;
 - (BOOL)isGoalReachableByPlayer:(kSVPlayer)player;
-- (void)flipBoard;
 
 @end

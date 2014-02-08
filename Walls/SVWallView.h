@@ -26,5 +26,5 @@ typedef enum {
           leftColor:(UIColor*)leftColor
         centerColor:(UIColor*)centerColor
         rightColor:(UIColor*)rightColor;
-- (void)showRect:(CGRect)rect animated:(BOOL)animated withFinishBlock:(void(^)(void))block;
+- (void)showRect:(CGRect)rect animated:(BOOL)animated duration:(float)duration withFinishBlock:(void(^)(void))block;
 @end

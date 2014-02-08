@@ -9,7 +9,17 @@
 #import <UIKit/UIKit.h>
 #import <GameKit/GameKit.h>
 #import "SVBoardView.h"
+#import "SVGame.h"
 
 @interface SVGameViewController : UIViewController <SVBoardViewDelegate, UIGestureRecognizerDelegate>
-- (id)initWithMatch:(GKTurnBasedMatch*)match;
+@property (strong, readonly) SVGame* game;
+@property (weak) id delegate;
+
+- (id)initWithGame:(SVGame*)game;
+- (void)opponentPlayerDidPlayTurn:(SVGame*)game;
 @end
+
+@protocol SVGameViewControllerDelegate <NSObject>
+- (void)gameViewController:(SVGameViewController*)controller didPlayTurn:(SVGame*)game;
+@end
+

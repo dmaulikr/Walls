@@ -629,92 +629,6 @@
     XCTAssertNil([board wallAtPosition:position withOrientation:kSVVerticalOrientation], @"Wall not nil");
 }
 
-- (void)testFlipBoard {
-    SVWall* wall;
-    SVPosition* position;
-    SVBoard* board = [[SVBoard alloc] init];
-    
-    position = [[SVPosition alloc] initWithX:4 andY:1];
-    wall = [[SVWall alloc] initWithPosition:position
-                                orientation:kSVHorizontalOrientation
-                                    andType:kSVWallPlayer1];
-    [board.walls setObject:wall forKey:position];
-    
-    position = [[SVPosition alloc] initWithX:4 andY:2];
-    wall = [[SVWall alloc] initWithPosition:position
-                                orientation:kSVHorizontalOrientation
-                                    andType:kSVWallPlayer2];
-    [board.walls setObject:wall forKey:position];
-    
-    position = [[SVPosition alloc] initWithX:2 andY:4];
-    wall = [[SVWall alloc] initWithPosition:position
-                                orientation:kSVVerticalOrientation
-                                    andType:kSVWallNormal];
-    [board.walls setObject:wall forKey:position];
-    
-    [board.playerPositions replaceObjectAtIndex:kSVPlayer1 withObject:[[SVPosition alloc] initWithX:1 andY:0]];
-    [board.playerPositions replaceObjectAtIndex:kSVPlayer2 withObject:[[SVPosition alloc] initWithX:4 andY:4]];
-    
-    [board.normalWallsRemaining replaceObjectAtIndex:kSVPlayer1 withObject:[NSNumber numberWithInt:3]];
-    [board.normalWallsRemaining replaceObjectAtIndex:kSVPlayer2 withObject:[NSNumber numberWithInt:2]];
-    [board.specialWallsRemaining replaceObjectAtIndex:kSVPlayer1 withObject:[NSNumber numberWithInt:1]];
-    [board.specialWallsRemaining replaceObjectAtIndex:kSVPlayer2 withObject:[NSNumber numberWithInt:4]];
-    
-    [board flipBoard];
-    
-    NSMutableDictionary* walls = [[NSMutableDictionary alloc] init];
-    
-    position = [[SVPosition alloc] initWithX:board.size.width - 4 andY:board.size.height - 1];
-    wall = [[SVWall alloc] initWithPosition:position
-                                orientation:kSVHorizontalOrientation
-                                    andType:kSVWallPlayer2];
-    [walls setObject:wall forKey:position];
-    
-    position = [[SVPosition alloc] initWithX:board.size.width - 4 andY: board.size.height - 2];
-    wall = [[SVWall alloc] initWithPosition:position
-                                orientation:kSVHorizontalOrientation
-                                    andType:kSVWallPlayer1];
-    [walls setObject:wall forKey:position];
-    
-    position = [[SVPosition alloc] initWithX:board.size.width - 2 andY:board.size.height - 4];
-    wall = [[SVWall alloc] initWithPosition:position
-                                orientation:kSVVerticalOrientation
-                                    andType:kSVWallNormal];
-    [walls setObject:wall forKey:position];
-    
-    XCTAssertEqualObjects(board.walls,
-                          walls,
-                          @"Walls not corrrect");
-    XCTAssertEqualObjects([board.playerPositions objectAtIndex:kSVPlayer1],
-                          [[SVPosition alloc] initWithX:board.size.width - 1 - 4 andY:board.size.height - 1 - 4],
-                          @"Player positions not flipped");
-    XCTAssertEqualObjects([board.playerPositions objectAtIndex:kSVPlayer2],
-                          [[SVPosition alloc] initWithX:board.size.width - 1 - 1 andY:board.size.height - 1 - 0],
-                          @"Player positions not flipped");
-    
-    NSMutableArray* normalWallsRemaining = [[NSMutableArray alloc] init];
-    [normalWallsRemaining addObject:[NSNumber numberWithInt:2]];
-    [normalWallsRemaining addObject:[NSNumber numberWithInt:3]];
-    
-    NSMutableArray* specialWallsRemaining = [[NSMutableArray alloc] init];
-    [specialWallsRemaining addObject:[NSNumber numberWithInt:4]];
-    [specialWallsRemaining addObject:[NSNumber numberWithInt:1]];
-    
-    
-    XCTAssertEqualObjects([board.normalWallsRemaining objectAtIndex:kSVPlayer1],
-                          [normalWallsRemaining objectAtIndex:kSVPlayer1],
-                          @"Normal walls remaining not flipped");
-    XCTAssertEqualObjects([board.normalWallsRemaining objectAtIndex:kSVPlayer2],
-                          [normalWallsRemaining objectAtIndex:kSVPlayer2],
-                          @"Normal walls remaining not flipped");
-    XCTAssertEqualObjects([board.specialWallsRemaining objectAtIndex:kSVPlayer1],
-                          [specialWallsRemaining objectAtIndex:kSVPlayer1],
-                          @"Special walls remaining not flipped");
-    XCTAssertEqualObjects([board.specialWallsRemaining objectAtIndex:kSVPlayer2],
-                          [specialWallsRemaining objectAtIndex:kSVPlayer2],
-                          @"Special walls remaining not flipped");
-}
-
 - (void)testEncoding {
     SVBoard* board = [[SVBoard alloc] init];
     board.size = CGSizeMake(2, 3);
@@ -730,23 +644,6 @@
     NSData* data = [NSKeyedArchiver archivedDataWithRootObject:board];
     SVBoard* newBoard = [NSKeyedUnarchiver unarchiveObjectWithData:data];
     XCTAssertEqualObjects(board, newBoard, @"Boards not equal after encoding");
-}
-
-- (void)testBoardWithData {
-    SVBoard* board = [[SVBoard alloc] init];
-    board.size = CGSizeMake(2, 3);
-    SVWall* wall = [[SVWall alloc] initWithPosition:[[SVPosition alloc] initWithX:2 andY:4]
-                                        orientation:kSVHorizontalOrientation
-                                            andType:kSVWallPlayer1];
-    [board.walls setObject:wall forKey:wall.position];
-    [board.playerPositions replaceObjectAtIndex:kSVPlayer1 withObject:[[SVPosition alloc] initWithX:2 andY:3]];
-    [board.playerGoalsY replaceObjectAtIndex:kSVPlayer1 withObject:[NSNumber numberWithInt:2]];
-    [board.normalWallsRemaining replaceObjectAtIndex:kSVPlayer1 withObject:[[NSNumber alloc] initWithInt:2]];
-    [board.specialWallsRemaining replaceObjectAtIndex:kSVPlayer2 withObject:[[NSNumber alloc] initWithInt:8]];
-    
-    NSData* data = [NSKeyedArchiver archivedDataWithRootObject:board];
-    SVBoard* newBoard = [SVBoard boardFromData:data flipped:NO];
-    XCTAssertEqualObjects(board, newBoard, @"Board not initialized as expected");
 }
 
 @end

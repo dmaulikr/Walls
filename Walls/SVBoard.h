@@ -21,6 +21,7 @@ typedef enum {
 @property (strong, readonly) NSMutableArray* playerPositions;
 @property (strong) NSMutableArray* normalWallsRemaining;
 @property (strong) NSMutableArray* specialWallsRemaining;
+@property (assign) BOOL flipped;
 
 - (BOOL)canPlayer:(kSVPlayer)player moveTo:(SVPosition*)end;
 - (void)movePlayer:(kSVPlayer)player to:(SVPosition*)end;
@@ -34,7 +35,6 @@ typedef enum {
                 forPlayer:(kSVPlayer)player;
 - (BOOL)didPlayerWin:(kSVPlayer)player;
 - (SVWall*)wallAtPosition:(SVPosition*)position withOrientation:(kSVWallOrientation)orientation;
-+ (SVBoard*)boardFromData:(NSData*)data flipped:(BOOL)flipped;
-- (NSData*)data;
+//- (void)flip;
 
 @end

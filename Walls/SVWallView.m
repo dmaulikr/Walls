@@ -41,6 +41,7 @@
         [mask setFillRule:kCAFillRuleEvenOdd];
         mask.fillColor = [[UIColor whiteColor] CGColor];
         self.layer.mask = mask;
+        mask.path = [self pathForRect:CGRectZero].CGPath;
         _shownRect = mask.frame;
         _mask = mask;
     }
@@ -203,6 +204,7 @@
         if (rect.origin.x + rect.size.width == self.frame.size.width) {
             rect.size.width += offset;
         }
+        rect.size.height = height;
     }
     
     if (!horizontal) {
@@ -213,6 +215,7 @@
         if (rect.origin.y + rect.size.height == self.frame.size.height) {
             rect.size.height += offset;
         }
+        rect.size.width = height;
     }
     
     UIBezierPath* path  = [UIBezierPath bezierPathWithRoundedRect:rect cornerRadius:height / 2];
@@ -220,7 +223,7 @@
 }
 
 
-- (void)showRect:(CGRect)rect animated:(BOOL)animated withFinishBlock:(void(^)(void))block {
+- (void)showRect:(CGRect)rect animated:(BOOL)animated duration:(float)duration withFinishBlock:(void(^)(void))block {
     rect.origin.x = rect.origin.x < 0 ? 0 : rect.origin.x;
     rect.origin.x = rect.origin.x > self.frame.size.width ? self.frame.size.width : rect.origin.x;
     rect.origin.y = rect.origin.y < 0 ? 0 : rect.origin.y;
@@ -230,7 +233,7 @@
     if (animated) {
         CGPathRef newPath = [self pathForRect:rect].CGPath;
         CABasicAnimation* animation = [CABasicAnimation animationWithKeyPath:@"path"];
-        animation.duration = 0.15;
+        animation.duration = duration;
         animation.fromValue = (__bridge id)(self.mask.path);
         animation.toValue = (__bridge id)newPath;
         animation.delegate = self;

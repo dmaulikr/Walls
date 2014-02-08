@@ -7,7 +7,10 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "SVGameViewController.h"
 
-@interface SVGamesTableViewController : UITableViewController <GKTurnBasedMatchmakerViewControllerDelegate>
+@interface SVGamesTableViewController : UITableViewController <GKTurnBasedMatchmakerViewControllerDelegate,
+                                                               GKLocalPlayerListener,
+                                                               SVGameViewControllerDelegate>
 
 @end

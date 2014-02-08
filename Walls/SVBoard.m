@@ -18,13 +18,6 @@
 // Public
 //////////////////////////////////////////////////////
 
-+ (SVBoard*)boardFromData:(NSData*)data flipped:(BOOL)flipped {
-    SVBoard* board = [NSKeyedUnarchiver unarchiveObjectWithData:data];
-    if (flipped)
-        [board flipBoard];
-    return board;
-}
-
 - (id)init {
     self = [super init];
     if (self) {
@@ -39,7 +32,6 @@
                                                                         [NSNumber numberWithInt:6], nil];
         _specialWallsRemaining = [[NSMutableArray alloc] initWithObjects:[NSNumber numberWithInt:2],
                                                                          [NSNumber numberWithInt:2], nil];
-        _flipped = NO;
     }
     return self;
 }
@@ -189,15 +181,6 @@
         return nil;
 }
 
-- (NSData*)data {
-    SVBoard* board = self;
-    if (self.flipped) {
-        board = [self copy];
-        [board flipBoard];
-    }
-    return [NSKeyedArchiver archivedDataWithRootObject:board];
-}
-
 - (NSString*)description {
     NSString* description = [NSString stringWithFormat:@"Size: %@\n"
                               "Walls: %@\n"
@@ -262,38 +245,6 @@
             [legalPositions addObject:position];
     }
     return legalPositions;
-}
-
-- (void)flipBoard {
-    NSArray* keys = [self.walls allKeys];
-    NSMutableDictionary* newWalls = [[NSMutableDictionary alloc] init];
-    for (id key in keys) {
-        SVWall* wall = [self.walls objectForKey:key];
-        wall.position = [[SVPosition alloc] initWithX:self.size.width - wall.position.x
-                                                 andY:self.size.height - wall.position.y];
-        if (wall.type == kSVWallPlayer1)
-            wall.type = kSVWallPlayer2;
-        else if (wall.type == kSVWallPlayer2)
-            wall.type = kSVWallPlayer1;
-        
-        [newWalls setObject:wall forKey:wall.position];
-    }
-    self.walls = newWalls;
-    
-    //Player 2 becomes Player
-    [self.playerPositions exchangeObjectAtIndex:kSVPlayer1 withObjectAtIndex:kSVPlayer2];
-    SVPosition* oldPlayer1Position = [self.playerPositions objectAtIndex:kSVPlayer1];
-    SVPosition* oldPlayer2Position = [self.playerPositions objectAtIndex:kSVPlayer2];
-    SVPosition* newPlayer1Position = [[SVPosition alloc] initWithX:self.size.width - 1 - oldPlayer1Position.x
-                                                              andY:self.size.height - 1 - oldPlayer1Position.y];
-    SVPosition* newPlayer2Position = [[SVPosition alloc] initWithX:self.size.width - 1 - oldPlayer2Position.x
-                                                              andY:self.size.height - 1 - oldPlayer2Position.y];
-    [self.playerPositions replaceObjectAtIndex:kSVPlayer1 withObject:newPlayer1Position];
-    [self.playerPositions replaceObjectAtIndex:kSVPlayer2 withObject:newPlayer2Position];
-    
-    [self.normalWallsRemaining exchangeObjectAtIndex:kSVPlayer1 withObjectAtIndex:kSVPlayer2];
-    [self.specialWallsRemaining exchangeObjectAtIndex:kSVPlayer1 withObjectAtIndex:kSVPlayer2];
-    self.flipped = !self.flipped;
 }
 
 //////////////////////////////////////////////////////
