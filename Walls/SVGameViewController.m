@@ -268,6 +268,7 @@
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     [self performSelector:@selector(displayLastTurn) withObject:nil afterDelay:0.5];
+    [self performSelector:@selector(checkForWin) withObject:nil afterDelay:0.7];
 }
 
 - (void)didReceiveMemoryWarning
@@ -281,6 +282,7 @@
     self.game.match = game.match;
     
     [self displayLastTurn];
+    [self checkForWin];
     [self newTurn];
     [self adjustUIColor];
 }
@@ -349,7 +351,7 @@
     else if (turn.action == kSVAddWallAction) {
         SVWall* wall = turn.actionInfo;
         SVWallView* wallView = [self wallViewForWall:wall];
-        [wallView showRect:wallView.bounds animated:YES duration:0.5 withFinishBlock:nil];
+        [wallView showRect:wallView.bounds animated:YES duration:0.3 withFinishBlock:nil];
         [self.boardView addSubview:wallView];
         [self removeInfoWallOfType:wall.type forPlayer:turn.player];
         [self.game.board addWallAtPosition:wall.position
@@ -541,6 +543,7 @@
     if (self.delegate && [self.delegate respondsToSelector:@selector(gameViewController:didPlayTurn:)]) {
         [self.delegate gameViewController:self didPlayTurn:self.game];
     }
+    [self checkForWin];
 }
 
 - (void)cancelCurrentTurn {
@@ -639,6 +642,25 @@
     }
     else {
         pawnView.frame = newFrame;
+    }
+}
+
+- (void)checkForWin {
+    if ([self.game.board didPlayerWin:self.localPlayer]) {
+        UIAlertView* alertView = [[UIAlertView alloc] initWithTitle:@"Won"
+                                                            message:@"Congratulation"
+                                                           delegate:nil
+                                                  cancelButtonTitle:@"Ok"
+                                                  otherButtonTitles:nil, nil];
+        [alertView show];
+    }
+    else if ([self.game.board didPlayerWin:self.opponentPlayer]){
+        UIAlertView* alertView = [[UIAlertView alloc] initWithTitle:@"Lost"
+                                                            message:@"You'll have better luck next time"
+                                                           delegate:nil
+                                                  cancelButtonTitle:@"Ok"
+                                                  otherButtonTitles:nil, nil];
+        [alertView show];
     }
 }
 
