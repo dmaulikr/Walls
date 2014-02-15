@@ -28,8 +28,9 @@
     [self setNeedsDisplay];
 }
 
-- (void)drawRect:(CGRect)rect
-{
-    self.block(UIGraphicsGetCurrentContext());
+- (void)drawRect:(CGRect)rect {
+    if (self.block) {
+        self.block(UIGraphicsGetCurrentContext());
+    }
 }
 @end

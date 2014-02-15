@@ -7,6 +7,7 @@
 //
 
 #import "SVPawnView.h"
+#import <QuartzCore/QuartzCore.h>
 
 @interface SVPawnView ()
 @property (strong) UIColor* color1;
@@ -34,6 +35,5 @@
     [self.color1 setFill];
     [smallCircle fill];
 }
-
 
 @end

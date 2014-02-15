@@ -21,9 +21,10 @@
 - (id)init {
     self = [super init];
     if (self) {
-        [self authenticateLocalPlayer];
         _navigationController = [[UINavigationController alloc] init];
         _navigationController.navigationBarHidden = YES;
+        [self authenticateLocalPlayer];
+//        [self didAuthenticateLocalPlayer:[GKLocalPlayer localPlayer]];
     }
     return self;
 }

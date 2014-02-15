@@ -14,6 +14,8 @@
 @property (strong) SVBoard* board;
 @property (strong) NSMutableArray* turns;
 @property (strong) GKTurnBasedMatch* match;
+@property (strong) GKPlayer* localPlayer;
+@property (strong) GKPlayer* opponentPlayer;
 
 + (id)gameWithMatch:(GKTurnBasedMatch*)match;
 - (NSData*)data;

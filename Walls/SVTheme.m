@@ -29,6 +29,7 @@ static SVTheme* singleton;
         self.darkSquareColor = [[UIColor alloc] initWithRed:0.41 green:0.41 blue:0.41 alpha:1.0];
         self.squareBorderColor = [[UIColor alloc] initWithRed:0.46 green:0.46 blue:0.46 alpha:1.0];
         self.normalWallColor = [[UIColor alloc] initWithRed:0.64 green:0.64 blue:0.64 alpha:1.0];
+        self.endedGameColor = [[UIColor alloc] initWithRed:0.64 green:0.64 blue:0.64 alpha:1.0];
     }
     return self;
 }

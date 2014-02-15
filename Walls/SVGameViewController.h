@@ -20,6 +20,6 @@
 @end
 
 @protocol SVGameViewControllerDelegate <NSObject>
-- (void)gameViewController:(SVGameViewController*)controller didPlayTurn:(SVGame*)game;
+- (void)gameViewController:(SVGameViewController*)controller didPlayTurn:(SVGame*)game ended:(BOOL)ended;
 @end
 

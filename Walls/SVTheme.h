@@ -17,6 +17,7 @@
 @property (strong) UIColor* darkSquareColor;
 @property (strong) UIColor* squareBorderColor;
 @property (strong) UIColor* normalWallColor;
+@property (strong) UIColor* endedGameColor;
 
 + (SVTheme*)sharedTheme;
 @end
