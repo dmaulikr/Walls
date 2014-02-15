@@ -915,6 +915,8 @@
                                                 andType:((NSNumber*)[self.buildingWallInfo objectForKey:@"type"]).intValue];
         self.currentTurn.action = kSVAddWallAction;
         self.currentTurn.actionInfo = wall;
+        SVInfoWallView* infoWallView =[self firstInfoWallOfType:wall.type andPlayer:self.currentPlayer];
+        [infoWallView showRect:CGRectZero animated:NO withFinishBlock:nil];
         [self didPlayAction];
     }
     else {
