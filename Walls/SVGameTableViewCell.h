@@ -7,10 +7,8 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "SVGame.h"
 
 @interface SVGameTableViewCell : UITableViewCell
-- (void)setText:(NSString*)text;
-- (void)setLeftImage:(UIImage*)image;
-- (void)setRightImage:(UIImage*)image;
-- (void)setColor:(UIColor*)color;
+- (void)displayForGame:(SVGame*)game;
 @end

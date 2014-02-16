@@ -24,7 +24,6 @@
         _navigationController = [[UINavigationController alloc] init];
         _navigationController.navigationBarHidden = YES;
         [self authenticateLocalPlayer];
-//        [self didAuthenticateLocalPlayer:[GKLocalPlayer localPlayer]];
     }
     return self;
 }

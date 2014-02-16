@@ -11,7 +11,6 @@
 #import "SVBoard.h"
 
 @interface SVGame : NSObject <NSCoding>
-@property (strong) SVBoard* board;
 @property (strong) NSMutableArray* turns;
 @property (strong) GKTurnBasedMatch* match;
 @property (strong) GKPlayer* localPlayer;

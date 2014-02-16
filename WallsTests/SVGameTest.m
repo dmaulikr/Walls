@@ -37,7 +37,7 @@
     
     NSData* data = [game data];
     SVGame* newGame = [NSKeyedUnarchiver unarchiveObjectWithData:data];
-    XCTAssertEqualObjects(game.board, newGame.board, @"Games board not equal after encoding");
+    XCTAssertEqualObjects(game.turns, newGame.turns, @"Games not equal after encoding");
 }
 
 @end

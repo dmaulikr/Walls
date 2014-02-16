@@ -19,7 +19,6 @@
     else {
         game = [NSKeyedUnarchiver unarchiveObjectWithData:match.matchData];
     }
-    game.board = [[SVBoard alloc] init];
     game.match = match;
     return game;
 }
@@ -38,7 +37,6 @@
     }
     SVGame* other = (SVGame*)object;
     return [self.turns isEqualToArray:other.turns] &&
-           [self.board isEqual:other.board];
            [self.match isEqual:other.match];
     
 }

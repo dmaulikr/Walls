@@ -21,11 +21,12 @@
 
 //Game data
 @property (strong) SVGame* game;
+@property (strong) SVBoard* board;
 @property (strong) NSArray* playerColors;
 
 //Views
 @property (strong) SVBoardView* boardView;
-@property (strong) UIView* topView;
+@property (strong) SVCustomView* topView;
 @property (strong) SVCustomView* infoView;
 @property (strong) UIView* bottomView;
 @property (strong) UILabel* bottomLabel;
@@ -65,6 +66,7 @@
 - (void)didClickColorButton:(id)sender;
 - (void)didClickCancelButton:(id)sender;
 - (void)didClickValidateButton:(id)sender;
+- (void)didClickBackButton:(id)sender;
 
 @end
 
@@ -78,6 +80,7 @@
     self = [super init];
     if (self) {
         _game = game;
+        _board = [[SVBoard alloc] init];
         _infoWallViews = [[NSMutableArray alloc] init];
         [_infoWallViews addObject:[[NSMutableArray alloc] init]];
         [_infoWallViews addObject:[[NSMutableArray alloc] init]];
@@ -93,8 +96,30 @@
     [super viewDidLoad];
 
     //Top
-    self.topView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 49)];
+    self.topView = [[SVCustomView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 49)];
+    self.topView.backgroundColor = [SVTheme sharedTheme].darkSquareColor;
+    __weak SVCustomView* weakTopView = self.topView;
+    [self.topView drawBlock:^(CGContextRef context) {
+        UIBezierPath* bezierPath = [UIBezierPath bezierPathWithRect:CGRectMake(0,
+                                                                               weakTopView.frame.size.height - 1,
+                                                                               weakTopView.frame.size.width,
+                                                                               1)];
+        [[SVTheme sharedTheme].squareBorderColor setFill];
+        [bezierPath fill];
+    }];
     [self.view addSubview:self.topView];
+    UIImage* arrow = [UIImage imageNamed:@"back_arrow.png"];
+    UIButton* backButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [backButton setImage:arrow forState:UIControlStateNormal];
+    backButton.frame = CGRectMake(5,
+                                 (self.topView.frame.size.height - (arrow.size.height + 10)) / 2,
+                                 arrow.size.width + 10,
+                                 arrow.size.height + 10);
+    backButton.adjustsImageWhenDisabled = NO;
+    backButton.adjustsImageWhenHighlighted = NO;
+    [self.topView addSubview:backButton];
+    [backButton addTarget:self action:@selector(didClickBackButton:) forControlEvents:UIControlEventTouchUpInside];
+    
     UILabel* topLabel = [[UILabel alloc] initWithFrame:CGRectMake((self.topView.frame.size.width - 200) / 2,
                                                                   (self.topView.frame.size.height - 30) / 2,
                                                                   200,
@@ -117,11 +142,11 @@
         for (int i = 0; i < self.game.turns.count - 1; i++) {
             SVTurn* turn = [self.game.turns objectAtIndex:i];
             if (turn.action == kSVMoveAction) {
-                [self.game.board movePlayer:turn.player to:turn.actionInfo];
+                [self.board movePlayer:turn.player to:turn.actionInfo];
             }
             else if (turn.action == kSVAddWallAction) {
                 SVWall* wall = turn.actionInfo;
-                [self.game.board addWallAtPosition:wall.position
+                [self.board addWallAtPosition:wall.position
                                    withOrientation:wall.orientation
                                               type:wall.type
                                          forPlayer:turn.player];
@@ -132,13 +157,13 @@
         }
     }
     
-    CGPoint point1 = [self.boardView squareCenterForPosition:self.game.board.playerPositions[self.localPlayer]];
+    CGPoint point1 = [self.boardView squareCenterForPosition:self.board.playerPositions[self.localPlayer]];
     SVPawnView* pawnView1 = [[SVPawnView alloc] initWithFrame:CGRectMake(point1.x - 15, point1.y - 15, 30, 30)
                                                        color1:[SVTheme sharedTheme].localPlayerColor
                                                     andColor2:[SVTheme sharedTheme].localPlayerLightColor];
     [self.boardView addSubview:pawnView1];
     
-    CGPoint point2 = [self.boardView squareCenterForPosition:self.game.board.playerPositions[self.opponentPlayer]];
+    CGPoint point2 = [self.boardView squareCenterForPosition:self.board.playerPositions[self.opponentPlayer]];
     SVPawnView* pawnView2 =  [[SVPawnView alloc] initWithFrame:CGRectMake(point2.x - 15, point2.y - 15, 30, 30)
                                                        color1:[SVTheme sharedTheme].opponentPlayerColor
                                                     andColor2:[SVTheme sharedTheme].opponentPlayerLightColor];
@@ -156,9 +181,9 @@
     //Info
     self.infoView = [[SVCustomView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.boardView.frame), self.view.frame.size.width, 45)];
     self.infoView.backgroundColor = [SVTheme sharedTheme].darkSquareColor;
-    __weak SVCustomView* weakSelf = self.infoView;
+    __weak SVCustomView* weakInfoView = self.infoView;
     [self.infoView drawBlock:^(CGContextRef context) {
-        UIBezierPath* bezierPath = [UIBezierPath bezierPathWithRect:CGRectMake(0, 0, weakSelf.frame.size.width, 1)];
+        UIBezierPath* bezierPath = [UIBezierPath bezierPathWithRect:CGRectMake(0, 0, weakInfoView.frame.size.width, 1)];
         [[SVTheme sharedTheme].squareBorderColor setFill];
         [bezierPath fill];
     }];
@@ -224,8 +249,8 @@
     [self.infoView addSubview:self.colorButton];
     
     int leftOffset = 38;
-    int specialWallsCount = ((NSNumber*)[self.game.board.specialWallsRemaining objectAtIndex:self.localPlayer]).intValue;
-    int normalWallsCount = ((NSNumber*)[self.game.board.normalWallsRemaining objectAtIndex:self.localPlayer]).intValue;
+    int specialWallsCount = ((NSNumber*)[self.board.specialWallsRemaining objectAtIndex:self.localPlayer]).intValue;
+    int normalWallsCount = ((NSNumber*)[self.board.normalWallsRemaining objectAtIndex:self.localPlayer]).intValue;
     for (int i = 0; i <  specialWallsCount + normalWallsCount ; i++) {
         UIColor* color;
         if (i < specialWallsCount)
@@ -241,8 +266,8 @@
     }
     
     int rightOffset = self.infoView.frame.size.width - 38 - 4;
-    specialWallsCount = ((NSNumber*)[self.game.board.specialWallsRemaining objectAtIndex:self.opponentPlayer]).intValue;
-    normalWallsCount = ((NSNumber*)[self.game.board.normalWallsRemaining objectAtIndex:self.opponentPlayer]).intValue;
+    specialWallsCount = ((NSNumber*)[self.board.specialWallsRemaining objectAtIndex:self.opponentPlayer]).intValue;
+    normalWallsCount = ((NSNumber*)[self.board.normalWallsRemaining objectAtIndex:self.opponentPlayer]).intValue;
     for (int i = 0; i <  specialWallsCount + normalWallsCount ; i++) {
         UIColor* color;
         
@@ -260,7 +285,10 @@
     }
     
     //Bottom
-    self.bottomView = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.infoView.frame), self.view.frame.size.width, self.view.frame.size.height - CGRectGetMaxY(self.infoView.frame))];
+    self.bottomView = [[UIView alloc] initWithFrame:CGRectMake(0,
+                                                               CGRectGetMaxY(self.infoView.frame),
+                                                               self.view.frame.size.width,
+                                                               self.view.frame.size.height - CGRectGetMaxY(self.infoView.frame))];
     [self.view addSubview:self.bottomView];
     
     self.bottomLabel = [[UILabel alloc] initWithFrame:CGRectMake((self.bottomView.frame.size.width - 250) / 2,
@@ -303,18 +331,17 @@
 - (void)adjustUI {
     //Adjust the color dependent on the number of walls remaining
     if ((self.currentPlayer == self.opponentPlayer) ||
-        (((NSNumber*)([self.game.board.normalWallsRemaining objectAtIndex:self.localPlayer])).intValue <= 0 &&
-        ((NSNumber*)([self.game.board.specialWallsRemaining objectAtIndex:self.localPlayer])).intValue <= 0)) {
+        (((NSNumber*)([self.board.normalWallsRemaining objectAtIndex:self.localPlayer])).intValue <= 0 &&
+        ((NSNumber*)([self.board.specialWallsRemaining objectAtIndex:self.localPlayer])).intValue <= 0)) {
         self.colorButton.enabled = NO;
     }
     else {
         self.colorButton.enabled = YES;
-        self.colorButton.selected = ((NSNumber*)([self.game.board.normalWallsRemaining objectAtIndex:self.localPlayer])).intValue <= 0;
+        self.colorButton.selected = ((NSNumber*)([self.board.normalWallsRemaining objectAtIndex:self.localPlayer])).intValue <= 0;
     }
     
     //Adjust the top and bottom colors
     self.bottomView.backgroundColor = [self.playerColors objectAtIndex:self.currentPlayer];
-    self.topView.backgroundColor = [self.playerColors objectAtIndex:self.currentPlayer];
     
     if (self.opponentName) {
         if (self.currentPlayer == self.localPlayer) {
@@ -382,7 +409,7 @@
     
     if (turn.action == kSVMoveAction) {
         [self movePawnToPosition:turn.actionInfo forPlayer:turn.player animated:YES];
-        [self.game.board movePlayer:turn.player to:turn.actionInfo];
+        [self.board movePlayer:turn.player to:turn.actionInfo];
     }
     else if (turn.action == kSVAddWallAction) {
         SVWall* wall = turn.actionInfo;
@@ -390,7 +417,7 @@
         [wallView showRect:wallView.bounds animated:YES duration:0.3 withFinishBlock:nil];
         [self.boardView addSubview:wallView];
         [self removeInfoWallOfType:wall.type forPlayer:turn.player];
-        [self.game.board addWallAtPosition:wall.position
+        [self.board addWallAtPosition:wall.position
                            withOrientation:wall.orientation
                                       type:wall.type
                                  forPlayer:turn.player];
@@ -425,39 +452,39 @@
     
     float height = 8;
     if (wall.orientation == kSVHorizontalOrientation) {
-        topLeft = [self.game.board wallAtPosition:[[SVPosition alloc] initWithX:wall.position.x - 1 andY:wall.position.y - 1]
+        topLeft = [self.board wallAtPosition:[[SVPosition alloc] initWithX:wall.position.x - 1 andY:wall.position.y - 1]
                              withOrientation:kSVVerticalOrientation];
-        topRight = [self.game.board wallAtPosition:[[SVPosition alloc] initWithX:wall.position.x + 1 andY:wall.position.y - 1]
+        topRight = [self.board wallAtPosition:[[SVPosition alloc] initWithX:wall.position.x + 1 andY:wall.position.y - 1]
                               withOrientation:kSVVerticalOrientation];
-        bottomLeft = [self.game.board wallAtPosition:[[SVPosition alloc] initWithX:wall.position.x - 1 andY:wall.position.y + 1]
+        bottomLeft = [self.board wallAtPosition:[[SVPosition alloc] initWithX:wall.position.x - 1 andY:wall.position.y + 1]
                                 withOrientation:kSVVerticalOrientation];;
-        bottomRight = [self.game.board wallAtPosition:[[SVPosition alloc] initWithX:wall.position.x + 1 andY:wall.position.y + 1]
+        bottomRight = [self.board wallAtPosition:[[SVPosition alloc] initWithX:wall.position.x + 1 andY:wall.position.y + 1]
                                  withOrientation:kSVVerticalOrientation];;
-        leftSameOrientation = [self.game.board wallAtPosition:[[SVPosition alloc] initWithX:wall.position.x - 2 andY:wall.position.y]
+        leftSameOrientation = [self.board wallAtPosition:[[SVPosition alloc] initWithX:wall.position.x - 2 andY:wall.position.y]
                                          withOrientation:kSVHorizontalOrientation];
-        rightSameOrientation = [self.game.board wallAtPosition:[[SVPosition alloc] initWithX:wall.position.x + 2 andY:wall.position.y]
+        rightSameOrientation = [self.board wallAtPosition:[[SVPosition alloc] initWithX:wall.position.x + 2 andY:wall.position.y]
                                           withOrientation:kSVHorizontalOrientation];
-        leftOtherOrientation = [self.game.board wallAtPosition:[[SVPosition alloc] initWithX:wall.position.x - 1 andY:wall.position.y]
+        leftOtherOrientation = [self.board wallAtPosition:[[SVPosition alloc] initWithX:wall.position.x - 1 andY:wall.position.y]
                                           withOrientation:kSVVerticalOrientation];
-        rightOtherOrientation = [self.game.board wallAtPosition:[[SVPosition alloc] initWithX:wall.position.x + 1 andY:wall.position.y]
+        rightOtherOrientation = [self.board wallAtPosition:[[SVPosition alloc] initWithX:wall.position.x + 1 andY:wall.position.y]
                                            withOrientation:kSVVerticalOrientation];
     }
     else {
-        topLeft = [self.game.board wallAtPosition:[[SVPosition alloc] initWithX:wall.position.x + 1 andY:wall.position.y - 1]
+        topLeft = [self.board wallAtPosition:[[SVPosition alloc] initWithX:wall.position.x + 1 andY:wall.position.y - 1]
                              withOrientation:kSVHorizontalOrientation];
-        topRight = [self.game.board wallAtPosition:[[SVPosition alloc] initWithX:wall.position.x + 1 andY:wall.position.y + 1]
+        topRight = [self.board wallAtPosition:[[SVPosition alloc] initWithX:wall.position.x + 1 andY:wall.position.y + 1]
                               withOrientation:kSVHorizontalOrientation];
-        bottomLeft = [self.game.board wallAtPosition:[[SVPosition alloc] initWithX:wall.position.x - 1 andY:wall.position.y - 1]
+        bottomLeft = [self.board wallAtPosition:[[SVPosition alloc] initWithX:wall.position.x - 1 andY:wall.position.y - 1]
                                 withOrientation:kSVHorizontalOrientation];;
-        bottomRight = [self.game.board wallAtPosition:[[SVPosition alloc] initWithX:wall.position.x - 1 andY:wall.position.y + 1]
+        bottomRight = [self.board wallAtPosition:[[SVPosition alloc] initWithX:wall.position.x - 1 andY:wall.position.y + 1]
                                  withOrientation:kSVHorizontalOrientation];;
-        leftSameOrientation = [self.game.board wallAtPosition:[[SVPosition alloc] initWithX:wall.position.x andY:wall.position.y - 2 ]
+        leftSameOrientation = [self.board wallAtPosition:[[SVPosition alloc] initWithX:wall.position.x andY:wall.position.y - 2 ]
                                          withOrientation:kSVVerticalOrientation];
-        rightSameOrientation = [self.game.board wallAtPosition:[[SVPosition alloc] initWithX:wall.position.x andY:wall.position.y + 2]
+        rightSameOrientation = [self.board wallAtPosition:[[SVPosition alloc] initWithX:wall.position.x andY:wall.position.y + 2]
                                           withOrientation:kSVVerticalOrientation];
-        leftOtherOrientation = [self.game.board wallAtPosition:[[SVPosition alloc] initWithX:wall.position.x andY:wall.position.y - 1]
+        leftOtherOrientation = [self.board wallAtPosition:[[SVPosition alloc] initWithX:wall.position.x andY:wall.position.y - 1]
                                           withOrientation:kSVHorizontalOrientation];
-        rightOtherOrientation = [self.game.board wallAtPosition:[[SVPosition alloc] initWithX:wall.position.x andY:wall.position.y + 1]
+        rightOtherOrientation = [self.board wallAtPosition:[[SVPosition alloc] initWithX:wall.position.x andY:wall.position.y + 1]
                                            withOrientation:kSVHorizontalOrientation];
     }
     
@@ -529,12 +556,12 @@
         center.x += 2;
         lengthDifference = -1;
     }
-    else if (wall.orientation == kSVHorizontalOrientation && wall.position.x == self.game.board.size.width - 1) {
+    else if (wall.orientation == kSVHorizontalOrientation && wall.position.x == self.board.size.width - 1) {
         center.x += 1.5;
         lengthDifference = -1.5;
     }
     else if ((wall.orientation == kSVVerticalOrientation && wall.position.y == 1) ||
-             (wall.orientation == kSVVerticalOrientation && wall.position.y == self.game.board.size.height - 1)) {
+             (wall.orientation == kSVVerticalOrientation && wall.position.y == self.board.size.height - 1)) {
         lengthDifference = -0.5;
     }
     
@@ -563,27 +590,27 @@
 
 - (void)commitCurrentTurn {
     if (self.currentTurn.action == kSVMoveAction) {
-        [self.game.board movePlayer:self.currentPlayer to:self.currentTurn.actionInfo];
+        [self.board movePlayer:self.currentPlayer to:self.currentTurn.actionInfo];
     }
     else if (self.currentTurn.action == kSVAddWallAction) {
         SVWall* wall = self.currentTurn.actionInfo;
         //Remove info wall
         [self removeInfoWallOfType:(kSVWallType)wall.type forPlayer:self.currentPlayer];
         
-        [self.game.board addWallAtPosition:wall.position
+        [self.board addWallAtPosition:wall.position
                            withOrientation:wall.orientation
                                       type:wall.type
                                  forPlayer:self.currentPlayer];
     }
     [self.game.turns addObject:self.currentTurn];
     if (self.delegate && [self.delegate respondsToSelector:@selector(gameViewController:didPlayTurn:ended:)]) {
-        [self.delegate gameViewController:self didPlayTurn:self.game ended:[self.game.board didPlayerWin:self.localPlayer]];
+        [self.delegate gameViewController:self didPlayTurn:self.game ended:[self.board didPlayerWin:self.localPlayer]];
     }
 }
 
 - (void)cancelCurrentTurn {
     if (self.currentTurn.action == kSVMoveAction) {
-        [self movePawnToPosition:[self.game.board.playerPositions objectAtIndex:self.currentPlayer]
+        [self movePawnToPosition:[self.board.playerPositions objectAtIndex:self.currentPlayer]
                        forPlayer:self.currentPlayer
                         animated:YES];
     }
@@ -603,10 +630,10 @@
 - (SVInfoWallView*)firstInfoWallOfType:(kSVWallType)type andPlayer:(kSVPlayer)player {
     NSMutableArray* array = [self.infoWallViews objectAtIndex:player];
     int index = -1;
-    if (type == kSVWallNormal && ((NSNumber*)[self.game.board.normalWallsRemaining objectAtIndex:player]).intValue > 0) {
-        index = ((NSNumber*)[self.game.board.specialWallsRemaining objectAtIndex:player]).intValue;
+    if (type == kSVWallNormal && ((NSNumber*)[self.board.normalWallsRemaining objectAtIndex:player]).intValue > 0) {
+        index = ((NSNumber*)[self.board.specialWallsRemaining objectAtIndex:player]).intValue;
     }
-    else if (((NSNumber*)[self.game.board.specialWallsRemaining objectAtIndex:player]).intValue > 0) {
+    else if (((NSNumber*)[self.board.specialWallsRemaining objectAtIndex:player]).intValue > 0) {
         index = 0;
     }
     if (index != -1) {
@@ -617,7 +644,7 @@
 
 - (void)removeInfoWallOfType:(kSVWallType)type forPlayer:(kSVPlayer)player {
     NSMutableArray* array = [self.infoWallViews objectAtIndex:player];
-    int specialWallsRemaining = ((NSNumber*)[self.game.board.specialWallsRemaining objectAtIndex:player]).intValue;
+    int specialWallsRemaining = ((NSNumber*)[self.board.specialWallsRemaining objectAtIndex:player]).intValue;
     int index = type == kSVWallNormal ? specialWallsRemaining : 0;
     SVInfoWallView* wall = [array objectAtIndex:index];
     [wall removeFromSuperview];
@@ -635,18 +662,18 @@
     if (self.currentTurn.action != kSVNoAction || self.currentPlayer == self.opponentPlayer)
         return NO;
     if (action == kSVMoveAction) {
-        return [self.game.board canPlayer:self.currentPlayer moveTo:actionInfo];
+        return [self.board canPlayer:self.currentPlayer moveTo:actionInfo];
     }
     else if (action == kSVAddWallAction) {
         SVWall* wall = actionInfo;
-        if (![self.game.board isWallLegalAtPosition:wall.position withOrientation:wall.orientation type:wall.type forPlayer:self.currentPlayer]) {
+        if (![self.board isWallLegalAtPosition:wall.position withOrientation:wall.orientation type:wall.type forPlayer:self.currentPlayer]) {
             return NO;
         }
         if (wall.type == kSVWallNormal) {
-            return ((NSNumber*)[self.game.board.normalWallsRemaining objectAtIndex:self.currentPlayer]).intValue > 0;
+            return ((NSNumber*)[self.board.normalWallsRemaining objectAtIndex:self.currentPlayer]).intValue > 0;
         }
         else {
-            return ((NSNumber*)[self.game.board.specialWallsRemaining objectAtIndex:self.currentPlayer]).intValue > 0;
+            return ((NSNumber*)[self.board.specialWallsRemaining objectAtIndex:self.currentPlayer]).intValue > 0;
         }
     }
     return YES;
@@ -667,7 +694,9 @@
     
     UIButton* validateButton = [UIButton buttonWithType:UIButtonTypeSystem];
     [validateButton setTitle:@"Validate" forState:UIControlStateNormal];
-    [validateButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [validateButton setTitleColor:[SVTheme sharedTheme].localPlayerColor forState:UIControlStateNormal];
+    validateButton.layer.cornerRadius = 20;
+    validateButton.backgroundColor = [UIColor whiteColor];
     [validateButton addTarget:self action:@selector(didClickValidateButton:) forControlEvents:UIControlEventTouchUpInside];
     validateButton.titleLabel.font = [UIFont fontWithName:@"HelveticaNeue" size:20];
     validateButton.alpha = 0;
@@ -720,10 +749,10 @@
 
 - (void)didClickColorButton:(id)sender {
     UIButton* button = (UIButton*)sender;
-    if (button.selected && ((NSNumber*)[self.game.board.normalWallsRemaining objectAtIndex:self.currentPlayer]).intValue > 0) {
+    if (button.selected && ((NSNumber*)[self.board.normalWallsRemaining objectAtIndex:self.currentPlayer]).intValue > 0) {
         button.selected = !button.selected;
     }
-    else if (((NSNumber*)[self.game.board.specialWallsRemaining objectAtIndex:self.currentPlayer]).intValue > 0) {
+    else if (((NSNumber*)[self.board.specialWallsRemaining objectAtIndex:self.currentPlayer]).intValue > 0) {
         button.selected = !button.selected;
     }
 }
@@ -735,14 +764,14 @@
         self.bottomLabel.alpha = 1;
         self.cancelButton.alpha = 0;
         self.cancelButton.frame = CGRectMake((self.bottomView.frame.size.width - 100) / 2,
-                                        (self.bottomView.frame.size.height - 40) / 2,
+                                        (self.bottomView.frame.size.height - 32) / 2,
                                         100,
-                                        40);
+                                        32);
         self.validateButton.alpha = 0;
         self.validateButton.frame = CGRectMake((self.bottomView.frame.size.width - 100) / 2,
-                                          (self.bottomView.frame.size.height - 40) / 2,
+                                          (self.bottomView.frame.size.height - 32) / 2,
                                           100,
-                                          40);
+                                          32);
     } completion:^(BOOL finished) {
         self.cancelButton = nil;
         self.validateButton = nil;
@@ -753,7 +782,6 @@
 - (void)didClickValidateButton:(id)sender {
     self.cancelButton.enabled = NO;
     self.validateButton.enabled = NO;
-    self.bottomLabel.text = @"Waiting for jsqdofjqosjfoipjqsodfjpsdoijqjsfpoidfj";
     [UIView animateWithDuration:0.3 animations:^{
         self.bottomLabel.alpha = 1;
         self.cancelButton.alpha = 0;
@@ -776,6 +804,9 @@
     [self adjustUI];
 }
 
+- (void)didClickBackButton:(id)sender {
+    [self.navigationController popViewControllerAnimated:YES];
+}
 
 //////////////////////////////////////////////////////
 // Delegates

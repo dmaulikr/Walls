@@ -9,13 +9,27 @@
 #import "SVGameTableViewCell.h"
 #import "SVTheme.h"
 
+static NSCache* imageCache;
+
 @interface SVGameTableViewCell ()
 @property (strong) UILabel* label;
 @property (strong) UIImageView* leftImageView;
 @property (strong) UIImageView* rightImageView;
+@property (strong) UIColor* originalColor;
+
+- (void)setText:(NSString*)text;
+- (void)setLeftImage:(UIImage*)image;
+- (void)setRightImage:(UIImage*)image;
+- (void)setColor:(UIColor*)color;
 @end
 
 @implementation SVGameTableViewCell
+@synthesize highlighted = _highlighted;
+
++ (void)initialize {
+    [super initialize];
+    imageCache = [[NSCache alloc] init];
+}
 
 - (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier {
     
@@ -28,6 +42,9 @@
         _label.textColor = [UIColor whiteColor];
         _label.textAlignment = NSTextAlignmentCenter;
         [self.contentView addSubview:_label];
+        self.contentView.layer.borderColor = [UIColor whiteColor].CGColor;
+        self.contentView.layer.borderWidth = 1;
+        self.selectionStyle = UITableViewCellSelectionStyleNone;
     }
     return self;
 }
@@ -77,6 +94,84 @@
 - (void)setColor:(UIColor *)color {
     self.contentView.backgroundColor = color;
 }
+
+- (void)displayForGame:(SVGame *)game {
+    if (game.match.status == GKTurnBasedMatchStatusEnded) {
+        for (GKTurnBasedParticipant* participant in game.match.participants) {
+            if ([participant.playerID isEqualToString:[GKLocalPlayer localPlayer].playerID]) {
+                if (participant.matchOutcome == GKTurnBasedMatchOutcomeWon)
+                    [self setText:@"Won"];
+                else
+                    [self setText:@"Lost"];
+            }
+            self.originalColor = [SVTheme sharedTheme].endedGameColor;
+        }
+    }
+    else {
+        if ([game.match.currentParticipant.playerID isEqualToString:[GKLocalPlayer localPlayer].playerID]) {
+            [self setText:@"Your turn"];
+            self.originalColor = [SVTheme sharedTheme].localPlayerColor;
+        }
+        else {
+            [self setText:@"Waiting"];
+            self.originalColor = [SVTheme sharedTheme].opponentPlayerColor;
+        }
+    }
+    [self setColor:self.originalColor];
+    //Load images
+    GKTurnBasedParticipant* participant1 = [game.match.participants objectAtIndex:0];
+    GKTurnBasedParticipant* participant2 = [game.match.participants objectAtIndex:1];
+    UIImage* image1 = [imageCache objectForKey:participant1.playerID];
+    UIImage* image2 = [imageCache objectForKey:participant2.playerID];
+    if (!image1) {
+        [GKPlayer loadPlayersForIdentifiers:[NSArray arrayWithObject:participant1.playerID]
+                      withCompletionHandler:^(NSArray *players, NSError *error) {
+                          if (!error) {
+                              GKPlayer* player = [players objectAtIndex:0];
+                              [player loadPhotoForSize:GKPhotoSizeSmall
+                                 withCompletionHandler:^(UIImage *photo, NSError *error) {
+                                  if (!error)
+                                      [self setLeftImage:photo];
+                              }];
+                          }
+                      }];
+    }
+    else
+        [self setLeftImage:image1];
+    
+    if (!image2) {
+        [GKPlayer loadPlayersForIdentifiers:[NSArray arrayWithObject:participant2.playerID]
+                      withCompletionHandler:^(NSArray *players, NSError *error) {
+                          if (!error) {
+                              GKPlayer* player = [players objectAtIndex:0];
+                              [player loadPhotoForSize:GKPhotoSizeSmall
+                                 withCompletionHandler:^(UIImage *photo, NSError *error) {
+                                  if (!error)
+                                      [self setRightImage:photo];
+                              }];
+                          }
+                      }];
+    }
+    else
+        [self setRightImage:image2];
+}
+
+- (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated {
+    [super setHighlighted:highlighted animated:animated];
+    _highlighted = highlighted;
+    if (highlighted) {
+        CGFloat hue;
+        CGFloat saturation;
+        CGFloat brightness;
+        CGFloat alpha;
+        [self.originalColor getHue:&hue saturation:&saturation brightness:&brightness alpha:&alpha];
+        [self setColor:[UIColor colorWithHue:hue saturation:saturation brightness:brightness + 0.1 alpha:1.0]];
+    }
+    else {
+        [self setColor:self.originalColor];
+    }
+}
+
 
 /*
 // Only override drawRect: if you perform custom drawing.

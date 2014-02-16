@@ -86,7 +86,7 @@ static NSString *gameCellIdentifier = @"GameCell";
 - (void)loadGame:(SVGame*)game {
     SVGameViewController* controller = [[SVGameViewController alloc] initWithGame:game];
     controller.delegate = self;
-    [self.navigationController pushViewController:controller animated:NO];
+    [self.navigationController pushViewController:controller animated:YES];
     self.currentController = controller;
 }
 
@@ -103,14 +103,6 @@ static NSString *gameCellIdentifier = @"GameCell";
             for (GKTurnBasedParticipant* participant in match.participants) {
                 [playerIDs addObject:participant.playerID];
             }
-            [GKPlayer loadPlayersForIdentifiers:playerIDs
-                          withCompletionHandler:^(NSArray *players, NSError *error) {
-                              for (GKPlayer* player in players) {
-                                  if ([player.playerID isEqualToString:[GKLocalPlayer localPlayer].playerID]) {
-                                      
-                                  }
-                              }
-            }];
             SVGame* game = [SVGame gameWithMatch:match];
             if (game.match.status == GKTurnBasedMatchStatusEnded) {
                 [self.endedGames addObject:game];
@@ -226,9 +218,6 @@ static NSString *gameCellIdentifier = @"GameCell";
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-//    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:cellIdentifier forIndexPath:indexPath];
-//    GKTurnBasedMatch* match = [self.matches objectAtIndex:indexPath.row];
-//    cell.textLabel.text = match.creationDate.description;
     if (indexPath.row % 2 == 1) {
         UITableViewCell* cell = [tableView dequeueReusableCellWithIdentifier:spaceCellIdentifer forIndexPath:indexPath];
         cell.backgroundColor = [UIColor clearColor];
@@ -236,31 +225,12 @@ static NSString *gameCellIdentifier = @"GameCell";
     }
     else {
         SVGameTableViewCell* cell = [tableView dequeueReusableCellWithIdentifier:gameCellIdentifier forIndexPath:indexPath];
-        if (indexPath.section == 0) {
-            SVGame* game = [self.inProgressGames objectAtIndex:ceil(indexPath.row / 2)];
-            if ([game.match.currentParticipant.playerID isEqualToString:[GKLocalPlayer localPlayer].playerID]) {
-                [cell setText:@"Your turn"];
-                [cell setColor:[SVTheme sharedTheme].localPlayerColor];
-            }
-            else {
-                [cell setText:@"Waiting"];
-                [cell setColor:[SVTheme sharedTheme].opponentPlayerColor];
-            }
-        }
-        else {
-            SVGame* game = [self.endedGames objectAtIndex:ceil(indexPath.row / 2)];
-            for (GKTurnBasedParticipant* participant in game.match.participants) {
-                if ([participant.playerID isEqualToString:[GKLocalPlayer localPlayer].playerID]) {
-                    if (participant.matchOutcome == GKTurnBasedMatchOutcomeWon) {
-                        [cell setText:@"Won"];
-                    }
-                    else {
-                        [cell setText:@"Lost"];
-                    }
-                }
-            }
-            [cell setColor:[SVTheme sharedTheme].endedGameColor];
-        }
+        SVGame* game;
+        if (indexPath.section == 0)
+            game = [self.inProgressGames objectAtIndex:ceil(indexPath.row / 2)];
+        else
+            game = [self.endedGames objectAtIndex:ceil(indexPath.row / 2)];
+        [cell displayForGame:game];
         return cell;
     }
     return nil;
