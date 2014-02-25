@@ -10,10 +10,11 @@
 #import "SVRootViewController.h"
 #import "SVGamesTableViewController.h"
 #import "SVGameViewController.h"
+#import "SVCustomContainerController.h"
 
 @interface SVRootViewController ()
 @property (strong) UIViewController* currentViewController;
-@property (strong) UINavigationController* navigationController;
+@property (strong) SVCustomContainerController* containerController;
 @end
 
 @implementation SVRootViewController
@@ -21,8 +22,7 @@
 - (id)init {
     self = [super init];
     if (self) {
-        _navigationController = [[UINavigationController alloc] init];
-        _navigationController.navigationBarHidden = YES;
+        _containerController = [[SVCustomContainerController alloc] init];
         [self authenticateLocalPlayer];
     }
     return self;
@@ -30,7 +30,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    [self.view addSubview:_navigationController.view];
+    [self.view addSubview:self.containerController.view];
 }
 
 - (void)authenticateLocalPlayer {
@@ -53,7 +53,7 @@
 
 - (void)didAuthenticateLocalPlayer:(GKLocalPlayer *)localPlayer {
     SVGamesTableViewController* controller = [[SVGamesTableViewController alloc] init];
-    [self.navigationController pushViewController:controller animated:NO];
+    [self.containerController pushViewController:controller];
 }
 
 //////////////////////////////////////////////////////

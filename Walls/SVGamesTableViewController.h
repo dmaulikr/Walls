@@ -8,9 +8,10 @@
 
 #import <UIKit/UIKit.h>
 #import "SVGameViewController.h"
+#import "SVCustomViewController.h"
+
 
 @interface SVGamesTableViewController : UITableViewController <GKTurnBasedMatchmakerViewControllerDelegate,
                                                                GKLocalPlayerListener,
                                                                SVGameViewControllerDelegate>
-
 @end

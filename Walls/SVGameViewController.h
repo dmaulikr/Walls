@@ -10,6 +10,7 @@
 #import <GameKit/GameKit.h>
 #import "SVBoardView.h"
 #import "SVGame.h"
+#import "SVCustomViewController.h"
 
 @interface SVGameViewController : UIViewController <SVBoardViewDelegate, UIGestureRecognizerDelegate>
 @property (strong, readonly) SVGame* game;

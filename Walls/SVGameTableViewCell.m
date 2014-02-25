@@ -118,6 +118,7 @@ static NSCache* imageCache;
         }
     }
     [self setColor:self.originalColor];
+    
     //Load images
     GKTurnBasedParticipant* participant1 = [game.match.participants objectAtIndex:0];
     GKTurnBasedParticipant* participant2 = [game.match.participants objectAtIndex:1];

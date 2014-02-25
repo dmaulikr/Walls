@@ -12,6 +12,7 @@
 #import "SVTheme.h"
 #import "SVCustomView.h"
 #import "SVGameTableViewCell.h"
+#import "SVCustomContainerController.h"
 
 static NSString *spaceCellIdentifer = @"SpaceCell";
 static NSString *gameCellIdentifier = @"GameCell";
@@ -20,6 +21,7 @@ static NSString *gameCellIdentifier = @"GameCell";
 @property (strong) NSMutableArray* inProgressGames;
 @property (strong) NSMutableArray* endedGames;
 @property (strong) SVGameViewController* currentController;
+@property (strong) NSMutableDictionary* sectionViews;
 
 - (void)newGame;
 - (void)loadGame:(SVGame*)game;
@@ -36,6 +38,7 @@ static NSString *gameCellIdentifier = @"GameCell";
     if (self) {
         _inProgressGames = [[NSMutableArray alloc] init];
         _endedGames = [[NSMutableArray alloc] init];
+        _sectionViews = [[NSMutableDictionary alloc] init];
         [[GKLocalPlayer localPlayer] unregisterAllListeners];
         [[GKLocalPlayer localPlayer] registerListener:self];
         [self loadGames];
@@ -43,13 +46,34 @@ static NSString *gameCellIdentifier = @"GameCell";
     return self;
 }
 
-- (void)viewDidLoad
-{
+- (void)viewDidLoad {
     [super viewDidLoad];
-    self.tableView.backgroundColor = [SVTheme sharedTheme].lightSquareColor;
+    self.tableView.backgroundColor = [SVTheme sharedTheme].darkSquareColor;
     self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     [self.tableView registerClass:SVGameTableViewCell.class forCellReuseIdentifier:gameCellIdentifier];
     [self.tableView registerClass:UITableViewCell.class forCellReuseIdentifier:spaceCellIdentifer];
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    if ([self.parentViewController isKindOfClass:SVCustomContainerController.class]) {
+        SVCustomContainerController* container = (SVCustomContainerController*)self.parentViewController;
+        NSMutableAttributedString* topString = [[NSMutableAttributedString alloc] initWithString:@"Games"];
+        [topString addAttribute:NSKernAttributeName value:@3 range:NSMakeRange(0, 4)];
+        container.topBarView.label.attributedText = topString;
+        
+        UIButton* plusButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        UIImage* plusImage = [UIImage imageNamed:@"plusSign.png"];
+        [plusButton setBackgroundImage:plusImage forState:UIControlStateNormal];
+        plusButton.adjustsImageWhenHighlighted = NO;
+        plusButton.adjustsImageWhenDisabled = NO;
+        plusButton.frame = CGRectMake(0,
+                                      0,
+                                      plusImage.size.width,
+                                      plusImage.size.height);
+        container.topBarView.rightButton = plusButton;
+    }
     UIButton* button = [UIButton buttonWithType:UIButtonTypeRoundedRect];
     [button setTitle:@"New" forState:UIControlStateNormal];
     [button addTarget:self action:@selector(didClickAddButton) forControlEvents:UIControlEventTouchUpInside];
@@ -60,6 +84,37 @@ static NSString *gameCellIdentifier = @"GameCell";
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
+}
+
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    
+//    [UIView beginAnimations:@"opacity" context:NULL];
+//    [UIView setAnimationDuration:0.3];
+//    for (id key in self.sectionViews) {
+//        UIView* view = [self.sectionViews objectForKey:key];
+//        view.alpha = 0;
+//    }
+//    [UIView commitAnimations];
+//    
+//    NSArray* cells = self.tableView.visibleCells;
+//    float i = 0;
+//    for (UITableViewCell* cell in cells) {
+//        if ([cell isKindOfClass:SVGameTableViewCell.class]) {
+//            //2. Define the initial state (Before the animation)
+//            
+//            //3. Define the final state (After the animation) and commit the animation
+//            [UIView beginAnimations:@"frame" context:NULL];
+//            [UIView setAnimationDelay:i];
+//            [UIView setAnimationDuration:0.3];
+//            cell.layer.frame = CGRectMake(-cell.layer.frame.size.width,
+//                                          cell.layer.frame.origin.y,
+//                                          cell.layer.frame.size.width,
+//                                          cell.layer.frame.size.height);
+//            [UIView commitAnimations];
+//            i += 0.05;
+//        }
+//    }
 }
 
 - (void)didReceiveMemoryWarning
@@ -86,7 +141,10 @@ static NSString *gameCellIdentifier = @"GameCell";
 - (void)loadGame:(SVGame*)game {
     SVGameViewController* controller = [[SVGameViewController alloc] initWithGame:game];
     controller.delegate = self;
-    [self.navigationController pushViewController:controller animated:YES];
+    if ([self.parentViewController isKindOfClass:SVCustomContainerController.class]) {
+        SVCustomContainerController* container = (SVCustomContainerController*) self.parentViewController;
+        [container pushViewController:controller];
+    }
     self.currentController = controller;
 }
 
@@ -112,6 +170,7 @@ static NSString *gameCellIdentifier = @"GameCell";
             }
             i++;
         }
+        NSLog(@"loaded");
         [self.tableView reloadData];
     }];
 }
@@ -248,12 +307,17 @@ static NSString *gameCellIdentifier = @"GameCell";
     SVGame* game = [games objectAtIndex:ceil(indexPath.row / 2)];
     //Check if data
     [self loadGame:game];
+//    [self viewWillDisappear:YES];
 }
 
 - (UIView*)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
-    SVCustomView* view = [[SVCustomView alloc] init];
-    __weak SVCustomView* weakSelf = view;
-    [view drawBlock:^(CGContextRef context) {
+    UIView* view = [self.sectionViews objectForKey:[NSNumber numberWithInt:section]];
+    if (view) {
+        return view;
+    }
+    SVCustomView* customView = [[SVCustomView alloc] init];
+    __weak SVCustomView* weakSelf = customView;
+    [customView drawBlock:^(CGContextRef context) {
         UIBezierPath* path = [UIBezierPath bezierPathWithRect:CGRectMake(20,
                                                                          27,
                                                                          weakSelf.frame.size.width - 40,
@@ -278,9 +342,10 @@ static NSString *gameCellIdentifier = @"GameCell";
         [text addAttribute:NSKernAttributeName value:@2 range:NSMakeRange(0, 8)];
     }
     label.attributedText = text;
-    [view addSubview:label];
+    [customView addSubview:label];
+    [self.sectionViews setObject:customView forKey:[NSNumber numberWithInt:section]];
     
-    return view;
+    return customView;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
@@ -293,5 +358,6 @@ static NSString *gameCellIdentifier = @"GameCell";
     }
     return 42;
 }
+
 
 @end

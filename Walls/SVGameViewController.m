@@ -26,7 +26,6 @@
 
 //Views
 @property (strong) SVBoardView* boardView;
-@property (strong) SVCustomView* topView;
 @property (strong) SVCustomView* infoView;
 @property (strong) UIView* bottomView;
 @property (strong) UILabel* bottomLabel;
@@ -45,8 +44,8 @@
 @property (assign) kSVPlayer opponentPlayer;
 @property (assign) BOOL canBuildWall;
 @property (strong) NSArray* opponentName;
-
-@property (strong) UIPanGestureRecognizer* bottomViewGestureRecognizer;
+@property (assign) kSVPanDirection pawnPanDirection;
+@property (strong) UIView* pawnPanView;
 
 //Private
 - (void)adjustUI;
@@ -67,6 +66,7 @@
 - (void)didClickCancelButton:(id)sender;
 - (void)didClickValidateButton:(id)sender;
 - (void)didClickBackButton:(id)sender;
+- (void)didPanPawn:(UIPanGestureRecognizer*)gestureRecognizer;
 
 @end
 
@@ -94,46 +94,32 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+}
 
-    //Top
-    self.topView = [[SVCustomView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 49)];
-    self.topView.backgroundColor = [SVTheme sharedTheme].darkSquareColor;
-    __weak SVCustomView* weakTopView = self.topView;
-    [self.topView drawBlock:^(CGContextRef context) {
-        UIBezierPath* bezierPath = [UIBezierPath bezierPathWithRect:CGRectMake(0,
-                                                                               weakTopView.frame.size.height - 1,
-                                                                               weakTopView.frame.size.width,
-                                                                               1)];
-        [[SVTheme sharedTheme].squareBorderColor setFill];
-        [bezierPath fill];
-    }];
-    [self.view addSubview:self.topView];
-    UIImage* arrow = [UIImage imageNamed:@"back_arrow.png"];
-    UIButton* backButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    [backButton setImage:arrow forState:UIControlStateNormal];
-    backButton.frame = CGRectMake(5,
-                                 (self.topView.frame.size.height - (arrow.size.height + 10)) / 2,
-                                 arrow.size.width + 10,
-                                 arrow.size.height + 10);
-    backButton.adjustsImageWhenDisabled = NO;
-    backButton.adjustsImageWhenHighlighted = NO;
-    [self.topView addSubview:backButton];
-    [backButton addTarget:self action:@selector(didClickBackButton:) forControlEvents:UIControlEventTouchUpInside];
-    
-    UILabel* topLabel = [[UILabel alloc] initWithFrame:CGRectMake((self.topView.frame.size.width - 200) / 2,
-                                                                  (self.topView.frame.size.height - 30) / 2,
-                                                                  200,
-                                                                  30)];
-    NSMutableAttributedString* topString = [[NSMutableAttributedString alloc] initWithString:@"Walls"];
-    [topString addAttribute:NSKernAttributeName value:@3 range:NSMakeRange(0, 4)];
-    topLabel.attributedText = topString;
-    topLabel.textColor = [UIColor whiteColor];
-    topLabel.textAlignment = NSTextAlignmentCenter;
-    topLabel.font = [UIFont fontWithName:@"HelveticaNeue" size:24];
-    [self.topView addSubview:topLabel];
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    if ([self.parentViewController isKindOfClass:SVCustomContainerController.class]) {
+        SVCustomContainerController* container = (SVCustomContainerController*)self.parentViewController;
+        NSMutableAttributedString* topString = [[NSMutableAttributedString alloc] initWithString:@"Walls"];
+        [topString addAttribute:NSKernAttributeName value:@3 range:NSMakeRange(0, 4)];
+        container.topBarView.label.attributedText = topString;
+        
+        UIImage* backImage = [UIImage imageNamed:@"back_arrow.png"];
+        UIButton* backButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        [backButton setImage:backImage forState:UIControlStateNormal];
+        backButton.frame = CGRectMake(0,
+                                      0,
+                                      backImage.size.width,
+                                      backImage.size.height);
+        backButton.adjustsImageWhenDisabled = NO;
+        backButton.adjustsImageWhenHighlighted = NO;
+        [backButton addTarget:self action:@selector(didClickBackButton:) forControlEvents:UIControlEventTouchUpInside];
+        container.topBarView.leftButton = backButton;
+    }
     
     //Board
-    self.boardView = [[SVBoardView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.topView.frame), self.view.frame.size.width, 414) rotated:self.localPlayer == kSVPlayer2];
+    self.boardView = [[SVBoardView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 414)
+                                                rotated:self.localPlayer == kSVPlayer2];
     self.boardView.delegate = self;
     [self.view addSubview:self.boardView];
     
@@ -147,9 +133,9 @@
             else if (turn.action == kSVAddWallAction) {
                 SVWall* wall = turn.actionInfo;
                 [self.board addWallAtPosition:wall.position
-                                   withOrientation:wall.orientation
-                                              type:wall.type
-                                         forPlayer:turn.player];
+                              withOrientation:wall.orientation
+                                         type:wall.type
+                                    forPlayer:turn.player];
                 SVWallView* wallView = [self wallViewForWall:wall];
                 [wallView showRect:wallView.bounds animated:NO duration:0 withFinishBlock:nil];
                 [self.boardView addSubview:wallView];
@@ -165,9 +151,13 @@
     
     CGPoint point2 = [self.boardView squareCenterForPosition:self.board.playerPositions[self.opponentPlayer]];
     SVPawnView* pawnView2 =  [[SVPawnView alloc] initWithFrame:CGRectMake(point2.x - 15, point2.y - 15, 30, 30)
-                                                       color1:[SVTheme sharedTheme].opponentPlayerColor
-                                                    andColor2:[SVTheme sharedTheme].opponentPlayerLightColor];
+                                                        color1:[SVTheme sharedTheme].opponentPlayerColor
+                                                     andColor2:[SVTheme sharedTheme].opponentPlayerLightColor];
     [self.boardView addSubview:pawnView2];
+    UIPanGestureRecognizer* panGestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(didPanPawn:)];
+    panGestureRecognizer.minimumNumberOfTouches = 1;
+    panGestureRecognizer.maximumNumberOfTouches = 1;
+    [pawnView1 addGestureRecognizer:panGestureRecognizer];
     
     if (self.localPlayer == kSVPlayer1) {
         [self.pawnViews addObject:pawnView1];
@@ -203,9 +193,9 @@
     [self.infoView addSubview:localPlayerCircle];
     
     UILabel* localPlayerLabel = [[UILabel alloc] initWithFrame:CGRectMake(2,
-                                                                      2,
-                                                                      localPlayerCircle.frame.size.width - 4,
-                                                                      localPlayerCircle.frame.size.height - 4)];
+                                                                          2,
+                                                                          localPlayerCircle.frame.size.width - 4,
+                                                                          localPlayerCircle.frame.size.height - 4)];
     localPlayerLabel.textAlignment = NSTextAlignmentCenter;
     localPlayerLabel.textColor = [UIColor whiteColor];
     localPlayerLabel.font = [UIFont fontWithName:@"HelveticaNeue-Bold" size:10];
@@ -233,9 +223,9 @@
     }];
     [self.infoView addSubview:opponentPlayerCircle];
     UILabel* opponentPlayerLabel = [[UILabel alloc] initWithFrame:CGRectMake(2,
-                                                                      2,
-                                                                      opponentPlayerCircle.frame.size.width - 4,
-                                                                      opponentPlayerCircle.frame.size.height - 4)];
+                                                                             2,
+                                                                             opponentPlayerCircle.frame.size.width - 4,
+                                                                             opponentPlayerCircle.frame.size.height - 4)];
     opponentPlayerLabel.textAlignment = NSTextAlignmentCenter;
     opponentPlayerLabel.textColor = [UIColor whiteColor];
     opponentPlayerLabel.font = [UIFont fontWithName:@"HelveticaNeue-Bold" size:10];
@@ -244,7 +234,7 @@
     [opponentPlayerCircle addSubview:opponentPlayerLabel];
     
     self.colorButton = [[SVColorButton alloc] initWithFrame:CGRectMake((self.infoView.frame.size.width -  42) / 2,
-                                                                        (self.infoView.frame.size.height - 26) / 2, 42, 26)];
+                                                                       (self.infoView.frame.size.height - 26) / 2, 42, 26)];
     [self.colorButton addTarget:self action:@selector(didClickColorButton:) forControlEvents:UIControlEventTouchUpInside];
     [self.infoView addSubview:self.colorButton];
     
@@ -292,9 +282,9 @@
     [self.view addSubview:self.bottomView];
     
     self.bottomLabel = [[UILabel alloc] initWithFrame:CGRectMake((self.bottomView.frame.size.width - 250) / 2,
-                                                                     0,
-                                                                     250,
-                                                                     self.bottomView.frame.size.height)];
+                                                                 0,
+                                                                 250,
+                                                                 self.bottomView.frame.size.height)];
     self.bottomLabel.textColor = [UIColor whiteColor];
     self.bottomLabel.font = [UIFont fontWithName:@"HelveticaNeue" size:20];
     self.bottomLabel.lineBreakMode = NSLineBreakByTruncatingTail;
@@ -340,7 +330,7 @@
         self.colorButton.selected = ((NSNumber*)([self.board.normalWallsRemaining objectAtIndex:self.localPlayer])).intValue <= 0;
     }
     
-    //Adjust the top and bottom colors
+    //Adjust the bottom color
     self.bottomView.backgroundColor = [self.playerColors objectAtIndex:self.currentPlayer];
     
     if (self.opponentName) {
@@ -805,7 +795,92 @@
 }
 
 - (void)didClickBackButton:(id)sender {
-    [self.navigationController popViewControllerAnimated:YES];
+    if ([self.parentViewController isKindOfClass:SVCustomContainerController.class]) {
+        SVCustomContainerController* container = (SVCustomContainerController*)self.parentViewController;
+        [container popViewController];
+    }
+}
+
+- (void)didPanPawn:(UIPanGestureRecognizer *)gestureRecognizer {
+    SVPawnView* pawnView = [self.pawnViews objectAtIndex:self.localPlayer];
+    CGPoint point = [gestureRecognizer translationInView:pawnView];
+    
+    if (gestureRecognizer.state == UIGestureRecognizerStateBegan) {
+        CGPoint velocity = [gestureRecognizer velocityInView:pawnView];
+        if (abs(velocity.x) > abs(velocity.y)) {
+            if (velocity.x > 0) {
+                self.pawnPanDirection = kSVRightDirection;
+                self.pawnPanView = [[UIView alloc] initWithFrame:CGRectMake(pawnView.frame.origin.x,
+                                                                            pawnView.frame.origin.y,
+                                                                            point.x,
+                                                                            20)];
+            }
+            else {
+                self.pawnPanDirection = kSVLeftDirection;
+                self.pawnPanView = [[UIView alloc] initWithFrame:CGRectMake(pawnView.frame.origin.x + point.x,
+                                                                            pawnView.frame.origin.y,
+                                                                            -point.x,
+                                                                            20)];
+            }
+        }
+        else {
+            if (velocity.y > 0) {
+                self.pawnPanDirection = kSVBottomDirection;
+                self.pawnPanView = [[UIView alloc] initWithFrame:CGRectMake(pawnView.frame.origin.x,
+                                                                            pawnView.frame.origin.y,
+                                                                            20,
+                                                                            point.y)];
+            }
+            else {
+                self.pawnPanDirection = kSVTopDirection;
+                self.pawnPanView = [[UIView alloc] initWithFrame:CGRectMake(pawnView.frame.origin.x,
+                                                                            pawnView.frame.origin.y + point.y,
+                                                                            20,
+                                                                            -point.y)];
+            }
+        }
+        self.pawnPanView.backgroundColor = [UIColor redColor];
+        [self.boardView addSubview:self.pawnPanView];
+    }
+    else if (gestureRecognizer.state == UIGestureRecognizerStateChanged) {
+        if (self.pawnPanDirection == kSVLeftDirection)
+            self.pawnPanView.frame = CGRectMake(pawnView.frame.origin.x,
+                                                                        pawnView.frame.origin.y,
+                                                                        point.x,
+                                                                        20);
+        else if (self.pawnPanDirection == kSVRightDirection)
+            self.pawnPanView.frame = CGRectMake(pawnView.frame.origin.x + point.x,
+                                                                        pawnView.frame.origin.y,
+                                                                        -point.x,
+                                                                        20);
+        else if (self.pawnPanDirection == kSVTopDirection)
+            self.pawnPanView.frame = CGRectMake(pawnView.frame.origin.x,
+                                                                        pawnView.frame.origin.y,
+                                                                        20,
+                                                                        point.y);
+        else
+            self.pawnPanView.frame = CGRectMake(pawnView.frame.origin.x,
+                                                                        pawnView.frame.origin.y + point.y,
+                                                                        20,
+                                                                        -point.y);
+    }
+    else if (gestureRecognizer.state == UIGestureRecognizerStateEnded) {
+        SVPosition* position = [self.board.playerPositions objectAtIndex:self.localPlayer];
+        SVPosition* nextPosition;
+        if (self.pawnPanDirection == kSVLeftDirection)
+            nextPosition = [[SVPosition alloc] initWithX:position.x - 1 andY:position.y];
+        else if (self.pawnPanDirection == kSVRightDirection)
+            nextPosition = [[SVPosition alloc] initWithX:position.x + 1 andY:position.y];
+        else if (self.pawnPanDirection == kSVTopDirection)
+            nextPosition = [[SVPosition alloc] initWithX:position.x andY:position.y - 1];
+        else
+            nextPosition = [[SVPosition alloc] initWithX:position.x andY:position.y + 1];
+        
+        [self.pawnPanView removeFromSuperview];
+        if ([self.board canPlayer:self.localPlayer moveTo:nextPosition]) {
+            [self movePawnToPosition:nextPosition forPlayer:self.localPlayer animated:YES];
+        }
+    }
 }
 
 //////////////////////////////////////////////////////
