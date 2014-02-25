@@ -92,23 +92,23 @@
                 lastSquareView = squareView;
                 
                 //Intersections
-                CGPoint point = CGPointMake(CGRectGetMinX(squareView.frame), CGRectGetMinY(squareView.frame));
+                CGPoint point = CGPointMake(CGRectGetMinX(squareView.frame), CGRectGetMinY(rowView.frame));
                 [self.squareIntersections addObject:[NSValue valueWithCGPoint:point]];
                 [self.positionsForIntersection setObject:[[SVPosition alloc] initWithX:j andY:i] forKey:[NSValue valueWithCGPoint:point]];
                 
                 
                 if (j == colCount - 1) {
-                    point = CGPointMake(CGRectGetMaxX(squareView.frame), CGRectGetMinY(squareView.frame));
+                    point = CGPointMake(CGRectGetMaxX(squareView.frame), CGRectGetMinY(rowView.frame));
                     [self.squareIntersections addObject:[NSValue valueWithCGPoint:point]];
                     [self.positionsForIntersection setObject:[[SVPosition alloc] initWithX:j + 1 andY:i] forKey:[NSValue valueWithCGPoint:point]];
                 }
                 
                 if (i == 8) {
-                    point = CGPointMake(CGRectGetMinX(squareView.frame), CGRectGetMaxY(squareView.frame));
+                    point = CGPointMake(CGRectGetMinX(squareView.frame), CGRectGetMaxY(rowView.frame));
                     [self.squareIntersections addObject:[NSValue valueWithCGPoint:point]];
                     [self.positionsForIntersection setObject:[[SVPosition alloc] initWithX:j andY:i + 1] forKey:[NSValue valueWithCGPoint:point]];
                     if (j == colCount - 1) {
-                        point = CGPointMake(CGRectGetMaxX(squareView.frame), CGRectGetMaxY(squareView.frame));
+                        point = CGPointMake(CGRectGetMaxX(squareView.frame), CGRectGetMaxY(rowView.frame));
                         [self.squareIntersections addObject:[NSValue valueWithCGPoint:point]];
                         [self.positionsForIntersection setObject:[[SVPosition alloc] initWithX:j + 1 andY:i + 1] forKey:[NSValue valueWithCGPoint:point]];
                     }
