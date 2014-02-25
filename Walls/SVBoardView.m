@@ -280,7 +280,7 @@
 - (CGPoint)squareCenterForPosition:(SVPosition *)position {
     SVSquareView* squareView = [self.squareViewForPosition objectForKey:position];
     CGPoint point = CGPointMake(squareView.frame.origin.x + squareView.frame.size.width / 2,
-                                squareView.frame.origin.y + squareView.frame.size.height / 2);
+                                squareView.superview.frame.origin.y + squareView.frame.size.height / 2);
     return point;
 }
 
