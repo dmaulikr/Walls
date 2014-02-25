@@ -26,6 +26,8 @@ typedef enum {
 - (SVPosition*)intersectionPositionForPoint:(CGPoint)point;
 - (CGPoint)intersectionPointForPosition:(SVPosition*)position;
 - (CGPoint)squareCenterForPosition:(SVPosition*)position;
+- (void)hideRowsAnimated:(BOOL)animated withFinishBlock:(void(^)(void))block;
+- (void)showRowsAnimated:(BOOL)animated withFinishBlock:(void(^)(void))block;
 @end
 
 @protocol SVBoardViewDelegate <NSObject>

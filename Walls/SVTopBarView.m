@@ -31,6 +31,14 @@
 }
 
 - (void)setLeftButton:(UIButton *)leftButton {
+    if (!leftButton) {
+        if (_leftButton) {
+            [_leftButton removeFromSuperview];
+            _leftButton = nil;
+        }
+        return;
+    }
+    
     _leftButton = leftButton;
     leftButton.frame = CGRectMake(15,
                                   (self.frame.size.height - leftButton.frame.size.height) / 2,
@@ -40,6 +48,14 @@
 }
 
 - (void)setRightButton:(UIButton *)rightButton {
+    if (!rightButton) {
+        if (_rightButton) {
+            [_rightButton removeFromSuperview];
+            _rightButton = nil;
+        }
+        return;
+    }
+    
     _rightButton = rightButton;
     rightButton.frame = CGRectMake(self.frame.size.width - rightButton.frame.size.width - 15,
                                   (self.frame.size.height - rightButton.frame.size.height) / 2,

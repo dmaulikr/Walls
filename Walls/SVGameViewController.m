@@ -120,6 +120,7 @@
     //Board
     self.boardView = [[SVBoardView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 414)
                                                 rotated:self.localPlayer == kSVPlayer2];
+    [self.boardView hideRowsAnimated:NO withFinishBlock:nil];
     self.boardView.delegate = self;
     [self.view addSubview:self.boardView];
     
@@ -296,6 +297,7 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
+    [self.boardView showRowsAnimated:YES withFinishBlock:nil];
     [self performSelector:@selector(displayLastTurn) withObject:nil afterDelay:0.5];
 }
 
@@ -796,8 +798,10 @@
 
 - (void)didClickBackButton:(id)sender {
     if ([self.parentViewController isKindOfClass:SVCustomContainerController.class]) {
-        SVCustomContainerController* container = (SVCustomContainerController*)self.parentViewController;
-        [container popViewController];
+        [self.boardView hideRowsAnimated:YES withFinishBlock:^{
+            SVCustomContainerController* container = (SVCustomContainerController*)self.parentViewController;
+            [container popViewController];
+        }];
     }
 }
 

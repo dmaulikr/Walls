@@ -12,4 +12,5 @@
 @property (strong) UILabel* label;
 @property (strong, nonatomic) UIButton* leftButton;
 @property (strong, nonatomic) UIButton* rightButton;
+
 @end

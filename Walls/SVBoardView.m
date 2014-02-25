@@ -13,10 +13,14 @@
 @property (strong) NSMutableArray* squareIntersections;
 @property (strong) NSMutableDictionary* positionsForIntersection;
 @property (strong) NSMutableDictionary* squareViewForPosition;
+@property (strong) NSMutableArray* squareRows;
 @property (assign) kSVPanDirection initialPanDirection;
 @property (assign) CGPoint initialPoint;
 @property (assign) CGPoint nearestIntersectionPoint;
 @property (assign) CGPoint offset;
+
+@property (strong) void(^hideRowsFinishBlock)(void);
+@property (strong) void(^showRowsFinishBlock)(void);
 @end
 
 @implementation SVBoardView
@@ -28,6 +32,7 @@
         _positionsForIntersection = [[NSMutableDictionary alloc] init];
         _squareViewForPosition = [[NSMutableDictionary alloc] init];
         _initialPanDirection = kSVNoDirection;
+        _squareRows = [[NSMutableArray alloc] init];
         
         if (rotated) {
             self.transform = CGAffineTransformMakeRotation(M_PI);
@@ -50,6 +55,10 @@
                 row = kSVSquareViewRowBottom;
             else
                 row = kSVSquareViewRowCenter;
+            
+            UIView* rowView = [[UIView alloc] initWithFrame:CGRectMake(0, i * 46, self.frame.size.width, 46)];
+            [self.squareRows addObject:rowView];
+            [self addSubview:rowView];
             
             for (int j = 0; j < colCount; j++) {
                 CGPoint origin = CGPointZero;
@@ -77,10 +86,10 @@
                     col = kSVSquareViewColCenter;
                 
                 SVSquareView* squareView = [[SVSquareView alloc] initWithOrigin:origin row:row col:col andColor:color];
+                [rowView addSubview:squareView];
                 squareView.delegate = self;
                 [_squareViewForPosition setObject:squareView forKey:[[SVPosition alloc] initWithX:j andY:i]];
                 lastSquareView = squareView;
-                [self addSubview:squareView];
                 
                 //Intersections
                 CGPoint point = CGPointMake(CGRectGetMinX(squareView.frame), CGRectGetMinY(squareView.frame));
@@ -108,6 +117,66 @@
         }
     }
     return self;
+}
+
+- (void)hideRowsAnimated:(BOOL)animated withFinishBlock:(void (^)(void))block {
+    if (animated) {
+        self.hideRowsFinishBlock = block;
+        float delay = 0;
+        for (UIView* row in self.squareRows) {
+            [UIView beginAnimations:@"rowOut" context:nil];
+            [UIView setAnimationDuration:0.3];
+            [UIView setAnimationDelay:delay];
+            row.frame = CGRectMake(row.frame.origin.x + self.frame.size.width,
+                                   row.frame.origin.y,
+                                   row.frame.size.width,
+                                   row.frame.size.height);
+            delay += 0.05;
+            if (row == [self.squareRows lastObject]) {
+                [UIView setAnimationDelegate:self];
+                [UIView setAnimationDidStopSelector:@selector(hideRowsAnimationDidStop:finished:context:)];
+            }
+            [UIView commitAnimations];
+        }
+    }
+    else {
+        for (UIView* row in self.squareRows) {
+            row.frame = CGRectMake(row.frame.origin.x + self.frame.size.width,
+                                   row.frame.origin.y,
+                                   row.frame.size.width,
+                                   row.frame.size.height);
+        }
+    }
+}
+
+- (void)showRowsAnimated:(BOOL)animated withFinishBlock:(void (^)(void))block {
+    if (animated) {
+        self.showRowsFinishBlock = block;
+        float delay = 0;
+        for (UIView* row in self.squareRows) {
+            [UIView beginAnimations:@"rowIn" context:nil];
+            [UIView setAnimationDuration:0.3];
+            [UIView setAnimationDelay:delay];
+            row.frame = CGRectMake(0,
+                                   row.frame.origin.y,
+                                   row.frame.size.width,
+                                   row.frame.size.height);
+            delay += 0.05;
+            if (row == [self.squareRows lastObject]) {
+                [UIView setAnimationDelegate:self];
+                [UIView setAnimationDidStopSelector:@selector(showRowsAnimationDidStop:finished:context:)];
+            }
+            [UIView commitAnimations];
+        }
+    }
+    else {
+        for (UIView* row in self.squareRows) {
+            row.frame = CGRectMake(0,
+                                   row.frame.origin.y,
+                                   row.frame.size.width,
+                                   row.frame.size.height);
+        }
+    }
 }
 
 - (SVPosition*)intersectionPositionForPoint:(CGPoint)point {
@@ -225,5 +294,22 @@
         [self.delegate boardView:self didTapSquare:position];
     }
 }
+
+//////////////////////////////////////////////////////
+// Animations delegate
+//////////////////////////////////////////////////////
+
+- (void)hideRowsAnimationDidStop:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context {
+    if (self.hideRowsFinishBlock) {
+        self.hideRowsFinishBlock();
+    }
+}
+
+- (void)showRowsAnimationDidStop:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context {
+    if (self.showRowsFinishBlock) {
+        self.showRowsFinishBlock();
+    }
+}
+
 
 @end

@@ -54,9 +54,11 @@ static NSString *gameCellIdentifier = @"GameCell";
     [self.tableView registerClass:UITableViewCell.class forCellReuseIdentifier:spaceCellIdentifer];
 }
 
+
 - (void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
+    NSLog(@"in");
     if ([self.parentViewController isKindOfClass:SVCustomContainerController.class]) {
         SVCustomContainerController* container = (SVCustomContainerController*)self.parentViewController;
         NSMutableAttributedString* topString = [[NSMutableAttributedString alloc] initWithString:@"Games"];

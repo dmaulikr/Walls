@@ -45,6 +45,9 @@
 
 - (void)pushViewController:(UIViewController*)controller {
     [self addChildViewController:controller];
+    self.topBarView.leftButton = nil;
+    self.topBarView.rightButton = nil;
+    
     controller.view.frame = CGRectMake(0,
                                        CGRectGetMaxY(self.topBarView.frame),
                                        self.view.frame.size.width,

@@ -28,9 +28,9 @@ const int kSVSquareViewSize = 46;
         _color = color;
         
         if (col == kSVSquareViewColCenter)
-            self.frame = CGRectMake(origin.x, origin.y, kSVSquareViewSize, kSVSquareViewSize);
+            self.frame = CGRectMake(origin.x, 0, kSVSquareViewSize, kSVSquareViewSize);
         else
-            self.frame = CGRectMake(origin.x, origin.y, kSVSquareViewSize - 1, kSVSquareViewSize);
+            self.frame = CGRectMake(origin.x, 0, kSVSquareViewSize - 1, kSVSquareViewSize);
         if (color == kSVSquareViewLight)
             self.backgroundColor = [SVTheme sharedTheme].lightSquareColor;
         else
