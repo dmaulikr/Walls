@@ -58,7 +58,6 @@ static NSString *gameCellIdentifier = @"GameCell";
 - (void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
-    NSLog(@"in");
     if ([self.parentViewController isKindOfClass:SVCustomContainerController.class]) {
         SVCustomContainerController* container = (SVCustomContainerController*)self.parentViewController;
         NSMutableAttributedString* topString = [[NSMutableAttributedString alloc] initWithString:@"Games"];
@@ -313,7 +312,7 @@ static NSString *gameCellIdentifier = @"GameCell";
 }
 
 - (UIView*)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
-    UIView* view = [self.sectionViews objectForKey:[NSNumber numberWithInt:section]];
+    UIView* view = [self.sectionViews objectForKey:[NSNumber numberWithInt:(int)section]];
     if (view) {
         return view;
     }
@@ -345,7 +344,7 @@ static NSString *gameCellIdentifier = @"GameCell";
     }
     label.attributedText = text;
     [customView addSubview:label];
-    [self.sectionViews setObject:customView forKey:[NSNumber numberWithInt:section]];
+    [self.sectionViews setObject:customView forKey:[NSNumber numberWithInt:(int)section]];
     
     return customView;
 }

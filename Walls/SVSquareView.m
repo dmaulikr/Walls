@@ -37,6 +37,7 @@ const int kSVSquareViewSize = 46;
             self.backgroundColor = [SVTheme sharedTheme].darkSquareColor;
         UITapGestureRecognizer* gestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(didTap:)];
         [self addGestureRecognizer:gestureRecognizer];
+        self.opaque = YES;
     }
     return self;
 }

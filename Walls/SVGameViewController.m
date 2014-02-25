@@ -124,37 +124,15 @@
     self.boardView.delegate = self;
     [self.view addSubview:self.boardView];
     
-    //Play turns
-    if (self.game.turns.count > 0) {
-        for (int i = 0; i < self.game.turns.count - 1; i++) {
-            SVTurn* turn = [self.game.turns objectAtIndex:i];
-            if (turn.action == kSVMoveAction) {
-                [self.board movePlayer:turn.player to:turn.actionInfo];
-            }
-            else if (turn.action == kSVAddWallAction) {
-                SVWall* wall = turn.actionInfo;
-                [self.board addWallAtPosition:wall.position
-                              withOrientation:wall.orientation
-                                         type:wall.type
-                                    forPlayer:turn.player];
-                SVWallView* wallView = [self wallViewForWall:wall];
-                [wallView showRect:wallView.bounds animated:NO duration:0 withFinishBlock:nil];
-                [self.boardView addSubview:wallView];
-            }
-        }
-    }
-    
     CGPoint point1 = [self.boardView squareCenterForPosition:self.board.playerPositions[self.localPlayer]];
     SVPawnView* pawnView1 = [[SVPawnView alloc] initWithFrame:CGRectMake(point1.x - 15, point1.y - 15, 30, 30)
                                                        color1:[SVTheme sharedTheme].localPlayerColor
                                                     andColor2:[SVTheme sharedTheme].localPlayerLightColor];
-    [self.boardView addSubview:pawnView1];
     
     CGPoint point2 = [self.boardView squareCenterForPosition:self.board.playerPositions[self.opponentPlayer]];
     SVPawnView* pawnView2 =  [[SVPawnView alloc] initWithFrame:CGRectMake(point2.x - 15, point2.y - 15, 30, 30)
                                                         color1:[SVTheme sharedTheme].opponentPlayerColor
                                                      andColor2:[SVTheme sharedTheme].opponentPlayerLightColor];
-    [self.boardView addSubview:pawnView2];
     UIPanGestureRecognizer* panGestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(didPanPawn:)];
     panGestureRecognizer.minimumNumberOfTouches = 1;
     panGestureRecognizer.maximumNumberOfTouches = 1;
@@ -297,8 +275,52 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    [self.boardView showRowsAnimated:YES withFinishBlock:nil];
-    [self performSelector:@selector(displayLastTurn) withObject:nil afterDelay:0.5];
+    __weak SVGameViewController* weakSelf = self;
+    [self.boardView showRowsAnimated:YES withFinishBlock:^{
+        NSMutableArray* wallViews = [[NSMutableArray alloc] init];
+        if (weakSelf.game.turns.count > 0) {
+            for (int i = 0; i < weakSelf.game.turns.count - 1; i++) {
+                SVTurn* turn = [weakSelf.game.turns objectAtIndex:i];
+                if (turn.action == kSVMoveAction) {
+                    [weakSelf.board movePlayer:turn.player to:turn.actionInfo];
+                }
+                else if (turn.action == kSVAddWallAction) {
+                    NSLog(@"add wall");
+                    SVWall* wall = turn.actionInfo;
+                    [weakSelf.board addWallAtPosition:wall.position
+                                  withOrientation:wall.orientation
+                                             type:wall.type
+                                        forPlayer:turn.player];
+                    SVWallView* wallView = [weakSelf wallViewForWall:wall];
+                    [wallViews addObject:wallView];
+                    [wallView showRect:wallView.bounds animated:NO duration:0 withFinishBlock:nil];
+                }
+            }
+        }
+        
+        //Animate pawns and walls
+        CAKeyframeAnimation* animation = [CAKeyframeAnimation animationWithKeyPath:@"transform.scale"];
+        animation.values = [NSArray arrayWithObjects:[NSNumber numberWithFloat:3.0],
+                            [NSNumber numberWithFloat:0.6],
+                            [NSNumber numberWithFloat:1.0], nil];
+        animation.keyTimes = [NSArray arrayWithObjects:[NSNumber numberWithFloat:0.0],
+                              [NSNumber numberWithFloat:0.8],
+                              [NSNumber numberWithFloat:1.0], nil];
+        animation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+        animation.duration = 0.5;
+        for (UIView* pawn in weakSelf.pawnViews) {
+            [weakSelf.view addSubview:pawn];
+            [pawn.layer addAnimation:animation forKey:@"pawnAnimation"];
+            pawn.transform = CGAffineTransformIdentity;
+        }
+        
+        for (UIView* wallView in wallViews) {
+            [weakSelf.view addSubview:wallView];
+            [wallView.layer addAnimation:animation forKey:@"wallAnimation"];
+            wallView.transform = CGAffineTransformIdentity;
+        }
+    }];
+    //[self performSelector:@selector(displayLastTurn) withObject:nil afterDelay:0.5];
 }
 
 - (void)didReceiveMemoryWarning
