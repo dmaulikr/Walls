@@ -40,43 +40,115 @@
 }
 
 - (void)setLeftButton:(UIButton *)button animated:(BOOL)animated {
-    if (!button) {
+    if (animated) {
+        if (button) {
+            button.frame = CGRectMake(15,
+                                      -button.frame.size.height,
+                                      button.frame.size.width,
+                                      button.frame.size.height);
+            [self addSubview:button];
+        }
+        [UIView animateWithDuration:0.2 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            if (_leftButton)
+                _leftButton.alpha = 0;
+            if (button) {
+                button.frame = CGRectMake(15,
+                                          (self.frame.size.height - button.frame.size.height) / 2,
+                                          button.frame.size.width,
+                                          button.frame.size.height);
+            }
+        } completion:^(BOOL finished) {
+            if (_leftButton)
+                [_leftButton removeFromSuperview];
+            _leftButton = button;
+        }];
+    }
+    else {
+        if (button) {
+            button.frame = CGRectMake(15,
+                                      (self.frame.size.height - button.frame.size.height) / 2,
+                                      button.frame.size.width,
+                                      button.frame.size.height);
+            [self addSubview:button];
+        }
         if (_leftButton) {
             [_leftButton removeFromSuperview];
             _leftButton = nil;
         }
-        return;
+        _leftButton = button;
     }
     
-    button.frame = CGRectMake(15,
-                              (self.frame.size.height - button.frame.size.height) / 2,
-                              button.frame.size.width,
-                              button.frame.size.height);
-    [self addSubview:button];
-    _leftButton = button;
 }
 
 - (void)setRightButton:(UIButton *)button animated:(BOOL)animated {
-    if (!button) {
+    if (animated) {
+        if (button) {
+            button.frame = CGRectMake(self.frame.size.width - button.frame.size.width - 15,
+                                      -button.frame.size.height,
+                                      button.frame.size.width,
+                                      button.frame.size.height);
+            [self addSubview:button];
+        }
+        [UIView animateWithDuration:0.2 delay:0 options:UIViewAnimationOptionCurveEaseInOut  animations:^{
+            if (_rightButton)
+                _rightButton.alpha = 0;
+            if (button) {
+                button.frame = CGRectMake(self.frame.size.width - button.frame.size.width - 15,
+                                          (self.frame.size.height - button.frame.size.height) / 2,
+                                          button.frame.size.width,
+                                          button.frame.size.height);
+            }
+        } completion:^(BOOL finished) {
+            if (_rightButton)
+                [_rightButton removeFromSuperview];
+            _rightButton = button;
+        }];
+    }
+    else {
+        if (button) {
+            button.frame = CGRectMake(self.frame.size.width - button.frame.size.width - 15,
+                                      (self.frame.size.height - button.frame.size.height) / 2,
+                                      button.frame.size.width,
+                                      button.frame.size.height);
+            [self addSubview:button];
+        }
         if (_rightButton) {
             [_rightButton removeFromSuperview];
             _rightButton = nil;
         }
-        return;
+        _rightButton = button;
     }
     
-    button.frame = CGRectMake(self.frame.size.width - button.frame.size.width - 15,
-                              (self.frame.size.height - button.frame.size.height) / 2,
-                              button.frame.size.width,
-                              button.frame.size.height);
-    [self addSubview:button];
-    _rightButton = button;
 }
 
 - (void)setTextLabel:(NSString*)text animated:(BOOL)animated {
     NSMutableAttributedString* topString = [[NSMutableAttributedString alloc] initWithString:text];
     [topString addAttribute:NSKernAttributeName value:@3 range:NSMakeRange(0, 4)];
-    self.label.attributedText = topString;
+    if (animated) {
+        UILabel* newLabel = [[UILabel alloc] initWithFrame:self.label.frame];
+        newLabel.textColor = self.label.textColor;
+        newLabel.font = self.label.font;
+        newLabel.lineBreakMode = self.label.lineBreakMode;
+        newLabel.textAlignment = self.label.textAlignment;
+        newLabel.attributedText = topString;
+        newLabel.frame = CGRectMake(newLabel.frame.origin.x,
+                                    -newLabel.frame.size.height,
+                                    newLabel.frame.size.width,
+                                    newLabel.frame.size.height);
+        newLabel.alpha = 0;
+        [self addSubview:newLabel];
+        [UIView animateWithDuration:0.2 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            self.label.alpha = 0;
+            newLabel.frame = self.label.frame;
+            newLabel.alpha = 1;
+        } completion:^(BOOL finished) {
+            [self.label removeFromSuperview];
+            self.label = newLabel;
+        }];
+    }
+    else {
+        self.label.attributedText = topString;
+    }
 }
 
 #pragma mark - Private

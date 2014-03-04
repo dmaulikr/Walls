@@ -27,6 +27,7 @@
 
 //Views
 @property (strong) SVBoardView* boardView;
+@property (strong) UIView* slidingBottom;
 @property (strong) SVCustomView* infoView;
 @property (strong) UIView* bottomView;
 @property (strong) UILabel* bottomLabel;
@@ -125,7 +126,15 @@
     }
     
     //Info
-    self.infoView = [[SVCustomView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.boardView.frame), self.view.frame.size.width, 45)];
+    self.slidingBottom = [[UIView alloc] initWithFrame:CGRectMake(0,
+                                                                  CGRectGetMaxY(self.boardView.frame),
+                                                                  self.view.frame.size.width,
+                                                                  self.view.frame.size.height - CGRectGetMaxY(self.boardView.frame))];
+    [self.view addSubview:self.slidingBottom];
+    self.infoView = [[SVCustomView alloc] initWithFrame:CGRectMake(0,
+                                                                   0,
+                                                                   self.view.frame.size.width,
+                                                                   45)];
     self.infoView.backgroundColor = [SVTheme sharedTheme].darkSquareColor;
     __weak SVCustomView* weakInfoView = self.infoView;
     [self.infoView drawBlock:^(CGContextRef context) {
@@ -134,7 +143,7 @@
         [bezierPath fill];
     }];
     
-    [self.view addSubview:self.infoView];
+    [self.slidingBottom addSubview:self.infoView];
     
     SVCustomView* localPlayerCircle = [[SVCustomView alloc] initWithFrame:CGRectMake(7, (self.infoView.frame.size.height - 24) / 2, 24, 24)];
     [localPlayerCircle drawBlock:^(CGContextRef context) {
@@ -233,9 +242,9 @@
     //Bottom
     self.bottomView = [[UIView alloc] initWithFrame:CGRectMake(0,
                                                                CGRectGetMaxY(self.infoView.frame),
-                                                               self.view.frame.size.width,
-                                                               self.view.frame.size.height - CGRectGetMaxY(self.infoView.frame))];
-    [self.view addSubview:self.bottomView];
+                                                               self.slidingBottom.frame.size.width,
+                                                               self.slidingBottom.frame.size.height - CGRectGetMaxY(self.infoView.frame))];
+    [self.slidingBottom addSubview:self.bottomView];
     
     self.bottomLabel = [[UILabel alloc] initWithFrame:CGRectMake((self.bottomView.frame.size.width - 250) / 2,
                                                                  0,
@@ -247,6 +256,11 @@
     self.bottomLabel.textAlignment = NSTextAlignmentCenter;
     [self.bottomView addSubview:self.bottomLabel];
     
+    //Move off screen for animation
+    self.slidingBottom.frame = CGRectMake(self.slidingBottom.frame.origin.x,
+                                          self.view.frame.size.height,
+                                          self.slidingBottom.frame.size.width,
+                                          self.slidingBottom.frame.size.height);
     [self adjustUI];
 }
 
@@ -268,7 +282,7 @@
     //Switch menu
     if ([self.parentViewController isKindOfClass:SVCustomContainerController.class]) {
         SVCustomContainerController* container = (SVCustomContainerController*)self.parentViewController;
-        [container.topBarView setTextLabel:@"Wall" animated:NO];
+        [container.topBarView setTextLabel:@"Wall" animated:YES];
         
         UIImage* backImage = [UIImage imageNamed:@"back_arrow.png"];
         UIButton* backButton = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -280,10 +294,19 @@
         backButton.adjustsImageWhenDisabled = NO;
         backButton.adjustsImageWhenHighlighted = NO;
         [backButton addTarget:self action:@selector(didClickBackButton:) forControlEvents:UIControlEventTouchUpInside];
-        [container.topBarView setLeftButton:backButton animated:NO];
-        [container.topBarView setRightButton:nil animated:NO];
+        [container.topBarView setLeftButton:backButton animated:YES];
+        [container.topBarView setRightButton:nil animated:YES];
     
         __weak SVGameViewController* weakSelf = self;
+        
+        [UIView animateWithDuration:0.25 delay:0.3 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            self.slidingBottom.frame = CGRectMake(self.slidingBottom.frame.origin.x,
+                                                  CGRectGetMaxY(self.boardView.frame),
+                                                  self.slidingBottom.frame.size.width,
+                                                  self.slidingBottom.frame.size.height);
+
+        } completion:nil];
+    
         [self.boardView showRowsAnimated:YES withFinishBlock:^{
             if (weakSelf.game.turns.count > 0) {
                 for (int i = 0; i < weakSelf.game.turns.count - 1; i++) {
@@ -303,7 +326,7 @@
                     }
                 }
             }
-            
+        
             //Animate pawns and walls
             CAKeyframeAnimation* animation = [CAKeyframeAnimation animationWithKeyPath:@"transform.scale"];
             animation.values = [NSArray arrayWithObjects:[NSNumber numberWithFloat:3.0],
@@ -333,10 +356,17 @@
     NSMutableArray* views = [NSMutableArray arrayWithArray:self.pawnViews];
     [views addObjectsFromArray:self.wallViews];
     for (UIView* view in views) {
-        [UIView animateWithDuration:0.2 animations:^{
+        [UIView animateWithDuration:0.15 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             view.alpha = 0;
-        }];
+        } completion:nil];
     }
+    [UIView animateWithDuration:0.25 delay:0.3 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        self.slidingBottom.frame = CGRectMake(self.slidingBottom.frame.origin.x,
+                                              self.view.frame.size.height,
+                                              self.slidingBottom.frame.size.width,
+                                              self.slidingBottom.frame.size.height);
+        
+    } completion:nil];
     [self.boardView hideRowsAnimated:YES withFinishBlock:block];
 }
 

@@ -28,6 +28,8 @@ static NSString *gameCellIdentifier = @"GameCell";
 - (void)loadGames;
 - (void)showRowsAnimated:(BOOL)animated;
 - (void)hideRowsAnimated:(BOOL)animated;
+- (void)setTopBarButtonsAnimated:(BOOL)animated;
+- (void)performBlock:(void(^)(void))block;
 
 @end
 
@@ -60,22 +62,8 @@ static NSString *gameCellIdentifier = @"GameCell";
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    //Switch menu
-    if ([self.parentViewController isKindOfClass:SVCustomContainerController.class]) {
-        SVCustomContainerController* container = (SVCustomContainerController*)self.parentViewController;
-        [container.topBarView setTextLabel:@"Games" animated:NO];
+    [self setTopBarButtonsAnimated:NO];
     
-        UIButton* plusButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        UIImage* plusImage = [UIImage imageNamed:@"plusSign.png"];
-        [plusButton setBackgroundImage:plusImage forState:UIControlStateNormal];
-        plusButton.adjustsImageWhenHighlighted = NO;
-        plusButton.adjustsImageWhenDisabled = NO;
-        plusButton.frame = CGRectMake(0,
-                                      0,
-                                      plusImage.size.width,
-                                      plusImage.size.height);
-        [container.topBarView setRightButton:plusButton animated:NO];
-    }
 }
 
 - (void)didReceiveMemoryWarning
@@ -130,7 +118,7 @@ static NSString *gameCellIdentifier = @"GameCell";
             [container pushViewController:controller];
             [controller show];
             self.currentController = controller;
-        } afterDelay:0.3];
+        } afterDelay:0.2];
     }
 }
 
@@ -164,6 +152,7 @@ static NSString *gameCellIdentifier = @"GameCell";
     if (animated) {
         [UIView beginAnimations:@"opacity" context:NULL];
         [UIView setAnimationDuration:0.3];
+        [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
         for (id key in self.sectionViews) {
             UIView* view = [self.sectionViews objectForKey:key];
             view.alpha = 1;
@@ -177,6 +166,7 @@ static NSString *gameCellIdentifier = @"GameCell";
                 [UIView beginAnimations:@"frame" context:NULL];
                 [UIView setAnimationDelay:i];
                 [UIView setAnimationDuration:0.3];
+                [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
                 cell.layer.frame = CGRectMake(kSVGameTableViewCellXOffset,
                                               cell.layer.frame.origin.y,
                                               cell.layer.frame.size.width,
@@ -208,6 +198,7 @@ static NSString *gameCellIdentifier = @"GameCell";
     if (animated) {
         [UIView beginAnimations:@"opacity" context:NULL];
         [UIView setAnimationDuration:0.3];
+        [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
         for (id key in self.sectionViews) {
             UIView* view = [self.sectionViews objectForKey:key];
             view.alpha = 0;
@@ -221,6 +212,7 @@ static NSString *gameCellIdentifier = @"GameCell";
                 [UIView beginAnimations:@"frame" context:NULL];
                 [UIView setAnimationDelay:i];
                 [UIView setAnimationDuration:0.3];
+                [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
                 cell.layer.frame = CGRectMake(-cell.layer.frame.size.width,
                                               cell.layer.frame.origin.y,
                                               cell.layer.frame.size.width,
@@ -250,6 +242,24 @@ static NSString *gameCellIdentifier = @"GameCell";
 
 - (void)performBlock:(void(^)(void))block {
     block();
+}
+
+- (void)setTopBarButtonsAnimated:(BOOL)animated {
+    if ([self.parentViewController isKindOfClass:SVCustomContainerController.class]) {
+        SVCustomContainerController* container = (SVCustomContainerController*)self.parentViewController;
+        [container.topBarView setTextLabel:@"Games" animated:animated];
+        UIButton* plusButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        UIImage* plusImage = [UIImage imageNamed:@"plusSign.png"];
+        [plusButton setBackgroundImage:plusImage forState:UIControlStateNormal];
+        plusButton.adjustsImageWhenHighlighted = NO;
+        plusButton.adjustsImageWhenDisabled = NO;
+        plusButton.frame = CGRectMake(0,
+                                      0,
+                                      plusImage.size.width,
+                                      plusImage.size.height);
+        [container.topBarView setRightButton:plusButton animated:animated];
+        [container.topBarView setLeftButton:nil animated:animated];
+    }
 }
 
 #pragma mark - Targets
@@ -339,7 +349,8 @@ static NSString *gameCellIdentifier = @"GameCell";
     }];
     [self performSelector:@selector(performBlock:) withObject:^{
         [self showRowsAnimated:YES];
-    } afterDelay:0.3];
+        [self setTopBarButtonsAnimated:YES];
+    } afterDelay:0.2];
 }
 
 #pragma mark - Table view data source
@@ -359,6 +370,7 @@ static NSString *gameCellIdentifier = @"GameCell";
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.row % 2 == 1) {
         UITableViewCell* cell = [tableView dequeueReusableCellWithIdentifier:spaceCellIdentifer forIndexPath:indexPath];
+        cell.selectionStyle = UITableViewCellSelectionStyleNone;
         cell.backgroundColor = [UIColor clearColor];
         return cell;
     }
@@ -378,14 +390,16 @@ static NSString *gameCellIdentifier = @"GameCell";
 #pragma mark - Table view delegate
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    NSMutableArray* games;
-    if (indexPath.section == 0)
-        games = self.inProgressGames;
-    else
-        games = self.endedGames;
-    
-    SVGame* game = [games objectAtIndex:ceil(indexPath.row / 2)];
-    [self loadGame:game];
+    if ([[tableView cellForRowAtIndexPath:indexPath] isKindOfClass:SVGameTableViewCell.class]) {
+        NSMutableArray* games;
+        if (indexPath.section == 0)
+            games = self.inProgressGames;
+        else
+            games = self.endedGames;
+        
+        SVGame* game = [games objectAtIndex:ceil(indexPath.row / 2)];
+        [self loadGame:game];
+    }
 }
 
 - (UIView*)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {

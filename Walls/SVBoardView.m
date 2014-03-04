@@ -135,6 +135,7 @@
             [UIView beginAnimations:@"rowOut" context:nil];
             [UIView setAnimationDuration:0.3];
             [UIView setAnimationDelay:delay];
+            [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
             row.frame = CGRectMake(row.frame.origin.x + self.frame.size.width,
                                    row.frame.origin.y,
                                    row.frame.size.width,
@@ -165,6 +166,7 @@
             [UIView beginAnimations:@"rowIn" context:nil];
             [UIView setAnimationDuration:0.3];
             [UIView setAnimationDelay:delay];
+            [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
             row.frame = CGRectMake(0,
                                    row.frame.origin.y,
                                    row.frame.size.width,
