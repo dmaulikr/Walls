@@ -14,6 +14,8 @@
 
 @implementation SVColorButton
 
+#pragma mark - Public
+
 - (id)initWithFrame:(CGRect)frame
 {
     self = [super initWithFrame:frame];
@@ -37,6 +39,8 @@
                       image.size.width,
                       image.size.height);
 }
+
+#pragma mark - Private
 
 /*
 // Only override drawRect: if you perform custom drawing.

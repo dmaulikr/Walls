@@ -11,6 +11,9 @@
 static SVTheme* singleton;
 
 @implementation SVTheme
+
+#pragma mark - Public
+
 + (SVTheme*)sharedTheme {
     if (!singleton) {
         singleton = [[SVTheme alloc] init];

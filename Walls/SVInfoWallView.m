@@ -11,9 +11,13 @@
 @interface SVInfoWallView ()
 @property (strong) CAShapeLayer* mask;
 @property (strong) void(^maskAnimationBlock)(void);
+
+- (void)animationDidStop:(CAAnimation *)theAnimation finished:(BOOL)flag;
 @end
 
 @implementation SVInfoWallView
+
+#pragma mark - Public
 
 - (id)initWithFrame:(CGRect)frame andColor:(UIColor*)color
 {
@@ -53,12 +57,7 @@
     }
 }
 
-- (void)animationDidStop:(CAAnimation *)theAnimation finished:(BOOL)flag {
-    if ([[theAnimation valueForKey:@"id"] isEqualToString:@"SVInfoWallViewMaskAnimation"]) {
-        if (self.maskAnimationBlock && flag)
-            self.maskAnimationBlock();
-    }
-}
+#pragma mark - Private
 
 /*
 // Only override drawRect: if you perform custom drawing.
@@ -68,5 +67,14 @@
     // Drawing code
 }
 */
+
+#pragma mark - Target
+
+- (void)animationDidStop:(CAAnimation *)theAnimation finished:(BOOL)flag {
+    if ([[theAnimation valueForKey:@"id"] isEqualToString:@"SVInfoWallViewMaskAnimation"]) {
+        if (self.maskAnimationBlock && flag)
+            self.maskAnimationBlock();
+    }
+}
 
 @end

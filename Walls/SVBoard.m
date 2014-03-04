@@ -14,9 +14,7 @@
 
 @implementation SVBoard
 
-//////////////////////////////////////////////////////
-// Public
-//////////////////////////////////////////////////////
+#pragma mark - Public
 
 - (id)init {
     self = [super init];
@@ -199,10 +197,6 @@
     return description;
 }
 
-//////////////////////////////////////////////////////
-// Private
-//////////////////////////////////////////////////////
-
 - (BOOL)isGoalReachableByPlayer:(kSVPlayer)player {
     NSMutableArray* queue = [[NSMutableArray alloc] init];
     NSMutableDictionary* visitedPositions = [[NSMutableDictionary alloc] init];
@@ -247,9 +241,7 @@
     return legalPositions;
 }
 
-//////////////////////////////////////////////////////
-// Protocols
-//////////////////////////////////////////////////////
+#pragma mark - Protocols
 
 - (id)copyWithZone:(NSZone *)zone {
     SVBoard* copy = [SVBoard allocWithZone:zone];

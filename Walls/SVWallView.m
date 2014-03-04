@@ -21,6 +21,8 @@
 
 @implementation SVWallView
 
+#pragma mark - Public
+
 - (id)initWithFrame:(CGRect)frame startType:(kSVWallViewType)start
             endType:(kSVWallViewType)end
           leftColor:(UIColor*)leftColor
@@ -47,6 +49,33 @@
     }
     return self;
 }
+
+- (void)showRect:(CGRect)rect animated:(BOOL)animated duration:(float)duration withFinishBlock:(void(^)(void))block {
+    rect.origin.x = rect.origin.x < 0 ? 0 : rect.origin.x;
+    rect.origin.x = rect.origin.x > self.frame.size.width ? self.frame.size.width : rect.origin.x;
+    rect.origin.y = rect.origin.y < 0 ? 0 : rect.origin.y;
+    rect.origin.y = rect.origin.y > self.frame.size.height ? self.frame.size.height : rect.origin.y;
+    rect.size.width = rect.size.width + rect.origin.x > self.frame.size.width ? self.frame.size.width - rect.origin.x : rect.size.width;
+    rect.size.height = rect.size.height + rect.origin.y > self.frame.size.height ? self.frame.size.height - rect.origin.y : rect.size.height;
+    if (animated) {
+        CGPathRef newPath = [self pathForRect:rect].CGPath;
+        CABasicAnimation* animation = [CABasicAnimation animationWithKeyPath:@"path"];
+        animation.duration = duration;
+        animation.fromValue = (__bridge id)(self.mask.path);
+        animation.toValue = (__bridge id)newPath;
+        animation.delegate = self;
+        [animation setValue:@"SVWallViewMaskAnimation" forKey:@"id"];
+        self.maskAnimationBlock = block;
+        [self.mask addAnimation:animation forKey:@"SVWallViewMaskAnimation"];
+        self.mask.path = newPath;
+    }
+    else {
+        self.mask.path = [self pathForRect:rect].CGPath;
+    }
+    self.shownRect = rect;
+}
+
+#pragma mark - Private
 
 - (void)drawRect:(CGRect)rect {
     float width;
@@ -222,31 +251,7 @@
     return path;
 }
 
-
-- (void)showRect:(CGRect)rect animated:(BOOL)animated duration:(float)duration withFinishBlock:(void(^)(void))block {
-    rect.origin.x = rect.origin.x < 0 ? 0 : rect.origin.x;
-    rect.origin.x = rect.origin.x > self.frame.size.width ? self.frame.size.width : rect.origin.x;
-    rect.origin.y = rect.origin.y < 0 ? 0 : rect.origin.y;
-    rect.origin.y = rect.origin.y > self.frame.size.height ? self.frame.size.height : rect.origin.y;
-    rect.size.width = rect.size.width + rect.origin.x > self.frame.size.width ? self.frame.size.width - rect.origin.x : rect.size.width;
-    rect.size.height = rect.size.height + rect.origin.y > self.frame.size.height ? self.frame.size.height - rect.origin.y : rect.size.height;
-    if (animated) {
-        CGPathRef newPath = [self pathForRect:rect].CGPath;
-        CABasicAnimation* animation = [CABasicAnimation animationWithKeyPath:@"path"];
-        animation.duration = duration;
-        animation.fromValue = (__bridge id)(self.mask.path);
-        animation.toValue = (__bridge id)newPath;
-        animation.delegate = self;
-        [animation setValue:@"SVWallViewMaskAnimation" forKey:@"id"];
-        self.maskAnimationBlock = block;
-        [self.mask addAnimation:animation forKey:@"SVWallViewMaskAnimation"];
-        self.mask.path = newPath;
-    }
-    else {
-        self.mask.path = [self pathForRect:rect].CGPath;
-    }
-    self.shownRect = rect;
-}
+#pragma mark - Delegate
 
 - (void)animationDidStop:(CAAnimation *)theAnimation finished:(BOOL)flag {
     if ([[theAnimation valueForKey:@"id"] isEqualToString:@"SVWallViewMaskAnimation"]) {

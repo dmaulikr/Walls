@@ -16,6 +16,8 @@
 
 @implementation SVPawnView
 
+#pragma mark - Public
+
 - (id)initWithFrame:(CGRect)frame color1:(UIColor *)color1 andColor2:(UIColor *)color2 {
     self = [super initWithFrame:frame];
     if (self) {
@@ -25,6 +27,8 @@
     }
     return self;
 }
+
+#pragma mark - Private
 
 - (void)drawRect:(CGRect)rect {
     UIBezierPath* largeCircle = [UIBezierPath bezierPathWithOvalInRect:self.bounds];

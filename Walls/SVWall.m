@@ -10,6 +10,8 @@
 
 @implementation SVWall
 
+#pragma mark - Public
+
 - (id)initWithPosition:(SVPosition *)position orientation:(kSVWallOrientation)orientation andType:(kSVWallType)type {
     self = [self init];
     if (self) {
@@ -30,9 +32,7 @@
     return description;
 }
 
-//////////////////////////////////////////////////////
-// Protocols
-//////////////////////////////////////////////////////
+#pragma mark - Protocol
 
 - (id)copyWithZone:(NSZone *)zone {
     SVWall* copy = [SVWall allocWithZone:zone];

@@ -74,9 +74,7 @@
 
 @implementation SVGameViewController
 
-//////////////////////////////////////////////////////
-// Public
-//////////////////////////////////////////////////////
+# pragma mark - Public
 
 - (id)initWithGame:(SVGame *)game {
     self = [super init];
@@ -252,8 +250,7 @@
     [self adjustUI];
 }
 
-- (void)didReceiveMemoryWarning
-{
+- (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
@@ -343,9 +340,7 @@
     [self.boardView hideRowsAnimated:YES withFinishBlock:block];
 }
 
-//////////////////////////////////////////////////////
-// Private
-//////////////////////////////////////////////////////
+#pragma mark - Private
 
 - (void)adjustUI {
     //Adjust the color dependent on the number of walls remaining
@@ -763,9 +758,7 @@
     }
 }
 
-//////////////////////////////////////////////////////
-// Buttons targets
-//////////////////////////////////////////////////////
+#pragma mark - Targets
 
 - (void)didClickColorButton:(id)sender {
     UIButton* button = (UIButton*)sender;
@@ -912,9 +905,7 @@
     }
 }
 
-//////////////////////////////////////////////////////
-// Delegates
-//////////////////////////////////////////////////////
+#pragma mark - Delegates
 
 - (void)boardView:(SVBoardView *)boardView didStartPanAt:(CGPoint)point withDirection:(kSVPanDirection)direction {
     SVPosition* position = [boardView intersectionPositionForPoint:point];

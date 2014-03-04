@@ -18,6 +18,8 @@
 
 @implementation SVTopBarView
 
+#pragma mark - Public
+
 - (id)initWithFrame:(CGRect)frame
 {
     self = [super initWithFrame:frame];
@@ -76,6 +78,8 @@
     [topString addAttribute:NSKernAttributeName value:@3 range:NSMakeRange(0, 4)];
     self.label.attributedText = topString;
 }
+
+#pragma mark - Private
 
 /*
 // Only override drawRect: if you perform custom drawing.

@@ -20,6 +20,8 @@ const int kSVSquareViewSize = 46;
 
 @implementation SVSquareView
 
+#pragma mark - Public
+
 - (id)initWithOrigin:(CGPoint)origin row:(kSVSquareViewRow)row col:(kSVSquareViewCol)col andColor:(kSVSquareViewColor)color {
     self = [self init];
     if (self) {
@@ -42,6 +44,12 @@ const int kSVSquareViewSize = 46;
     return self;
 }
 
+- (void)didTap:(UITapGestureRecognizer*)gestureRecognizer {
+    if (self.delegate && [self.delegate respondsToSelector:@selector(squareViewDidTap:)])
+        [self.delegate squareViewDidTap:self];
+}
+
+#pragma mark - Private
 
 // Only override drawRect: if you perform custom drawing.
 // An empty implementation adversely affects performance during animation.
@@ -89,11 +97,6 @@ const int kSVSquareViewSize = 46;
         [path closePath];
         [path fill];
     }
-}
-
-- (void)didTap:(UITapGestureRecognizer*)gestureRecognizer {
-    if (self.delegate && [self.delegate respondsToSelector:@selector(squareViewDidTap:)])
-        [self.delegate squareViewDidTap:self];
 }
 
 @end

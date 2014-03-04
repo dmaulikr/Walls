@@ -26,6 +26,8 @@ static NSCache* imageCache;
 @implementation SVGameTableViewCell
 @synthesize highlighted = _highlighted;
 
+#pragma mark - Public
+
 + (void)initialize {
     [super initialize];
     imageCache = [[NSCache alloc] init];
@@ -172,6 +174,8 @@ static NSCache* imageCache;
         [self setColor:self.originalColor];
     }
 }
+
+#pragma mark - Private
 
 
 /*

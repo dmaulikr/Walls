@@ -14,6 +14,8 @@
 
 @implementation SVCustomView
 
+#pragma mark - Public
+
 - (id)initWithFrame:(CGRect)frame
 {
     self = [super initWithFrame:frame];
@@ -27,6 +29,8 @@
     self.block = block;
     [self setNeedsDisplay];
 }
+
+#pragma mark - Private
 
 - (void)drawRect:(CGRect)rect {
     if (self.block) {

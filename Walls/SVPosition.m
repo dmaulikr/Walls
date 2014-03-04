@@ -14,6 +14,9 @@
 @end
 
 @implementation SVPosition
+
+#pragma mark - Public
+
 - (id)initWithX:(int)x andY:(int)y {
     self = [super init];
     if (self) {
@@ -23,9 +26,7 @@
     return self;
 }
 
-//////////////////////////////////////////////////////
-// Protocols
-//////////////////////////////////////////////////////
+#pragma mark - Protocol
 
 - (NSString*)description {
     return [NSString stringWithFormat:@"(%d, %d)", self.x, self.y];

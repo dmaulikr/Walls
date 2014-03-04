@@ -10,6 +10,8 @@
 
 @implementation SVGame
 
+#pragma mark - Public
+
 + (id)gameWithMatch:(GKTurnBasedMatch*)match {
     SVGame* game;
     if (match.matchData.length == 0) {
@@ -27,9 +29,7 @@
     return [NSKeyedArchiver archivedDataWithRootObject:self];
 }
 
-//////////////////////////////////////////////////////
-// Protocols
-//////////////////////////////////////////////////////
+#pragma mark - Protocol
 
 - (BOOL)isEqual:(id)object {
     if ([object isKindOfClass:SVGame.class]) {

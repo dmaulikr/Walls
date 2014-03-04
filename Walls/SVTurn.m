@@ -11,6 +11,9 @@
 #import "SVTurn.h"
 
 @implementation SVTurn
+
+#pragma mark - Public
+
 - (id)init {
     self = [super init];
     if (self) {
@@ -28,9 +31,7 @@
                                         self.player];
 }
 
-//////////////////////////////////////////////////////
-// Protocols
-//////////////////////////////////////////////////////
+#pragma mark - Protocols
 
 - (BOOL)isEqual:(id)object {
     if (![object isKindOfClass:SVTurn.class]) {

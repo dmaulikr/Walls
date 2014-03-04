@@ -21,9 +21,17 @@
 
 @property (strong) void(^hideRowsFinishBlock)(void);
 @property (strong) void(^showRowsFinishBlock)(void);
+
+- (void)didPan:(UIPanGestureRecognizer*)gestureRecognizer;
+- (void)squareViewDidTap:(SVSquareView *)squareView;
+- (void)hideRowsAnimationDidStop:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context;
+- (void)showRowsAnimationDidStop:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context;
 @end
 
+
 @implementation SVBoardView
+
+#pragma mark - Public
 
 - (id)initWithFrame:(CGRect)frame rotated:(BOOL)rotated {
     self = [super initWithFrame:frame];
@@ -205,6 +213,24 @@
     return nearestIntersection;
 }
 
+- (CGPoint)squareCenterForPosition:(SVPosition *)position {
+    SVSquareView* squareView = [self.squareViewForPosition objectForKey:position];
+    CGPoint point = CGPointMake(squareView.frame.origin.x + squareView.frame.size.width / 2,
+                                squareView.superview.frame.origin.y + squareView.frame.size.height / 2);
+    return point;
+}
+
+#pragma mark - Private
+
+#pragma mark - Targets
+
+- (void)squareViewDidTap:(SVSquareView *)squareView {
+    if (self.delegate && [self.delegate respondsToSelector:@selector(boardView:didTapSquare:)]) {
+        SVPosition* position = [[self.squareViewForPosition allKeysForObject:squareView] objectAtIndex:0];
+        [self.delegate boardView:self didTapSquare:position];
+    }
+}
+
 - (void)didPan:(UIPanGestureRecognizer*)gestureRecognizer {
     CGPoint point = [gestureRecognizer locationInView:self];
     CGPoint velocity = [gestureRecognizer velocityInView:self];
@@ -255,7 +281,7 @@
             didDirectionChange = point.y > self.initialPoint.y;
         else
             didDirectionChange = point.y < self.initialPoint.y;
-            
+        
         if (didDirectionChange) {
             self.initialPanDirection = guidedPanDirection;
             self.offset = CGPointMake(self.nearestIntersectionPoint.x - point.x , self.nearestIntersectionPoint.y - point.y);
@@ -264,7 +290,7 @@
             if (self.delegate && [self.delegate respondsToSelector:@selector(boardView:didStartPanAt:withDirection:)])
                 [self.delegate boardView:self didStartPanAt:self.nearestIntersectionPoint withDirection:self.initialPanDirection];
         }
-            
+        
         else {
             if (self.delegate && [self.delegate respondsToSelector:@selector(boardView:didChangePanTo:)])
                 [self.delegate boardView:self didChangePanTo:CGPointMake(point.x + self.offset.x, point.y + self.offset.y)];
@@ -277,27 +303,8 @@
     }
 }
 
-- (CGPoint)squareCenterForPosition:(SVPosition *)position {
-    SVSquareView* squareView = [self.squareViewForPosition objectForKey:position];
-    CGPoint point = CGPointMake(squareView.frame.origin.x + squareView.frame.size.width / 2,
-                                squareView.superview.frame.origin.y + squareView.frame.size.height / 2);
-    return point;
-}
 
-//////////////////////////////////////////////////////
-// Buttons targets
-//////////////////////////////////////////////////////
-
-- (void)squareViewDidTap:(SVSquareView *)squareView {
-    if (self.delegate && [self.delegate respondsToSelector:@selector(boardView:didTapSquare:)]) {
-        SVPosition* position = [[self.squareViewForPosition allKeysForObject:squareView] objectAtIndex:0];
-        [self.delegate boardView:self didTapSquare:position];
-    }
-}
-
-//////////////////////////////////////////////////////
-// Animations delegate
-//////////////////////////////////////////////////////
+#pragma mark - Delegates
 
 - (void)hideRowsAnimationDidStop:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context {
     if (self.hideRowsFinishBlock) {

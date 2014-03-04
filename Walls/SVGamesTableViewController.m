@@ -26,9 +26,14 @@ static NSString *gameCellIdentifier = @"GameCell";
 - (void)newGame;
 - (void)loadGame:(SVGame*)game;
 - (void)loadGames;
+- (void)showRowsAnimated:(BOOL)animated;
+- (void)hideRowsAnimated:(BOOL)animated;
+
 @end
 
 @implementation SVGamesTableViewController
+
+#pragma mark - Public
 
 - (id)initWithStyle:(UITableViewStyle)style
 {
@@ -79,9 +84,7 @@ static NSString *gameCellIdentifier = @"GameCell";
     // Dispose of any resources that can be recreated.
 }
 
-//////////////////////////////////////////////////////
-// Private
-//////////////////////////////////////////////////////
+#pragma mark - Private
 
 - (void)newGame {
     GKMatchRequest* request = [[GKMatchRequest alloc] init];
@@ -245,14 +248,13 @@ static NSString *gameCellIdentifier = @"GameCell";
     }
 }
 
-//////////////////////////////////////////////////////
-// Buttons Targets
-//////////////////////////////////////////////////////
+- (void)performBlock:(void(^)(void))block {
+    block();
+}
 
+#pragma mark - Targets
 
-//////////////////////////////////////////////////////
-// Delegates
-//////////////////////////////////////////////////////
+#pragma mark - Delegates
 
 - (void)turnBasedMatchmakerViewController:(GKTurnBasedMatchmakerViewController *)viewController didFindMatch:(GKTurnBasedMatch *)match {
     NSLog(@"found match: %@", match.matchID);
@@ -339,11 +341,6 @@ static NSString *gameCellIdentifier = @"GameCell";
         [self showRowsAnimated:YES];
     } afterDelay:0.3];
 }
-
-- (void)performBlock:(void(^)(void))block {
-    block();
-}
-
 
 #pragma mark - Table view data source
 

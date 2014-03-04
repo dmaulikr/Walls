@@ -18,6 +18,8 @@
 
 @implementation SVRootViewController
 
+#pragma mark - Public
+
 - (id)init {
     self = [super init];
     if (self) {
@@ -32,6 +34,8 @@
     [super viewDidLoad];
     [self.view addSubview:self.containerController.view];
 }
+
+#pragma mark - Private
 
 - (void)authenticateLocalPlayer {
     GKLocalPlayer* localPlayer = [GKLocalPlayer localPlayer];
