@@ -16,6 +16,7 @@
 #import "SVPawnView.h"
 #import "SVGame.h"
 #import "SVTurn.h"
+#import "SVCustomContainerController.h"
 
 @interface SVGameViewController ()
 
@@ -31,6 +32,7 @@
 @property (strong) UILabel* bottomLabel;
 @property (strong) NSMutableArray* infoWallViews;
 @property (strong) NSMutableArray* pawnViews;
+@property (strong) NSMutableArray* wallViews;
 @property (strong) SVColorButton* colorButton;
 @property (strong) UIButton* cancelButton;
 @property (strong) UIButton* validateButton;
@@ -85,43 +87,20 @@
         [_infoWallViews addObject:[[NSMutableArray alloc] init]];
         [_infoWallViews addObject:[[NSMutableArray alloc] init]];
         _pawnViews = [[NSMutableArray alloc] init];
+        _wallViews = [[NSMutableArray alloc] init];
         
         [self newTurn];
     }
     return self;
 }
 
-- (void)viewDidLoad
-{
-    [super viewDidLoad];
-}
-
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    if ([self.parentViewController isKindOfClass:SVCustomContainerController.class]) {
-        SVCustomContainerController* container = (SVCustomContainerController*)self.parentViewController;
-        NSMutableAttributedString* topString = [[NSMutableAttributedString alloc] initWithString:@"Walls"];
-        [topString addAttribute:NSKernAttributeName value:@3 range:NSMakeRange(0, 4)];
-        container.topBarView.label.attributedText = topString;
-        
-        UIImage* backImage = [UIImage imageNamed:@"back_arrow.png"];
-        UIButton* backButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        [backButton setImage:backImage forState:UIControlStateNormal];
-        backButton.frame = CGRectMake(0,
-                                      0,
-                                      backImage.size.width,
-                                      backImage.size.height);
-        backButton.adjustsImageWhenDisabled = NO;
-        backButton.adjustsImageWhenHighlighted = NO;
-        [backButton addTarget:self action:@selector(didClickBackButton:) forControlEvents:UIControlEventTouchUpInside];
-        container.topBarView.leftButton = backButton;
-    }
-    
-    //Board
+    //Init view
     self.boardView = [[SVBoardView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 414)
                                                 rotated:self.localPlayer == kSVPlayer2];
-    [self.boardView hideRowsAnimated:NO withFinishBlock:nil];
     self.boardView.delegate = self;
+    [self.boardView hideRowsAnimated:NO withFinishBlock:nil];
     [self.view addSubview:self.boardView];
     
     CGPoint point1 = [self.boardView squareCenterForPosition:self.board.playerPositions[self.localPlayer]];
@@ -273,56 +252,6 @@
     [self adjustUI];
 }
 
-- (void)viewDidAppear:(BOOL)animated {
-    [super viewDidAppear:animated];
-    __weak SVGameViewController* weakSelf = self;
-    [self.boardView showRowsAnimated:YES withFinishBlock:^{
-        NSMutableArray* wallViews = [[NSMutableArray alloc] init];
-        if (weakSelf.game.turns.count > 0) {
-            for (int i = 0; i < weakSelf.game.turns.count - 1; i++) {
-                SVTurn* turn = [weakSelf.game.turns objectAtIndex:i];
-                if (turn.action == kSVMoveAction) {
-                    [weakSelf.board movePlayer:turn.player to:turn.actionInfo];
-                }
-                else if (turn.action == kSVAddWallAction) {
-                    NSLog(@"add wall");
-                    SVWall* wall = turn.actionInfo;
-                    [weakSelf.board addWallAtPosition:wall.position
-                                  withOrientation:wall.orientation
-                                             type:wall.type
-                                        forPlayer:turn.player];
-                    SVWallView* wallView = [weakSelf wallViewForWall:wall];
-                    [wallViews addObject:wallView];
-                    [wallView showRect:wallView.bounds animated:NO duration:0 withFinishBlock:nil];
-                }
-            }
-        }
-        
-        //Animate pawns and walls
-        CAKeyframeAnimation* animation = [CAKeyframeAnimation animationWithKeyPath:@"transform.scale"];
-        animation.values = [NSArray arrayWithObjects:[NSNumber numberWithFloat:3.0],
-                            [NSNumber numberWithFloat:0.6],
-                            [NSNumber numberWithFloat:1.0], nil];
-        animation.keyTimes = [NSArray arrayWithObjects:[NSNumber numberWithFloat:0.0],
-                              [NSNumber numberWithFloat:0.8],
-                              [NSNumber numberWithFloat:1.0], nil];
-        animation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
-        animation.duration = 0.5;
-        for (UIView* pawn in weakSelf.pawnViews) {
-            [weakSelf.view addSubview:pawn];
-            [pawn.layer addAnimation:animation forKey:@"pawnAnimation"];
-            pawn.transform = CGAffineTransformIdentity;
-        }
-        
-        for (UIView* wallView in wallViews) {
-            [weakSelf.view addSubview:wallView];
-            [wallView.layer addAnimation:animation forKey:@"wallAnimation"];
-            wallView.transform = CGAffineTransformIdentity;
-        }
-    }];
-    //[self performSelector:@selector(displayLastTurn) withObject:nil afterDelay:0.5];
-}
-
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
@@ -336,6 +265,82 @@
     [self displayLastTurn];
     [self newTurn];
     [self adjustUI];
+}
+
+- (void)show {
+    //Switch menu
+    if ([self.parentViewController isKindOfClass:SVCustomContainerController.class]) {
+        SVCustomContainerController* container = (SVCustomContainerController*)self.parentViewController;
+        [container.topBarView setTextLabel:@"Wall" animated:NO];
+        
+        UIImage* backImage = [UIImage imageNamed:@"back_arrow.png"];
+        UIButton* backButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        [backButton setImage:backImage forState:UIControlStateNormal];
+        backButton.frame = CGRectMake(0,
+                                      0,
+                                      backImage.size.width,
+                                      backImage.size.height);
+        backButton.adjustsImageWhenDisabled = NO;
+        backButton.adjustsImageWhenHighlighted = NO;
+        [backButton addTarget:self action:@selector(didClickBackButton:) forControlEvents:UIControlEventTouchUpInside];
+        [container.topBarView setLeftButton:backButton animated:NO];
+        [container.topBarView setRightButton:nil animated:NO];
+    
+        __weak SVGameViewController* weakSelf = self;
+        [self.boardView showRowsAnimated:YES withFinishBlock:^{
+            if (weakSelf.game.turns.count > 0) {
+                for (int i = 0; i < weakSelf.game.turns.count - 1; i++) {
+                    SVTurn* turn = [weakSelf.game.turns objectAtIndex:i];
+                    if (turn.action == kSVMoveAction) {
+                        [weakSelf.board movePlayer:turn.player to:turn.actionInfo];
+                    }
+                    else if (turn.action == kSVAddWallAction) {
+                        SVWall* wall = turn.actionInfo;
+                        [weakSelf.board addWallAtPosition:wall.position
+                                          withOrientation:wall.orientation
+                                                     type:wall.type
+                                                forPlayer:turn.player];
+                        SVWallView* wallView = [weakSelf wallViewForWall:wall];
+                        [weakSelf.wallViews addObject:wallView];
+                        [wallView showRect:wallView.bounds animated:NO duration:0 withFinishBlock:nil];
+                    }
+                }
+            }
+            
+            //Animate pawns and walls
+            CAKeyframeAnimation* animation = [CAKeyframeAnimation animationWithKeyPath:@"transform.scale"];
+            animation.values = [NSArray arrayWithObjects:[NSNumber numberWithFloat:3.0],
+                                [NSNumber numberWithFloat:0.6],
+                                [NSNumber numberWithFloat:1.0], nil];
+            animation.keyTimes = [NSArray arrayWithObjects:[NSNumber numberWithFloat:0.0],
+                                  [NSNumber numberWithFloat:0.8],
+                                  [NSNumber numberWithFloat:1.0], nil];
+            animation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+            animation.duration = 0.5;
+            for (UIView* pawn in weakSelf.pawnViews) {
+                [weakSelf.view addSubview:pawn];
+                [pawn.layer addAnimation:animation forKey:@"pawnAnimation"];
+                pawn.transform = CGAffineTransformIdentity;
+            }
+            
+            for (UIView* wallView in weakSelf.wallViews) {
+                [weakSelf.view addSubview:wallView];
+                [wallView.layer addAnimation:animation forKey:@"wallAnimation"];
+                wallView.transform = CGAffineTransformIdentity;
+            }
+        }];
+    }
+}
+
+- (void)hideWithFinishBlock:(void (^)(void))block {
+    NSMutableArray* views = [NSMutableArray arrayWithArray:self.pawnViews];
+    [views addObjectsFromArray:self.wallViews];
+    for (UIView* view in views) {
+        [UIView animateWithDuration:0.2 animations:^{
+            view.alpha = 0;
+        }];
+    }
+    [self.boardView hideRowsAnimated:YES withFinishBlock:block];
 }
 
 //////////////////////////////////////////////////////
@@ -615,6 +620,7 @@
                            withOrientation:wall.orientation
                                       type:wall.type
                                  forPlayer:self.currentPlayer];
+        [self.wallViews addObject:[self.buildingWallInfo objectForKey:@"view"]];
     }
     [self.game.turns addObject:self.currentTurn];
     if (self.delegate && [self.delegate respondsToSelector:@selector(gameViewController:didPlayTurn:ended:)]) {
@@ -819,11 +825,8 @@
 }
 
 - (void)didClickBackButton:(id)sender {
-    if ([self.parentViewController isKindOfClass:SVCustomContainerController.class]) {
-        [self.boardView hideRowsAnimated:YES withFinishBlock:^{
-            SVCustomContainerController* container = (SVCustomContainerController*)self.parentViewController;
-            [container popViewController];
-        }];
+    if (self.delegate && [self.delegate respondsToSelector:@selector(gameViewControllerDidClickBack:)]) {
+        [self.delegate gameViewControllerDidClickBack:self];
     }
 }
 

@@ -9,6 +9,13 @@
 #import "SVTopBarView.h"
 #import "SVTheme.h"
 
+@interface SVTopBarView ()
+@property (strong) UILabel* label;
+@property (strong, nonatomic) UIButton* leftButton;
+@property (strong, nonatomic) UIButton* rightButton;
+
+@end
+
 @implementation SVTopBarView
 
 - (id)initWithFrame:(CGRect)frame
@@ -30,8 +37,8 @@
     return self;
 }
 
-- (void)setLeftButton:(UIButton *)leftButton {
-    if (!leftButton) {
+- (void)setLeftButton:(UIButton *)button animated:(BOOL)animated {
+    if (!button) {
         if (_leftButton) {
             [_leftButton removeFromSuperview];
             _leftButton = nil;
@@ -39,16 +46,16 @@
         return;
     }
     
-    _leftButton = leftButton;
-    leftButton.frame = CGRectMake(15,
-                                  (self.frame.size.height - leftButton.frame.size.height) / 2,
-                                  leftButton.frame.size.width,
-                                  leftButton.frame.size.height);
-    [self addSubview:leftButton];
+    button.frame = CGRectMake(15,
+                              (self.frame.size.height - button.frame.size.height) / 2,
+                              button.frame.size.width,
+                              button.frame.size.height);
+    [self addSubview:button];
+    _leftButton = button;
 }
 
-- (void)setRightButton:(UIButton *)rightButton {
-    if (!rightButton) {
+- (void)setRightButton:(UIButton *)button animated:(BOOL)animated {
+    if (!button) {
         if (_rightButton) {
             [_rightButton removeFromSuperview];
             _rightButton = nil;
@@ -56,12 +63,18 @@
         return;
     }
     
-    _rightButton = rightButton;
-    rightButton.frame = CGRectMake(self.frame.size.width - rightButton.frame.size.width - 15,
-                                  (self.frame.size.height - rightButton.frame.size.height) / 2,
-                                  rightButton.frame.size.width,
-                                  rightButton.frame.size.height);
-    [self addSubview:rightButton];
+    button.frame = CGRectMake(self.frame.size.width - button.frame.size.width - 15,
+                              (self.frame.size.height - button.frame.size.height) / 2,
+                              button.frame.size.width,
+                              button.frame.size.height);
+    [self addSubview:button];
+    _rightButton = button;
+}
+
+- (void)setTextLabel:(NSString*)text animated:(BOOL)animated {
+    NSMutableAttributedString* topString = [[NSMutableAttributedString alloc] initWithString:text];
+    [topString addAttribute:NSKernAttributeName value:@3 range:NSMakeRange(0, 4)];
+    self.label.attributedText = topString;
 }
 
 /*

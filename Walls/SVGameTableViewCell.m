@@ -50,8 +50,8 @@ static NSCache* imageCache;
 }
 
 - (void)setFrame:(CGRect)frame {
-    frame.origin.x += 20;
-    frame.size.width -= 2 * 20;
+    frame.origin.x += kSVGameTableViewCellXOffset;
+    frame.size.width -= 2 * kSVGameTableViewCellXOffset;
     self.label.frame = CGRectMake(30,
                                   (frame.size.height - 30) / 2,
                                   frame.size.width - 60, 30);

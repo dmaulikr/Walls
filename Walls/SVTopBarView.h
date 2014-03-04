@@ -9,8 +9,7 @@
 #import <UIKit/UIKit.h>
 
 @interface SVTopBarView : UIView
-@property (strong) UILabel* label;
-@property (strong, nonatomic) UIButton* leftButton;
-@property (strong, nonatomic) UIButton* rightButton;
-
+- (void)setLeftButton:(UIButton *)button animated:(BOOL)animated;
+- (void)setRightButton:(UIButton *)button animated:(BOOL)animated;
+- (void)setTextLabel:(NSString*)text animated:(BOOL)animated;
 @end

@@ -10,17 +10,20 @@
 #import <GameKit/GameKit.h>
 #import "SVBoardView.h"
 #import "SVGame.h"
-#import "SVCustomViewController.h"
 
-@interface SVGameViewController : UIViewController <SVBoardViewDelegate, UIGestureRecognizerDelegate>
+@interface SVGameViewController : UIViewController <SVBoardViewDelegate,
+                                                    UIGestureRecognizerDelegate>
 @property (strong, readonly) SVGame* game;
 @property (weak) id delegate;
 
 - (id)initWithGame:(SVGame*)game;
 - (void)opponentPlayerDidPlayTurn:(SVGame*)game;
+- (void)show;
+- (void)hideWithFinishBlock:(void(^)(void))block;
 @end
 
 @protocol SVGameViewControllerDelegate <NSObject>
 - (void)gameViewController:(SVGameViewController*)controller didPlayTurn:(SVGame*)game ended:(BOOL)ended;
+- (void)gameViewControllerDidClickBack:(SVGameViewController*)controller;
 @end
 

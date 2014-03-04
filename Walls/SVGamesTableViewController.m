@@ -26,8 +26,6 @@ static NSString *gameCellIdentifier = @"GameCell";
 - (void)newGame;
 - (void)loadGame:(SVGame*)game;
 - (void)loadGames;
-
-- (void)didClickAddButton;
 @end
 
 @implementation SVGamesTableViewController
@@ -55,15 +53,13 @@ static NSString *gameCellIdentifier = @"GameCell";
 }
 
 
-- (void)viewWillAppear:(BOOL)animated
-{
-    [super viewWillAppear:animated];
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    //Switch menu
     if ([self.parentViewController isKindOfClass:SVCustomContainerController.class]) {
         SVCustomContainerController* container = (SVCustomContainerController*)self.parentViewController;
-        NSMutableAttributedString* topString = [[NSMutableAttributedString alloc] initWithString:@"Games"];
-        [topString addAttribute:NSKernAttributeName value:@3 range:NSMakeRange(0, 4)];
-        container.topBarView.label.attributedText = topString;
-        
+        [container.topBarView setTextLabel:@"Games" animated:NO];
+    
         UIButton* plusButton = [UIButton buttonWithType:UIButtonTypeCustom];
         UIImage* plusImage = [UIImage imageNamed:@"plusSign.png"];
         [plusButton setBackgroundImage:plusImage forState:UIControlStateNormal];
@@ -73,49 +69,8 @@ static NSString *gameCellIdentifier = @"GameCell";
                                       0,
                                       plusImage.size.width,
                                       plusImage.size.height);
-        container.topBarView.rightButton = plusButton;
+        [container.topBarView setRightButton:plusButton animated:NO];
     }
-    UIButton* button = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-    [button setTitle:@"New" forState:UIControlStateNormal];
-    [button addTarget:self action:@selector(didClickAddButton) forControlEvents:UIControlEventTouchUpInside];
-    button.frame = CGRectMake(0, 500, 100, 30);
-    
-    [self.view addSubview:button];
-}
-
-- (void)viewDidAppear:(BOOL)animated {
-    [super viewDidAppear:animated];
-}
-
-- (void)viewWillDisappear:(BOOL)animated {
-    [super viewWillDisappear:animated];
-    
-//    [UIView beginAnimations:@"opacity" context:NULL];
-//    [UIView setAnimationDuration:0.3];
-//    for (id key in self.sectionViews) {
-//        UIView* view = [self.sectionViews objectForKey:key];
-//        view.alpha = 0;
-//    }
-//    [UIView commitAnimations];
-//    
-//    NSArray* cells = self.tableView.visibleCells;
-//    float i = 0;
-//    for (UITableViewCell* cell in cells) {
-//        if ([cell isKindOfClass:SVGameTableViewCell.class]) {
-//            //2. Define the initial state (Before the animation)
-//            
-//            //3. Define the final state (After the animation) and commit the animation
-//            [UIView beginAnimations:@"frame" context:NULL];
-//            [UIView setAnimationDelay:i];
-//            [UIView setAnimationDuration:0.3];
-//            cell.layer.frame = CGRectMake(-cell.layer.frame.size.width,
-//                                          cell.layer.frame.origin.y,
-//                                          cell.layer.frame.size.width,
-//                                          cell.layer.frame.size.height);
-//            [UIView commitAnimations];
-//            i += 0.05;
-//        }
-//    }
 }
 
 - (void)didReceiveMemoryWarning
@@ -143,10 +98,37 @@ static NSString *gameCellIdentifier = @"GameCell";
     SVGameViewController* controller = [[SVGameViewController alloc] initWithGame:game];
     controller.delegate = self;
     if ([self.parentViewController isKindOfClass:SVCustomContainerController.class]) {
-        SVCustomContainerController* container = (SVCustomContainerController*) self.parentViewController;
-        [container pushViewController:controller];
+        [UIView beginAnimations:@"opacity" context:NULL];
+        [UIView setAnimationDuration:0.3];
+        for (id key in self.sectionViews) {
+            UIView* view = [self.sectionViews objectForKey:key];
+            view.alpha = 0;
+        }
+        [UIView commitAnimations];
+        
+        NSArray* cells = self.tableView.visibleCells;
+        float i = 0;
+        for (UITableViewCell* cell in cells) {
+            if ([cell isKindOfClass:SVGameTableViewCell.class]) {
+                [UIView beginAnimations:@"frame" context:NULL];
+                [UIView setAnimationDelay:i];
+                [UIView setAnimationDuration:0.3];
+                cell.layer.frame = CGRectMake(-cell.layer.frame.size.width,
+                                              cell.layer.frame.origin.y,
+                                              cell.layer.frame.size.width,
+                                              cell.layer.frame.size.height);
+                [UIView commitAnimations];
+                i += 0.05;
+            }
+        }
+
+        SVCustomContainerController* container = (SVCustomContainerController*)self.parentViewController;
+        [self performSelector:@selector(performBlock:) withObject:^{
+            [container pushViewController:controller];
+            [controller show];
+            self.currentController = controller;
+        } afterDelay:0.3];
     }
-    self.currentController = controller;
 }
 
 - (void)loadGames {
@@ -171,18 +153,102 @@ static NSString *gameCellIdentifier = @"GameCell";
             }
             i++;
         }
-        NSLog(@"loaded");
         [self.tableView reloadData];
     }];
+}
+
+- (void)showRowsAnimated:(BOOL)animated {
+    if (animated) {
+        [UIView beginAnimations:@"opacity" context:NULL];
+        [UIView setAnimationDuration:0.3];
+        for (id key in self.sectionViews) {
+            UIView* view = [self.sectionViews objectForKey:key];
+            view.alpha = 1;
+        }
+        [UIView commitAnimations];
+        
+        NSArray* cells = self.tableView.visibleCells;
+        float i = 0;
+        for (UITableViewCell* cell in cells) {
+            if ([cell isKindOfClass:SVGameTableViewCell.class]) {
+                [UIView beginAnimations:@"frame" context:NULL];
+                [UIView setAnimationDelay:i];
+                [UIView setAnimationDuration:0.3];
+                cell.layer.frame = CGRectMake(kSVGameTableViewCellXOffset,
+                                              cell.layer.frame.origin.y,
+                                              cell.layer.frame.size.width,
+                                              cell.layer.frame.size.height);
+                [UIView commitAnimations];
+                i += 0.05;
+            }
+        }
+    }
+    else {
+        for (id key in self.sectionViews) {
+            UIView* view = [self.sectionViews objectForKey:key];
+            view.alpha = 1;
+        }
+        
+        NSArray* cells = self.tableView.visibleCells;
+        for (UITableViewCell* cell in cells) {
+            if ([cell isKindOfClass:SVGameTableViewCell.class]) {
+                cell.layer.frame = CGRectMake(0,
+                                              cell.layer.frame.origin.y,
+                                              cell.layer.frame.size.width,
+                                              cell.layer.frame.size.height);
+            }
+        }
+    }
+}
+
+- (void)hideRowsAnimated:(BOOL)animated {
+    if (animated) {
+        [UIView beginAnimations:@"opacity" context:NULL];
+        [UIView setAnimationDuration:0.3];
+        for (id key in self.sectionViews) {
+            UIView* view = [self.sectionViews objectForKey:key];
+            view.alpha = 0;
+        }
+        [UIView commitAnimations];
+    
+        NSArray* cells = self.tableView.visibleCells;
+        float i = 0;
+        for (UITableViewCell* cell in cells) {
+            if ([cell isKindOfClass:SVGameTableViewCell.class]) {
+                [UIView beginAnimations:@"frame" context:NULL];
+                [UIView setAnimationDelay:i];
+                [UIView setAnimationDuration:0.3];
+                cell.layer.frame = CGRectMake(-cell.layer.frame.size.width,
+                                              cell.layer.frame.origin.y,
+                                              cell.layer.frame.size.width,
+                                              cell.layer.frame.size.height);
+                [UIView commitAnimations];
+                i += 0.05;
+            }
+        }
+    }
+    else {
+        for (id key in self.sectionViews) {
+            UIView* view = [self.sectionViews objectForKey:key];
+            view.alpha = 0;
+        }
+        
+        NSArray* cells = self.tableView.visibleCells;
+        for (UITableViewCell* cell in cells) {
+            if ([cell isKindOfClass:SVGameTableViewCell.class]) {
+                cell.layer.frame = CGRectMake(-cell.layer.frame.size.width,
+                                              cell.layer.frame.origin.y,
+                                              cell.layer.frame.size.width,
+                                              cell.layer.frame.size.height);
+            }
+        }
+    }
 }
 
 //////////////////////////////////////////////////////
 // Buttons Targets
 //////////////////////////////////////////////////////
 
-- (void)didClickAddButton {
-    [self newGame];
-}
 
 //////////////////////////////////////////////////////
 // Delegates
@@ -262,6 +328,22 @@ static NSString *gameCellIdentifier = @"GameCell";
     }
 }
 
+- (void)gameViewControllerDidClickBack:(SVGameViewController *)controller {
+    [self.currentController hideWithFinishBlock:^{
+        if ([controller.parentViewController isKindOfClass:SVCustomContainerController.class]) {
+            SVCustomContainerController* container = (SVCustomContainerController*)controller.parentViewController;
+            [container popViewController];
+        }
+    }];
+    [self performSelector:@selector(performBlock:) withObject:^{
+        [self showRowsAnimated:YES];
+    } afterDelay:0.3];
+}
+
+- (void)performBlock:(void(^)(void))block {
+    block();
+}
+
 
 #pragma mark - Table view data source
 
@@ -306,9 +388,7 @@ static NSString *gameCellIdentifier = @"GameCell";
         games = self.endedGames;
     
     SVGame* game = [games objectAtIndex:ceil(indexPath.row / 2)];
-    //Check if data
     [self loadGame:game];
-//    [self viewWillDisappear:YES];
 }
 
 - (UIView*)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
@@ -359,6 +439,5 @@ static NSString *gameCellIdentifier = @"GameCell";
     }
     return 42;
 }
-
 
 @end

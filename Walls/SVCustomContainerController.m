@@ -10,7 +10,6 @@
 
 
 @interface SVCustomContainerController ()
-@property (strong) UIViewController* topController;
 @end
 
 @implementation SVCustomContainerController
@@ -45,9 +44,6 @@
 
 - (void)pushViewController:(UIViewController*)controller {
     [self addChildViewController:controller];
-    self.topBarView.leftButton = nil;
-    self.topBarView.rightButton = nil;
-    
     controller.view.frame = CGRectMake(0,
                                        CGRectGetMaxY(self.topBarView.frame),
                                        self.view.frame.size.width,
@@ -57,21 +53,13 @@
 }
 
 - (void)popViewController {
-    if (!self.topController)
+    if (!self.childViewControllers.count > 1)
         return;
-    [self.topController willMoveToParentViewController:nil];
-    [self.topController.view removeFromSuperview];
-    [self.topController removeFromParentViewController];
-    self.topController = nil;
-    if (self.childViewControllers.count > 0) {
-        self.topController = [self.childViewControllers lastObject];
-    }
+    
+    UIViewController* topController = [self.childViewControllers lastObject];
+    [topController willMoveToParentViewController:nil];
+    [topController.view removeFromSuperview];
+    [topController removeFromParentViewController];
 }
-
-- (void)addChildViewController:(UIViewController *)childController {
-    [super addChildViewController:childController];
-    self.topController = childController;
-}
-
 
 @end

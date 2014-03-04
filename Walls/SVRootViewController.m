@@ -10,7 +10,6 @@
 #import "SVRootViewController.h"
 #import "SVGamesTableViewController.h"
 #import "SVGameViewController.h"
-#import "SVCustomContainerController.h"
 
 @interface SVRootViewController ()
 @property (strong) UIViewController* currentViewController;
@@ -23,6 +22,7 @@
     self = [super init];
     if (self) {
         _containerController = [[SVCustomContainerController alloc] init];
+        _containerController.delegate = self;
         [self authenticateLocalPlayer];
     }
     return self;
@@ -55,10 +55,5 @@
     SVGamesTableViewController* controller = [[SVGamesTableViewController alloc] init];
     [self.containerController pushViewController:controller];
 }
-
-//////////////////////////////////////////////////////
-// Delegates
-//////////////////////////////////////////////////////
-
 
 @end

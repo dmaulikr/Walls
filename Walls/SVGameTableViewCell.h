@@ -9,6 +9,8 @@
 #import <UIKit/UIKit.h>
 #import "SVGame.h"
 
+float const kSVGameTableViewCellXOffset = 20;
+
 @interface SVGameTableViewCell : UITableViewCell
 - (void)displayForGame:(SVGame*)game;
 @end

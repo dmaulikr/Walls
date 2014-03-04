@@ -11,8 +11,8 @@
 
 @interface SVCustomContainerController : UIViewController
 @property (strong) SVTopBarView* topBarView;
+@property (strong) id delegate;
 
 - (void)pushViewController:(UIViewController*)controller;
 - (void)popViewController;
 @end
-
