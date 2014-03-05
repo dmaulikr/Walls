@@ -167,6 +167,10 @@
     }
 }
 
+- (void)removeWallAtPosition:(SVPosition *)position {
+    [self.walls removeObjectForKey:position];
+}
+
 - (BOOL)didPlayerWin:(kSVPlayer)player {
     return ((SVPosition*)self.playerPositions[player]).y == [self.playerGoalsY[player] intValue];
 }

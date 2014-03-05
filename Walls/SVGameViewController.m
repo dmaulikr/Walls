@@ -63,6 +63,7 @@
 - (BOOL)canPlayAction:(kSVAction)action withInfo:(id)actionInfo;
 - (void)didPlayAction;
 - (void)playTurn:(int)index animated:(BOOL)animated delay:(NSTimeInterval)delay finishBlock:(void(^)(void))finishBlock;
+- (void)replayTurn:(int)indes;
 - (void)performBlock:(void(^)(void))block;
 - (void)movePawnToPosition:(SVPosition*)position forPlayer:(kSVPlayer)player animated:(BOOL)animated finishBlock:(void(^)(void))finishBlock;
 
@@ -284,7 +285,7 @@
     
     [self newTurn];
     [self adjustUI];
-    [self playTurn:self.game.turns.count - 1 animated:YES delay:0 finishBlock:nil];
+    [self playTurn:(int)self.game.turns.count - 1 animated:YES delay:0 finishBlock:nil];
 }
 
 - (void)show {
@@ -347,7 +348,6 @@
                 [pawn.layer addAnimation:animation forKey:[animation valueForKey:@"id"]];
                 pawn.transform = CGAffineTransformIdentity;
             }
-
             
             [UIView animateWithDuration:0.15 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
                 for (UIView* wallView in weakSelf.wallViews) {
@@ -782,6 +782,9 @@
 }
 
 - (void)playTurn:(int)index animated:(BOOL)animated delay:(NSTimeInterval)delay finishBlock:(void(^)(void))finishBlock {
+    if (self.game.turns.count - 1 > index)
+        return;
+        
     void(^block)(void) = ^{
         SVTurn* turn = [self.game.turns objectAtIndex:index];
         if (turn.action == kSVMoveAction) {
@@ -830,6 +833,32 @@
         [self performSelector:@selector(performBlock:) withObject:block afterDelay:delay];
     else
         block();
+}
+
+- (void)replayTurn:(int)index {
+    if (self.game.turns.count - 1 > index)
+        return;
+    
+    SVTurn* turn = [self.game.turns objectAtIndex:index];
+    
+    void(^finishBlock)(void) = ^{
+        [self playTurn:index animated:YES delay:0.5 finishBlock:nil];
+    };
+    
+    if (turn.action == kSVMoveAction) {
+        [self.board movePlayer:turn.player to:turn.actionInfo];
+        [self movePawnToPosition:turn.actionInfo forPlayer:turn.player animated:YES finishBlock:finishBlock];
+    }
+    else if (turn.action == kSVAddWallAction) {
+        SVWall* wall = turn.actionInfo;
+        [self.board removeWallAtPosition:wall.position];
+        SVWallView* wallView = [self.wallViews objectAtIndex:self.wallViews.count - 1];
+        [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            wallView.alpha = 0;
+        } completion:^(BOOL finished){
+            finishBlock();
+        }];
+    }
 }
 
 - (void)performBlock:(void(^)(void))block {
@@ -1134,7 +1163,9 @@
 - (void)animationDidStop:(CAAnimation *)theAnimation finished:(BOOL)flag {
     if ([[theAnimation valueForKey:@"id"] isEqualToString:@"pawnAnimation1"]) {
         if (self.game.turns.count > 0) {
-            [self playTurn:self.game.turns.count - 1 animated:YES delay:0.3 finishBlock:nil];
+            [self playTurn:(int)self.game.turns.count - 1 animated:YES delay:0.3 finishBlock:^{
+                [self replayTurn:self.game.turns.count - 1];
+            }];
         }
     }
 }

@@ -33,6 +33,7 @@ typedef enum {
           withOrientation:(kSVWallOrientation)orientation
                      type:(kSVWallType)type
                 forPlayer:(kSVPlayer)player;
+- (void)removeWallAtPosition:(SVPosition*)position;
 - (BOOL)didPlayerWin:(kSVPlayer)player;
 - (SVWall*)wallAtPosition:(SVPosition*)position withOrientation:(kSVWallOrientation)orientation;
 //- (void)flip;

@@ -646,4 +646,20 @@
     XCTAssertEqualObjects(board, newBoard, @"Boards not equal after encoding");
 }
 
+- (void)testRemoveWallAtPosition {
+    SVPosition* position1 = [[SVPosition alloc] initWithX:2 andY:3];
+    SVWall* wall1 = [[SVWall alloc] initWithPosition:position1 orientation:kSVHorizontalOrientation andType:kSVWallNormal];
+    SVBoard* board1 = [[SVBoard alloc] init];
+    [board1.walls setObject:wall1 forKey:position1];
+    [board1 removeWallAtPosition:position1];
+    XCTAssertEqual((int)board1.walls.count, (int)0, @"Wall not removed");
+    
+    SVPosition* position2 = [[SVPosition alloc] initWithX:2 andY:3];
+    SVWall* wall2 = [[SVWall alloc] initWithPosition:position2 orientation:kSVHorizontalOrientation andType:kSVWallNormal];
+    SVBoard* board2 = [[SVBoard alloc] init];
+    [board2.walls setObject:wall2 forKey:position2];
+    [board2 removeWallAtPosition:[[SVPosition alloc] initWithX:3 andY:3]];
+    XCTAssertNotEqual((int)board2.walls.count, (int)0, @"Wall removed while shouldn't");
+}
+
 @end
