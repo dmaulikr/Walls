@@ -306,7 +306,7 @@
                                                   self.slidingBottom.frame.size.height);
 
         } completion:nil];
-    
+        
         [self.boardView showRowsAnimated:YES withFinishBlock:^{
             if (weakSelf.game.turns.count > 0) {
                 for (int i = 0; i < weakSelf.game.turns.count - 1; i++) {
@@ -321,7 +321,9 @@
                                                      type:wall.type
                                                 forPlayer:turn.player];
                         SVWallView* wallView = [weakSelf wallViewForWall:wall];
+                        wallView.alpha = 0;
                         [weakSelf.wallViews addObject:wallView];
+                        [weakSelf.view addSubview:wallView];
                         [wallView showRect:wallView.bounds animated:NO duration:0 withFinishBlock:nil];
                     }
                 }
@@ -329,7 +331,7 @@
         
             //Animate pawns and walls
             CAKeyframeAnimation* animation = [CAKeyframeAnimation animationWithKeyPath:@"transform.scale"];
-            animation.values = [NSArray arrayWithObjects:[NSNumber numberWithFloat:3.0],
+            animation.values = [NSArray arrayWithObjects:[NSNumber numberWithFloat:2.0],
                                 [NSNumber numberWithFloat:0.6],
                                 [NSNumber numberWithFloat:1.0], nil];
             animation.keyTimes = [NSArray arrayWithObjects:[NSNumber numberWithFloat:0.0],
@@ -343,11 +345,12 @@
                 pawn.transform = CGAffineTransformIdentity;
             }
             
-            for (UIView* wallView in weakSelf.wallViews) {
-                [weakSelf.view addSubview:wallView];
-                [wallView.layer addAnimation:animation forKey:@"wallAnimation"];
-                wallView.transform = CGAffineTransformIdentity;
-            }
+            [UIView animateWithDuration:0.15 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+                for (UIView* wallView in weakSelf.wallViews) {
+                    wallView.alpha = 1;
+                }
+            } completion:nil];
+
         }];
     }
 }
