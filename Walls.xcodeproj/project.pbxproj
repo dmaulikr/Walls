@@ -29,6 +29,7 @@
 		4D7F75BC18A5586200140965 /* SVTurnTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D7F75BB18A5586200140965 /* SVTurnTest.m */; };
 		4D7F75BF18A7F0EB00140965 /* SVGameTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D7F75BE18A7F0EB00140965 /* SVGameTableViewCell.m */; };
 		4D915E6418C6ACC800AADDD4 /* SVGameTableSectionView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D915E6318C6ACC800AADDD4 /* SVGameTableSectionView.m */; };
+		4D915E6718C6CD8B00AADDD4 /* SVCustomButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D915E6618C6CD8B00AADDD4 /* SVCustomButton.m */; };
 		4DA11951188D89AB008A8688 /* SVGameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DA11950188D89AB008A8688 /* SVGameViewController.m */; };
 		4DA11954188D89D7008A8688 /* SVSquareView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DA11953188D89D7008A8688 /* SVSquareView.m */; };
 		4DA80C3818955B8600C7F541 /* SVCustomView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DA80C3718955B8600C7F541 /* SVCustomView.m */; };
@@ -92,6 +93,8 @@
 		4D7F75BE18A7F0EB00140965 /* SVGameTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVGameTableViewCell.m; sourceTree = "<group>"; };
 		4D915E6218C6ACC800AADDD4 /* SVGameTableSectionView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVGameTableSectionView.h; sourceTree = "<group>"; };
 		4D915E6318C6ACC800AADDD4 /* SVGameTableSectionView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVGameTableSectionView.m; sourceTree = "<group>"; };
+		4D915E6518C6CD8B00AADDD4 /* SVCustomButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVCustomButton.h; sourceTree = "<group>"; };
+		4D915E6618C6CD8B00AADDD4 /* SVCustomButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVCustomButton.m; sourceTree = "<group>"; };
 		4DA1194F188D89AB008A8688 /* SVGameViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVGameViewController.h; sourceTree = "<group>"; };
 		4DA11950188D89AB008A8688 /* SVGameViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVGameViewController.m; sourceTree = "<group>"; };
 		4DA11952188D89D7008A8688 /* SVSquareView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVSquareView.h; sourceTree = "<group>"; };
@@ -274,6 +277,8 @@
 				4D154D891892D25500E8E303 /* SVWallView.m */,
 				4DA80C3618955B8600C7F541 /* SVCustomView.h */,
 				4DA80C3718955B8600C7F541 /* SVCustomView.m */,
+				4D915E6518C6CD8B00AADDD4 /* SVCustomButton.h */,
+				4D915E6618C6CD8B00AADDD4 /* SVCustomButton.m */,
 				4DFEBBDA1895A1CE0051274A /* SVColorButton.h */,
 				4DFEBBDB1895A1CE0051274A /* SVColorButton.m */,
 				4DFEBBE0189691F30051274A /* SVInfoWallView.h */,
@@ -420,6 +425,7 @@
 				4D06AC78188A976C00ED425F /* SVAppDelegate.m in Sources */,
 				4D2917F718BCEDC90057A393 /* SVTopBarView.m in Sources */,
 				4D7F75BF18A7F0EB00140965 /* SVGameTableViewCell.m in Sources */,
+				4D915E6718C6CD8B00AADDD4 /* SVCustomButton.m in Sources */,
 				4DA80C3818955B8600C7F541 /* SVCustomView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

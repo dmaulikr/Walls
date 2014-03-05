@@ -554,6 +554,8 @@
                         type:kSVWallPlayer1
                    forPlayer:kSVPlayer1];
     XCTAssertTrue([board.walls objectForKey:wallPosition], @"Wall %@ was not added", wallPosition);
+    XCTAssertTrue(([(NSMutableDictionary*)[board.playersWalls objectAtIndex:kSVPlayer1]
+                   objectForKey:wallPosition]), @"Wall %@ was not added to player", wallPosition);
     XCTAssertEqual((int)((NSDictionary*)board.walls).count, 1, @"Number of walls incorrect");
     XCTAssertEqual(((NSNumber*)[board.specialWallsRemaining objectAtIndex:kSVPlayer1]).intValue,
                    wallsRemaining - 1,
@@ -569,6 +571,8 @@
                         type:kSVWallNormal
                    forPlayer:kSVPlayer2];
     XCTAssertTrue([board.walls objectForKey:wallPosition], @"Wall %@ was not added", wallPosition);
+    XCTAssertTrue(([(NSMutableDictionary*)[board.playersWalls objectAtIndex:kSVPlayer2]
+                    objectForKey:wallPosition]), @"Wall %@ was not added to player", wallPosition);
     XCTAssertEqual((int)((NSDictionary*)board.walls).count, 1, @"Number of walls incorrect");
     XCTAssertEqual(((NSNumber*)[board.normalWallsRemaining objectAtIndex:kSVPlayer2]).intValue,
                    wallsRemaining - 1,
@@ -651,15 +655,24 @@
     SVWall* wall1 = [[SVWall alloc] initWithPosition:position1 orientation:kSVHorizontalOrientation andType:kSVWallNormal];
     SVBoard* board1 = [[SVBoard alloc] init];
     [board1.walls setObject:wall1 forKey:position1];
+    [((NSMutableDictionary*)[board1.playersWalls objectAtIndex:kSVPlayer2]) setObject:wall1 forKey:position1];
+    [board1.normalWallsRemaining replaceObjectAtIndex:kSVPlayer2 withObject:[NSNumber numberWithInt:2]];
     [board1 removeWallAtPosition:position1];
     XCTAssertEqual((int)board1.walls.count, (int)0, @"Wall not removed");
+    XCTAssertEqual((int)((NSMutableDictionary*)[board1.playersWalls objectAtIndex:kSVPlayer2]).count, (int)0, @"Wall not removed from player");
+    XCTAssertEqual(((NSNumber*)[board1.normalWallsRemaining objectAtIndex:kSVPlayer2]).intValue, 3, @"Normal walls remaining not correct");
     
     SVPosition* position2 = [[SVPosition alloc] initWithX:2 andY:3];
     SVWall* wall2 = [[SVWall alloc] initWithPosition:position2 orientation:kSVHorizontalOrientation andType:kSVWallNormal];
     SVBoard* board2 = [[SVBoard alloc] init];
     [board2.walls setObject:wall2 forKey:position2];
+    [board1.normalWallsRemaining replaceObjectAtIndex:kSVPlayer1 withObject:[NSNumber numberWithInt:2]];
+    [((NSMutableDictionary*)[board1.playersWalls objectAtIndex:kSVPlayer1]) setObject:wall1 forKey:position1];
     [board2 removeWallAtPosition:[[SVPosition alloc] initWithX:3 andY:3]];
     XCTAssertNotEqual((int)board2.walls.count, (int)0, @"Wall removed while shouldn't");
+    XCTAssertNotEqual((int)((NSMutableDictionary*)[board1.playersWalls objectAtIndex:kSVPlayer1]).count, (int)0, @"Wall removed from player while shouldn't");
+    XCTAssertNotEqual(((NSNumber*)[board2.normalWallsRemaining objectAtIndex:kSVPlayer1]).intValue, 2, @"Normal walls remaining not correct");
+
 }
 
 @end

@@ -30,6 +30,9 @@
                                                                         [NSNumber numberWithInt:6], nil];
         _specialWallsRemaining = [[NSMutableArray alloc] initWithObjects:[NSNumber numberWithInt:2],
                                                                          [NSNumber numberWithInt:2], nil];
+        _playersWalls = [[NSMutableArray alloc] init];
+        [_playersWalls addObject:[[NSMutableDictionary alloc] init]];
+        [_playersWalls addObject:[[NSMutableDictionary alloc] init]];
     }
     return self;
 }
@@ -111,16 +114,16 @@
     
     if ([self.walls objectForKey:position])
         return NO;
-    
+        
     if (type == kSVWallNormal && ((NSNumber*)[self.normalWallsRemaining objectAtIndex:player]).intValue <= 0)
         return NO;
-    
+
     if (type == kSVWallPlayer1 && player == kSVPlayer1 && ((NSNumber*)[self.specialWallsRemaining objectAtIndex:player]).intValue <= 0)
         return NO;
-    
+
     if (type == kSVWallPlayer2 && player == kSVPlayer2 && ((NSNumber*)[self.specialWallsRemaining objectAtIndex:player]).intValue <= 0)
         return NO;
-    
+
     int xOffset = orientation == kSVHorizontalOrientation ? 1 : 0;
     int yOffset = orientation == kSVHorizontalOrientation ? 0 : 1;
     
@@ -156,6 +159,7 @@
     else {
         SVWall* newWall = [[SVWall alloc] initWithPosition:position orientation:orientation andType:type];
         [self.walls setObject:newWall forKey:position];
+        [((NSMutableDictionary*)[self.playersWalls objectAtIndex:player]) setObject:newWall forKey:position];
         if (type == kSVWallNormal) {
             int count = ((NSNumber*)[self.normalWallsRemaining objectAtIndex:player]).intValue;
             [self.normalWallsRemaining replaceObjectAtIndex:player withObject:[NSNumber numberWithInt:count - 1]];
@@ -168,7 +172,31 @@
 }
 
 - (void)removeWallAtPosition:(SVPosition *)position {
+    SVWall *wall = [self.walls objectForKey:position];
+    if ([[self.playersWalls objectAtIndex:kSVPlayer1] objectForKey:position]) {
+        if (wall.type == kSVWallNormal) {
+            int count = ((NSNumber*)[self.normalWallsRemaining objectAtIndex:kSVPlayer1]).intValue;
+            [self.normalWallsRemaining replaceObjectAtIndex:kSVPlayer1 withObject:[NSNumber numberWithInt:count + 1]];
+        }
+        else {
+            int count = ((NSNumber*)[self.specialWallsRemaining objectAtIndex:kSVPlayer1]).intValue;
+            [self.specialWallsRemaining replaceObjectAtIndex:kSVPlayer1 withObject:[NSNumber numberWithInt:count + 1]];
+        }
+        [[self.playersWalls objectAtIndex:kSVPlayer1] removeObjectForKey:position];
+    }
+    else {
+        if (wall.type == kSVWallNormal) {
+            int count = ((NSNumber*)[self.normalWallsRemaining objectAtIndex:kSVPlayer2]).intValue;
+            [self.normalWallsRemaining replaceObjectAtIndex:kSVPlayer2 withObject:[NSNumber numberWithInt:count + 1]];
+        }
+        else {
+            int count = ((NSNumber*)[self.specialWallsRemaining objectAtIndex:kSVPlayer2]).intValue;
+            [self.specialWallsRemaining replaceObjectAtIndex:kSVPlayer2 withObject:[NSNumber numberWithInt:count + 1]];
+        }
+        [[self.playersWalls objectAtIndex:kSVPlayer2] removeObjectForKey:position];
+    }
     [self.walls removeObjectForKey:position];
+    
 }
 
 - (BOOL)didPlayerWin:(kSVPlayer)player {

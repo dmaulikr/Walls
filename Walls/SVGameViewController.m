@@ -17,6 +17,7 @@
 #import "SVGame.h"
 #import "SVTurn.h"
 #import "SVCustomContainerController.h"
+#import "SVCustomButton.h"
 
 @interface SVGameViewController ()
 
@@ -73,6 +74,7 @@
 - (void)didClickValidateButton:(id)sender;
 - (void)didClickBackButton:(id)sender;
 - (void)didPanPawn:(UIPanGestureRecognizer*)gestureRecognizer;
+- (void)didClickPlayerCircle:(id)sender;
 
 @end
 
@@ -140,17 +142,25 @@
     
     [self.slidingBottom addSubview:self.infoView];
     
-    SVCustomView* localPlayerCircle = [[SVCustomView alloc] initWithFrame:CGRectMake(7, (self.infoView.frame.size.height - 24) / 2, 24, 24)];
+    SVCustomButton* localPlayerCircle = [[SVCustomButton alloc] initWithFrame:CGRectMake(7,
+                                                                                         (self.infoView.frame.size.height - 24) / 2,
+                                                                                         24,
+                                                                                         24)];
+    __weak SVCustomButton* weakSelf = localPlayerCircle;
     [localPlayerCircle drawBlock:^(CGContextRef context) {
-        UIBezierPath* largeCircle = [UIBezierPath bezierPathWithOvalInRect:localPlayerCircle.bounds];
+        UIBezierPath* largeCircle = [UIBezierPath bezierPathWithOvalInRect:weakSelf.bounds];
         [[UIColor whiteColor] setFill];
         [largeCircle fill];
         
-        UIBezierPath* smallCircle = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(2, 2, localPlayerCircle.bounds.size.width - 4, localPlayerCircle.bounds.size.height - 4)];
+        UIBezierPath* smallCircle = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(2,
+                                                                                      2,
+                                                                                      weakSelf.bounds.size.width - 4,
+                                                                                      weakSelf.bounds.size.height - 4)];
         [[SVTheme sharedTheme].localPlayerColor setFill];
         [smallCircle fill];
     }];
     [self.infoView addSubview:localPlayerCircle];
+    [localPlayerCircle addTarget:self action:@selector(didClickPlayerCircle:) forControlEvents:UIControlEventTouchUpInside];
     
     UILabel* localPlayerLabel = [[UILabel alloc] initWithFrame:CGRectMake(2,
                                                                           2,
@@ -170,18 +180,22 @@
     localPlayerLabel.numberOfLines = 1;
     [localPlayerCircle addSubview:localPlayerLabel];
     
-    SVCustomView* opponentPlayerCircle = [[SVCustomView alloc] initWithFrame:CGRectMake(self.infoView.frame.size.width - 7 - 24,
-                                                                                        (self.infoView.frame.size.height - 24) / 2, 24, 24)];
+    SVCustomButton* opponentPlayerCircle = [[SVCustomButton alloc] initWithFrame:CGRectMake(self.infoView.frame.size.width - 7 - 24,
+                                                                                            (self.infoView.frame.size.height - 24) / 2,
+                                                                                            24,
+                                                                                            24)];
+    weakSelf = opponentPlayerCircle;
     [opponentPlayerCircle drawBlock:^(CGContextRef context) {
-        UIBezierPath* largeCircle = [UIBezierPath bezierPathWithOvalInRect:opponentPlayerCircle.bounds];
+        UIBezierPath* largeCircle = [UIBezierPath bezierPathWithOvalInRect:weakSelf.bounds];
         [[UIColor whiteColor] setFill];
         [largeCircle fill];
         
-        UIBezierPath* smallCircle = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(2, 2, opponentPlayerCircle.bounds.size.width - 4, opponentPlayerCircle.bounds.size.height - 4)];
+        UIBezierPath* smallCircle = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(2, 2, weakSelf.bounds.size.width - 4, opponentPlayerCircle.bounds.size.height - 4)];
         [[SVTheme sharedTheme].opponentPlayerColor setFill];
         [smallCircle fill];
     }];
     [self.infoView addSubview:opponentPlayerCircle];
+    [opponentPlayerCircle addTarget:self action:@selector(didClickPlayerCircle:) forControlEvents:UIControlEventTouchUpInside];
     UILabel* opponentPlayerLabel = [[UILabel alloc] initWithFrame:CGRectMake(2,
                                                                              2,
                                                                              opponentPlayerCircle.frame.size.width - 4,
@@ -793,10 +807,12 @@
         }
         else if (turn.action == kSVAddWallAction) {
             SVWall* wall = turn.actionInfo;
+            NSLog(@"before");
             [self.board addWallAtPosition:wall.position
                           withOrientation:wall.orientation
                                      type:wall.type
                                 forPlayer:turn.player];
+            NSLog(@"after");
             SVWallView* wallView = [self wallViewForWall:wall];
             [self.wallViews addObject:wallView];
             [wallView showRect:wallView.bounds animated:NO duration:0 withFinishBlock:nil];
@@ -1162,11 +1178,17 @@
 
 - (void)animationDidStop:(CAAnimation *)theAnimation finished:(BOOL)flag {
     if ([[theAnimation valueForKey:@"id"] isEqualToString:@"pawnAnimation1"]) {
-        if (self.game.turns.count > 0) {
-            [self playTurn:(int)self.game.turns.count - 1 animated:YES delay:0.3 finishBlock:^{
-                [self replayTurn:self.game.turns.count - 1];
-            }];
-        }
+        if (self.game.turns.count > 0)
+            [self playTurn:(int)self.game.turns.count - 1 animated:YES delay:0.3 finishBlock:nil];
+    }
+}
+
+- (void)didClickPlayerCircle:(id)sender {
+    if (sender == [self.playerCircles objectAtIndex:self.currentPlayer]) {
+        [self replayTurn:(int)self.game.turns.count - 2];
+    }
+    else {
+        [self replayTurn:(int)self.game.turns.count - 1];
     }
 }
 

@@ -13,6 +13,7 @@
 @property (strong) NSMutableDictionary* walls;
 @property (strong) NSMutableArray* playerPositions;
 @property (strong) NSMutableArray* playerGoalsY;
+@property (strong) NSMutableArray* playersWalls;
 
 - (NSArray*)movesForPlayer:(kSVPlayer)player;
 - (BOOL)isGoalReachableByPlayer:(kSVPlayer)player;
