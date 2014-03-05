@@ -42,7 +42,7 @@
 - (void)setLeftButton:(UIButton *)button animated:(BOOL)animated {
     if (animated) {
         if (button) {
-            button.frame = CGRectMake(15,
+            button.frame = CGRectMake(5,
                                       -button.frame.size.height,
                                       button.frame.size.width,
                                       button.frame.size.height);
@@ -52,7 +52,7 @@
             if (_leftButton)
                 _leftButton.alpha = 0;
             if (button) {
-                button.frame = CGRectMake(15,
+                button.frame = CGRectMake(5,
                                           (self.frame.size.height - button.frame.size.height) / 2,
                                           button.frame.size.width,
                                           button.frame.size.height);
@@ -65,7 +65,7 @@
     }
     else {
         if (button) {
-            button.frame = CGRectMake(15,
+            button.frame = CGRectMake(5,
                                       (self.frame.size.height - button.frame.size.height) / 2,
                                       button.frame.size.width,
                                       button.frame.size.height);
@@ -83,7 +83,7 @@
 - (void)setRightButton:(UIButton *)button animated:(BOOL)animated {
     if (animated) {
         if (button) {
-            button.frame = CGRectMake(self.frame.size.width - button.frame.size.width - 15,
+            button.frame = CGRectMake(self.frame.size.width - button.frame.size.width - 5,
                                       -button.frame.size.height,
                                       button.frame.size.width,
                                       button.frame.size.height);
@@ -93,7 +93,7 @@
             if (_rightButton)
                 _rightButton.alpha = 0;
             if (button) {
-                button.frame = CGRectMake(self.frame.size.width - button.frame.size.width - 15,
+                button.frame = CGRectMake(self.frame.size.width - button.frame.size.width - 5,
                                           (self.frame.size.height - button.frame.size.height) / 2,
                                           button.frame.size.width,
                                           button.frame.size.height);
@@ -106,7 +106,7 @@
     }
     else {
         if (button) {
-            button.frame = CGRectMake(self.frame.size.width - button.frame.size.width - 15,
+            button.frame = CGRectMake(self.frame.size.width - button.frame.size.width - 5,
                                       (self.frame.size.height - button.frame.size.height) / 2,
                                       button.frame.size.width,
                                       button.frame.size.height);

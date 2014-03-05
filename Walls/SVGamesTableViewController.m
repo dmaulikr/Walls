@@ -249,7 +249,7 @@ static NSString *gameCellIdentifier = @"GameCell";
         SVCustomContainerController* container = (SVCustomContainerController*)self.parentViewController;
         [container.topBarView setTextLabel:@"Games" animated:animated];
         UIButton* plusButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        UIImage* plusImage = [UIImage imageNamed:@"plusSign.png"];
+        UIImage* plusImage = [UIImage imageNamed:@"plus_sign.png"];
         [plusButton setBackgroundImage:plusImage forState:UIControlStateNormal];
         plusButton.adjustsImageWhenHighlighted = NO;
         plusButton.adjustsImageWhenDisabled = NO;
