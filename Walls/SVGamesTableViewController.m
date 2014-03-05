@@ -13,6 +13,7 @@
 #import "SVCustomView.h"
 #import "SVGameTableViewCell.h"
 #import "SVCustomContainerController.h"
+#import "SVGameTableSectionView.h"
 
 static NSString *spaceCellIdentifer = @"SpaceCell";
 static NSString *gameCellIdentifier = @"GameCell";
@@ -407,37 +408,16 @@ static NSString *gameCellIdentifier = @"GameCell";
     if (view) {
         return view;
     }
-    SVCustomView* customView = [[SVCustomView alloc] init];
-    __weak SVCustomView* weakSelf = customView;
-    [customView drawBlock:^(CGContextRef context) {
-        UIBezierPath* path = [UIBezierPath bezierPathWithRect:CGRectMake(20,
-                                                                         27,
-                                                                         weakSelf.frame.size.width - 40,
-                                                                         1)];
-        [[UIColor whiteColor] setFill];
-        [path fill];
-    }];
-    UILabel* label = [[UILabel alloc] initWithFrame:CGRectMake(20,
-                                                               8,
-                                                               100,
-                                                               15)];
-    label.textColor = [UIColor whiteColor];
-    label.font = [UIFont fontWithName:@"HelveticaNeue" size:13];
     
-    NSMutableAttributedString* text;
-    if (section == 0) {
-        text = [[NSMutableAttributedString alloc] initWithString:@"In progress"];
-        [text addAttribute:NSKernAttributeName value:@2 range:NSMakeRange(0, 10)];
-    }
-    else {
-        text = [[NSMutableAttributedString alloc] initWithString:@"Completed"];
-        [text addAttribute:NSKernAttributeName value:@2 range:NSMakeRange(0, 8)];
-    }
-    label.attributedText = text;
-    [customView addSubview:label];
-    [self.sectionViews setObject:customView forKey:[NSNumber numberWithInt:(int)section]];
+    NSString* title;
+    if (section == 0)
+        title = @"In progress";
+    else
+        title = @"Completed";
     
-    return customView;
+    SVGameTableSectionView* sectionView = [[SVGameTableSectionView alloc] initWithTitle:title];
+    [self.sectionViews setObject:sectionView forKey:[NSNumber numberWithInt:(int)section]];
+    return sectionView;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
