@@ -38,6 +38,7 @@
 @property (strong) UIButton* cancelButton;
 @property (strong) UIButton* validateButton;
 @property (strong) UILabel* opponentPlayerLabel;
+@property (strong) NSMutableArray* playerCircles;
 
 //Turn info
 @property (strong) SVTurn* currentTurn;
@@ -88,6 +89,7 @@
         [_infoWallViews addObject:[[NSMutableArray alloc] init]];
         _pawnViews = [[NSMutableArray alloc] init];
         _wallViews = [[NSMutableArray alloc] init];
+        _playerCircles = [[NSMutableArray alloc] init];
         
         [self newTurn];
     }
@@ -116,15 +118,6 @@
     panGestureRecognizer.minimumNumberOfTouches = 1;
     panGestureRecognizer.maximumNumberOfTouches = 1;
     [pawnView1 addGestureRecognizer:panGestureRecognizer];
-    
-    if (self.localPlayer == kSVPlayer1) {
-        [self.pawnViews addObject:pawnView1];
-        [self.pawnViews addObject:pawnView2];
-    }
-    else {
-        [self.pawnViews addObject:pawnView2];
-        [self.pawnViews addObject:pawnView1];
-    }
     
     //Info
     self.slidingBottom = [[UIView alloc] initWithFrame:CGRectMake(0,
@@ -262,6 +255,21 @@
                                           self.view.frame.size.height,
                                           self.slidingBottom.frame.size.width,
                                           self.slidingBottom.frame.size.height);
+    
+    //Store views in the right order
+    if (self.localPlayer == kSVPlayer1) {
+        [self.pawnViews addObject:pawnView1];
+        [self.pawnViews addObject:pawnView2];
+        [self.playerCircles addObject:localPlayerCircle];
+        [self.playerCircles addObject:opponentPlayerCircle];
+    }
+    else {
+        [self.pawnViews addObject:pawnView2];
+        [self.pawnViews addObject:pawnView1];
+        [self.playerCircles addObject:opponentPlayerCircle];
+        [self.playerCircles addObject:localPlayerCircle];
+    }
+    
     [self adjustUI];
 }
 
@@ -792,7 +800,7 @@
             if (animated) {
                 wallView.alpha = 0;
                 [self.boardView addSubview:wallView];
-                [UIView animateWithDuration:0.15 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+                [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
                     wallView.alpha = 1;
                 } completion:^(BOOL finished){
                     if (finishBlock)
@@ -804,6 +812,18 @@
                 if (finishBlock)
                     finishBlock();
             }
+        }
+        
+        //Animate player circle
+        if (animated) {
+            UIView* circle = [self.playerCircles objectAtIndex:turn.player];
+            CABasicAnimation* animation = [CABasicAnimation animationWithKeyPath:@"transform.scale"];
+            animation.fromValue = [NSNumber numberWithFloat:1.0];
+            animation.toValue = [NSNumber numberWithFloat:1.2];
+            animation.autoreverses = YES;
+            animation.duration = 0.3;
+            animation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+            [circle.layer addAnimation:animation forKey:@"playerCircleAnimation"];
         }
     };
     if (delay > 0)
