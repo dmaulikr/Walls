@@ -61,6 +61,7 @@
 - (SVWallView*)wallViewForWall:(SVWall*)wall;
 - (void)commitCurrentTurn;
 - (void)cancelCurrentTurn;
+- (void)addInfoWallOfType:(kSVWallType)type andPlay:(kSVPlayer)player;
 - (SVInfoWallView*)firstInfoWallOfType:(kSVWallType)type andPlayer:(kSVPlayer)player;
 - (void)removeInfoWallOfType:(kSVWallType)type forPlayer:(kSVPlayer)player;
 - (BOOL)canPlayAction:(kSVAction)action withInfo:(id)actionInfo;
@@ -251,7 +252,6 @@
     normalWallsCount = ((NSNumber*)[self.board.normalWallsRemaining objectAtIndex:self.opponentPlayer]).intValue;
     for (int i = 0; i <  specialWallsCount + normalWallsCount ; i++) {
         UIColor* color;
-        
         if (i < specialWallsCount)
             color = self.playerColors[self.opponentPlayer];
         else
@@ -698,6 +698,46 @@
     self.currentTurn.action = kSVNoAction;
 }
 
+- (void)addInfoWallOfType:(kSVWallType)type andPlay:(kSVPlayer)player {
+    UIColor* color;
+    
+    if (type != kSVWallNormal)
+        color = self.playerColors[player];
+    else
+        color = [SVTheme sharedTheme].normalWallColor;
+    
+    int originX;
+    int animationOffset;
+    if (player == self.localPlayer) {
+        originX = 38;
+        animationOffset = 7;
+    }
+    else {
+        originX = self.infoView.frame.size.width - 38 - 4;
+        animationOffset = -7;
+    }
+    
+    NSMutableArray* infoWallViews = [self.infoWallViews objectAtIndex:player];
+    SVInfoWallView* infoWallView = [[SVInfoWallView alloc] initWithFrame:CGRectMake(originX,
+                                                                                    (self.infoView.frame.size.height - 15) / 2,
+                                                                                    4,
+                                                                                    15)
+                                                        andColor:color];
+    
+    for (int i = 0; i < infoWallViews.count; i++) {
+        [UIView animateWithDuration:0.5 animations:^{
+            SVInfoWallView* wall = [infoWallViews objectAtIndex:i];
+            wall.frame = CGRectMake(wall.frame.origin.x + animationOffset,
+                                    wall.frame.origin.y,
+                                    wall.frame.size.width,
+                                    wall.frame.size.height);
+        }];
+    }
+    [infoWallViews insertObject:infoWallView atIndex:0];
+    [self.infoView addSubview:infoWallView];
+    
+};
+
 - (SVInfoWallView*)firstInfoWallOfType:(kSVWallType)type andPlayer:(kSVPlayer)player {
     NSMutableArray* array = [self.infoWallViews objectAtIndex:player];
     int index = -1;
@@ -846,14 +886,19 @@
                 wallView.alpha = 0;
                 [self.boardView addSubview:wallView];
                 [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+                    [self firstInfoWallOfType:wall.type andPlayer:turn.player].alpha = 0;
                     wallView.alpha = 1;
                 } completion:^(BOOL finished){
-                    if (finished && finishBlock)
-                        finishBlock();
+                    if (finished) {
+                        [self removeInfoWallOfType:wall.type forPlayer:turn.player];
+                        if (finishBlock)
+                            finishBlock();
+                    }
                 }];
             }
             else {
                 [self.boardView addSubview:wallView];
+                [self removeInfoWallOfType:wall.type forPlayer:turn.player];
                 if (finishBlock)
                     finishBlock();
             }
@@ -888,7 +933,7 @@
     void(^animationFinishBlock)(void) = ^{
         if (self.hiddingView)
             return;
-        [self playTurn:index animated:YES delay:0.5 finishBlock:finishBlock];
+        [self playTurn:index animated:YES delay:0.3 finishBlock:finishBlock];
     };
     
     if (turn.action == kSVMoveAction) {
@@ -898,9 +943,13 @@
     else if (turn.action == kSVAddWallAction) {
         SVWall* wall = turn.actionInfo;
         [self.board removeWallAtPosition:wall.position];
+        [self addInfoWallOfType:wall.type andPlay:turn.player];
+        SVInfoWallView* infoWallView = [[self.infoWallViews objectAtIndex:turn.player] firstObject];
+        infoWallView.alpha = 0;
         SVWallView* wallView = [self.wallViews objectAtIndex:self.wallViews.count - 1];
-        [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        [UIView animateWithDuration:0.3 delay:0.2 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             wallView.alpha = 0;
+            infoWallView.alpha = 1;
         } completion:^(BOOL finished){
             if (finished && !self.hiddingView)
                 animationFinishBlock();
