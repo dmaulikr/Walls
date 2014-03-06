@@ -1264,10 +1264,9 @@
 
 - (void)animationDidStop:(CAAnimation *)theAnimation finished:(BOOL)flag {
     if ([[theAnimation valueForKey:@"id"] isEqualToString:@"pawnAnimation1"]) {
-        if (self.game.turns.count > 0)
-            [self playTurn:(int)self.game.turns.count - 1 animated:YES delay:0.3 finishBlock:^{
-                self.view.userInteractionEnabled = YES;
-            }];
+        [self playTurn:(int)self.game.turns.count - 1 animated:YES delay:0.3 finishBlock:^{
+            self.view.userInteractionEnabled = YES;
+        }];
     }
 }
 
