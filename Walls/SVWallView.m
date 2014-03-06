@@ -42,7 +42,7 @@
         mask.frame = self.bounds;
         [mask setFillRule:kCAFillRuleEvenOdd];
         mask.fillColor = [[UIColor whiteColor] CGColor];
-       // self.layer.mask = mask;
+        self.layer.mask = mask;
         mask.path = [self pathForRect:CGRectZero].CGPath;
         _shownRect = mask.frame;
         _mask = mask;
