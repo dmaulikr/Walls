@@ -689,7 +689,18 @@
     }
     else if (self.currentTurn.action == kSVAddWallAction) {
         SVWallView* wallView = [self.buildingWallInfo objectForKey:@"view"];
-        [wallView showRect:CGRectZero animated:YES duration:0.3 withFinishBlock:^{
+        CGRect rect;
+        kSVPanDirection wallDirection = ((NSNumber*)[self.buildingWallInfo objectForKey:@"direction"]).intValue;
+        if (wallDirection == kSVTopDirection)
+            rect = CGRectMake(0, wallView.frame.size.height, wallView.frame.size.width, 0);
+        else if (wallDirection == kSVRightDirection)
+            rect = CGRectMake(0, 0, 0, wallView.frame.size.height);
+        else if (wallDirection == kSVBottomDirection)
+            rect = CGRectMake(0, 0, wallView.frame.size.width, 0);
+        else
+            rect = CGRectMake(wallView.frame.size.width, 0, 0, wallView.frame.size.height);
+        
+        [wallView showRect:rect animated:YES duration:0.15 withFinishBlock:^(void){
             [wallView removeFromSuperview];
         }];
         SVInfoWallView* infoWall = [self firstInfoWallOfType:((NSNumber*)[self.buildingWallInfo objectForKey:@"type"]).intValue
