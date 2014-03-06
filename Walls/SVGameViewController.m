@@ -27,6 +27,7 @@
 @property (strong) NSArray* playerColors;
 
 //Views
+@property (strong) UIView* topLine;
 @property (strong) SVBoardView* boardView;
 @property (strong) UIView* slidingBottom;
 @property (strong) SVCustomView* infoView;
@@ -104,7 +105,19 @@
     //Init view
     //Prevent user from playing before last turn is shown
     self.view.userInteractionEnabled = NO;
-    self.boardView = [[SVBoardView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 414)
+    
+    self.topLine = [[UIView alloc] initWithFrame:CGRectMake(0,
+                                                              0,
+                                                              self.view.frame.size.width,
+                                                              1)];
+    self.topLine.backgroundColor = [SVTheme sharedTheme].squareBorderColor;
+    self.topLine.alpha = 0;
+    [self.view addSubview:self.topLine];
+    
+    self.boardView = [[SVBoardView alloc] initWithFrame:CGRectMake(0,
+                                                                   CGRectGetMaxY(self.topLine.frame),
+                                                                   self.view.frame.size.width,
+                                                                   414)
                                                 rotated:self.localPlayer == kSVPlayer2];
     self.boardView.delegate = self;
     [self.boardView hideRowsAnimated:NO withFinishBlock:nil];
@@ -329,12 +342,15 @@
     
         __weak SVGameViewController* weakSelf = self;
         
+        [UIView animateWithDuration:0.15 delay:0.1 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            self.topLine.alpha = 1.0;
+        } completion:nil];
+        
         [UIView animateWithDuration:0.25 delay:0.3 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             self.slidingBottom.frame = CGRectMake(self.slidingBottom.frame.origin.x,
                                                   CGRectGetMaxY(self.boardView.frame),
                                                   self.slidingBottom.frame.size.width,
                                                   self.slidingBottom.frame.size.height);
-
         } completion:nil];
         
         [self.boardView showRowsAnimated:YES withFinishBlock:^{
@@ -382,11 +398,12 @@
 - (void)hideWithFinishBlock:(void (^)(void))block {
     NSMutableArray* views = [NSMutableArray arrayWithArray:self.pawnViews];
     [views addObjectsFromArray:self.wallViews];
-    for (UIView* view in views) {
-        [UIView animateWithDuration:0.15 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+    [UIView animateWithDuration:0.15 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        self.topLine.alpha = 0;
+        for (UIView* view in views) {
             view.alpha = 0;
-        } completion:nil];
-    }
+        }
+    } completion:nil];
     [UIView animateWithDuration:0.25 delay:0.3 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         self.slidingBottom.frame = CGRectMake(self.slidingBottom.frame.origin.x,
                                               self.view.frame.size.height,
