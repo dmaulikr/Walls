@@ -23,6 +23,7 @@ static NSString *gameCellIdentifier = @"GameCell";
 @property (strong) NSMutableArray* endedGames;
 @property (strong) SVGameViewController* currentController;
 @property (strong) NSMutableDictionary* sectionViews;
+@property (strong) UIButton* plusButton;
 
 - (void)newGame;
 - (void)loadGame:(SVGame*)game;
@@ -31,6 +32,7 @@ static NSString *gameCellIdentifier = @"GameCell";
 - (void)hideRowsAnimated:(BOOL)animated;
 - (void)setTopBarButtonsAnimated:(BOOL)animated;
 - (void)performBlock:(void(^)(void))block;
+- (void)didClickPlusButton:(id)sender;
 
 @end
 
@@ -81,8 +83,8 @@ static NSString *gameCellIdentifier = @"GameCell";
     request.maxPlayers = 2;
     GKTurnBasedMatchmakerViewController* controller = [[GKTurnBasedMatchmakerViewController alloc] initWithMatchRequest:request];
     [self presentViewController:controller
-                       animated:YES
-                     completion:nil];
+                        animated:YES
+                        completion:nil];
     controller.turnBasedMatchmakerDelegate = self;
 }
 
@@ -258,6 +260,8 @@ static NSString *gameCellIdentifier = @"GameCell";
                                       0,
                                       plusImage.size.width,
                                       plusImage.size.height);
+        [plusButton addTarget:self action:@selector(didClickPlusButton:) forControlEvents:UIControlEventTouchUpInside];
+        self.plusButton = plusButton;
         [container.topBarView setRightButton:plusButton animated:animated];
         [container.topBarView setLeftButton:nil animated:animated];
     }
@@ -265,12 +269,19 @@ static NSString *gameCellIdentifier = @"GameCell";
 
 #pragma mark - Targets
 
+- (void)didClickPlusButton:(id)sender {
+    self.plusButton.enabled = NO;
+    [self newGame];
+}
+
 #pragma mark - Delegates
 
 - (void)turnBasedMatchmakerViewController:(GKTurnBasedMatchmakerViewController *)viewController didFindMatch:(GKTurnBasedMatch *)match {
     NSLog(@"found match: %@", match.matchID);
-    [self loadGame:[SVGame gameWithMatch:match]];
-    [self dismissViewControllerAnimated:YES completion:nil];
+    [self dismissViewControllerAnimated:YES completion:^{
+        [self loadGame:[SVGame gameWithMatch:match]];
+        self.plusButton.enabled = YES;
+    }];
 }
 
 - (void)turnBasedMatchmakerViewController:(GKTurnBasedMatchmakerViewController *)viewController playerQuitForMatch:(GKTurnBasedMatch *)match {
