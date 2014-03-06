@@ -323,7 +323,7 @@
         } completion:nil];
         
         [self.boardView showRowsAnimated:YES withFinishBlock:^{
-            for (int i = 0; i < weakSelf.game.turns.count - 1; i++) {
+            for (int i = 0; i < (int)weakSelf.game.turns.count - 1; i++) {
                 SVTurn* turn = [weakSelf.game.turns objectAtIndex:i];
                 if (turn.action == kSVMoveAction)
                     [weakSelf playTurn:i animated:NO delay:0 finishBlock:nil];
