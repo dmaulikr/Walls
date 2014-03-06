@@ -230,41 +230,6 @@
     [self.colorButton addTarget:self action:@selector(didClickColorButton:) forControlEvents:UIControlEventTouchUpInside];
     [self.infoView addSubview:self.colorButton];
     
-    int leftOffset = 38;
-    int specialWallsCount = ((NSNumber*)[self.board.specialWallsRemaining objectAtIndex:self.localPlayer]).intValue;
-    int normalWallsCount = ((NSNumber*)[self.board.normalWallsRemaining objectAtIndex:self.localPlayer]).intValue;
-    for (int i = 0; i <  specialWallsCount + normalWallsCount ; i++) {
-        UIColor* color;
-        if (i < specialWallsCount)
-            color = self.playerColors[self.localPlayer];
-        else
-            color = [SVTheme sharedTheme].normalWallColor;
-        
-        SVInfoWallView* wall = [[SVInfoWallView alloc] initWithFrame:CGRectMake(leftOffset, (self.infoView.frame.size.height - 15) / 2, 4, 15)
-                                                            andColor:color];
-        leftOffset = CGRectGetMaxX(wall.frame) + 3;
-        [[self.infoWallViews objectAtIndex:self.localPlayer] addObject:wall];
-        [self.infoView addSubview:wall];
-    }
-    
-    int rightOffset = self.infoView.frame.size.width - 38 - 4;
-    specialWallsCount = ((NSNumber*)[self.board.specialWallsRemaining objectAtIndex:self.opponentPlayer]).intValue;
-    normalWallsCount = ((NSNumber*)[self.board.normalWallsRemaining objectAtIndex:self.opponentPlayer]).intValue;
-    for (int i = 0; i <  specialWallsCount + normalWallsCount ; i++) {
-        UIColor* color;
-        if (i < specialWallsCount)
-            color = self.playerColors[self.opponentPlayer];
-        else
-            color = [SVTheme sharedTheme].normalWallColor;
-        
-        SVInfoWallView* wall = [[SVInfoWallView alloc] initWithFrame:CGRectMake(rightOffset, (self.infoView.frame.size.height - 15) / 2, 4, 15)
-                                                            andColor:color];
-        
-        rightOffset = CGRectGetMinX(wall.frame) - 3 - 4;
-        [[self.infoWallViews objectAtIndex:self.opponentPlayer] addObject:wall];
-        [self.infoView addSubview:wall];
-    }
-    
     //Bottom
     self.bottomView = [[UIView alloc] initWithFrame:CGRectMake(0,
                                                                CGRectGetMaxY(self.infoView.frame),
@@ -348,11 +313,13 @@
             self.topLine.alpha = 1.0;
         } completion:nil];
         
-        [UIView animateWithDuration:0.25 delay:0.3 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        self.slidingBottom.alpha = 0;
+        [UIView animateWithDuration:0.4 delay:0.5 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             self.slidingBottom.frame = CGRectMake(self.slidingBottom.frame.origin.x,
                                                   CGRectGetMaxY(self.boardView.frame),
                                                   self.slidingBottom.frame.size.width,
                                                   self.slidingBottom.frame.size.height);
+            self.slidingBottom.alpha = 1;
         } completion:nil];
         
         [self.boardView showRowsAnimated:YES withFinishBlock:^{
@@ -362,6 +329,41 @@
                     [weakSelf playTurn:i animated:NO delay:0 finishBlock:nil];
                 else
                     [weakSelf playTurn:i animated:YES delay:0 finishBlock:nil];
+            }
+            
+            //Build info walls
+            int leftOffset = 38;
+            int specialWallsCount = ((NSNumber*)[self.board.specialWallsRemaining objectAtIndex:self.localPlayer]).intValue;
+            int normalWallsCount = ((NSNumber*)[self.board.normalWallsRemaining objectAtIndex:self.localPlayer]).intValue;
+            for (int i = 0; i <  specialWallsCount + normalWallsCount ; i++) {
+                UIColor* color;
+                if (i < specialWallsCount)
+                    color = self.playerColors[self.localPlayer];
+                else
+                    color = [SVTheme sharedTheme].normalWallColor;
+                
+                SVInfoWallView* wall = [[SVInfoWallView alloc] initWithFrame:CGRectMake(leftOffset, (self.infoView.frame.size.height - 15) / 2, 4, 15)
+                                                                    andColor:color];
+                leftOffset = CGRectGetMaxX(wall.frame) + 3;
+                [[self.infoWallViews objectAtIndex:self.localPlayer] addObject:wall];
+                [self.infoView addSubview:wall];
+            }
+            
+            int rightOffset = self.infoView.frame.size.width - 38 - 4;
+            specialWallsCount = ((NSNumber*)[self.board.specialWallsRemaining objectAtIndex:self.opponentPlayer]).intValue;
+            normalWallsCount = ((NSNumber*)[self.board.normalWallsRemaining objectAtIndex:self.opponentPlayer]).intValue;
+            for (int i = 0; i <  specialWallsCount + normalWallsCount ; i++) {
+                UIColor* color;
+                if (i < specialWallsCount)
+                    color = self.playerColors[self.opponentPlayer];
+                else
+                    color = [SVTheme sharedTheme].normalWallColor;
+                
+                SVInfoWallView* wall = [[SVInfoWallView alloc] initWithFrame:CGRectMake(rightOffset, (self.infoView.frame.size.height - 15) / 2, 4, 15)
+                                                                    andColor:color];
+                rightOffset = CGRectGetMinX(wall.frame) - 3 - 4;
+                [[self.infoWallViews objectAtIndex:self.opponentPlayer] addObject:wall];
+                [self.infoView addSubview:wall];
             }
         
             //Animate pawns and walls
