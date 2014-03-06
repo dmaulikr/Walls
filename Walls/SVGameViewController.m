@@ -41,6 +41,7 @@
 @property (strong) UIButton* validateButton;
 @property (strong) UILabel* opponentPlayerLabel;
 @property (strong) NSMutableArray* playerCircles;
+@property (assign) BOOL hiddingView;
 
 //Turn info
 @property (strong) SVTurn* currentTurn;
@@ -94,6 +95,7 @@
         _pawnViews = [[NSMutableArray alloc] init];
         _wallViews = [[NSMutableArray alloc] init];
         _playerCircles = [[NSMutableArray alloc] init];
+        _hiddingView = NO;
         
         [self newTurn];
     }
@@ -396,6 +398,7 @@
 }
 
 - (void)hideWithFinishBlock:(void (^)(void))block {
+    self.hiddingView = YES;
     NSMutableArray* views = [NSMutableArray arrayWithArray:self.pawnViews];
     [views addObjectsFromArray:self.wallViews];
     [UIView animateWithDuration:0.15 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
@@ -823,6 +826,8 @@
     }
     
     void(^block)(void) = ^{
+        if (self.hiddingView)
+            return;
         SVTurn* turn = [self.game.turns objectAtIndex:index];
         if (turn.action == kSVMoveAction) {
             [self.board movePlayer:turn.player to:turn.actionInfo];
@@ -881,6 +886,8 @@
     SVTurn* turn = [self.game.turns objectAtIndex:index];
     
     void(^animationFinishBlock)(void) = ^{
+        if (self.hiddingView)
+            return;
         [self playTurn:index animated:YES delay:0.5 finishBlock:finishBlock];
     };
     
@@ -895,7 +902,7 @@
         [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             wallView.alpha = 0;
         } completion:^(BOOL finished){
-            if (finished)
+            if (finished && !self.hiddingView)
                 animationFinishBlock();
         }];
     }
@@ -970,8 +977,6 @@
 
 - (void)didClickBackButton:(id)sender {
     if (self.delegate && [self.delegate respondsToSelector:@selector(gameViewControllerDidClickBack:)]) {
-        //In case last turn is being shown
-        [NSObject cancelPreviousPerformRequestsWithTarget:self];
         [self.delegate gameViewControllerDidClickBack:self];
     }
 }
