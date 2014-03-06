@@ -114,7 +114,7 @@
     
     if ([self.walls objectForKey:position])
         return NO;
-        
+    
     if (type == kSVWallNormal && ((NSNumber*)[self.normalWallsRemaining objectAtIndex:player]).intValue <= 0)
         return NO;
 

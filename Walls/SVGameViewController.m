@@ -852,7 +852,7 @@
 }
 
 - (void)replayTurn:(int)index {
-    if (self.game.turns.count - 1 > index)
+    if (index >= self.game.turns.count || index < 0)
         return;
     
     SVTurn* turn = [self.game.turns objectAtIndex:index];
