@@ -805,16 +805,14 @@
                          animations:^{
                              pawnView.frame = newFrame;
                          } completion:^(BOOL finished){
-                             if (finishBlock)
+                             if (finished && finishBlock)
                                  finishBlock();
                          }];
     }
     else {
         pawnView.frame = newFrame;
-        if (finishBlock) {
-            if (finishBlock)
-                finishBlock();
-        }
+        if (finishBlock)
+            finishBlock();
     }
 }
 
@@ -845,7 +843,7 @@
                 [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
                     wallView.alpha = 1;
                 } completion:^(BOOL finished){
-                    if (finishBlock)
+                    if (finished && finishBlock)
                         finishBlock();
                 }];
             }
@@ -897,7 +895,8 @@
         [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             wallView.alpha = 0;
         } completion:^(BOOL finished){
-            animationFinishBlock();
+            if (finished)
+                animationFinishBlock();
         }];
     }
 }
@@ -934,8 +933,10 @@
                                           100,
                                           32);
     } completion:^(BOOL finished) {
-        self.cancelButton = nil;
-        self.validateButton = nil;
+        if (finished) {
+            self.cancelButton = nil;
+            self.validateButton = nil;
+        }
     }];
     [self cancelCurrentTurn];
 }
@@ -957,8 +958,10 @@
                                                40);
         self.bottomView.backgroundColor = [self.playerColors objectAtIndex:self.opponentPlayer];
     } completion:^(BOOL finished) {
-        self.cancelButton = nil;
-        self.validateButton = nil;
+        if (finished) {
+            self.cancelButton = nil;
+            self.validateButton = nil;
+        }
     }];
     [self commitCurrentTurn];
     [self newTurn];
