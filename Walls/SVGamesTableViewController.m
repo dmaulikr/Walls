@@ -134,10 +134,6 @@ static NSString *gameCellIdentifier = @"GameCell";
         int i = 0;
         for (GKTurnBasedMatch* match in matches) {
             [match loadMatchDataWithCompletionHandler:nil];
-            NSMutableArray* playerIDs = [[NSMutableArray alloc] init];
-            for (GKTurnBasedParticipant* participant in match.participants) {
-                [playerIDs addObject:participant.playerID];
-            }
             SVGame* game = [SVGame gameWithMatch:match];
             if (game.match.status == GKTurnBasedMatchStatusEnded) {
                 [self.endedGames addObject:game];
@@ -147,6 +143,11 @@ static NSString *gameCellIdentifier = @"GameCell";
             }
             i++;
         }
+        NSComparator comparator = ^(SVGame* obj1, SVGame* obj2) {
+            return [obj2.match.creationDate compare:obj1.match.creationDate];
+        };
+        [self.endedGames sortUsingComparator:comparator];
+        [self.inProgressGames sortUsingComparator:comparator];
         [self.tableView reloadData];
     }];
 }
