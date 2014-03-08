@@ -148,7 +148,21 @@ static NSString *gameCellIdentifier = @"GameCell";
         };
         [self.endedGames sortUsingComparator:comparator];
         [self.inProgressGames sortUsingComparator:comparator];
-        [self.tableView reloadData];
+        NSMutableArray* indexPaths = [[NSMutableArray alloc] init];
+        for (int i = 0; i < self.inProgressGames.count + self.endedGames.count; i++) {
+            int section = 0;
+            int row = i * 2;
+            if (i >= self.inProgressGames.count) {
+                section = 1;
+                row = (i - self.inProgressGames.count) * 2;
+            }
+            NSIndexPath* cellIndexPath = [NSIndexPath indexPathForRow:row inSection:section];
+            [indexPaths addObject:cellIndexPath];
+            NSIndexPath* spaceIndexPath = [NSIndexPath indexPathForRow:row + 1 inSection:section];
+            [indexPaths addObject:spaceIndexPath];
+        }
+
+        [self.tableView insertRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationAutomatic];
     }];
 }
 
@@ -375,9 +389,9 @@ static NSString *gameCellIdentifier = @"GameCell";
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     if (section == 0) {
-        return self.inProgressGames.count;
+        return self.inProgressGames.count * 2;
     }
-    return self.endedGames.count;
+    return self.endedGames.count * 2;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
