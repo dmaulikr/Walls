@@ -14,8 +14,6 @@ static NSCache* imageCache;
 
 @interface SVGameTableViewCell ()
 @property (strong) UILabel* label;
-//@property (strong) UIImageView* leftImageView;
-//@property (strong) UIImageView* rightImageView;
 @property (strong) UIColor* originalColor;
 @property (strong) SVCustomView* leftImageView;
 @property (strong) SVCustomView* rightImageView;
@@ -79,32 +77,6 @@ static NSCache* imageCache;
     [attributedString addAttribute:NSKernAttributeName value:@2 range:NSMakeRange(0, text.length)];
     self.label.attributedText = attributedString;
 }
-
-//- (void)setLeftImage:(UIImage *)image {
-//    if (!self.leftImageView) {
-//        self.leftImageView = [[UIImageView alloc] init];
-//        self.leftImageView.frame = CGRectMake(4, 4, 34, 34);
-//        self.leftImageView.layer.borderColor = [UIColor whiteColor].CGColor;
-//        self.leftImageView.layer.borderWidth = 1;
-//        self.leftImageView.layer.cornerRadius = self.leftImageView.frame.size.height / 2;
-//        self.leftImageView.layer.masksToBounds = YES;
-//        [self.contentView addSubview:self.leftImageView];
-//    }
-//    self.leftImageView.image = image;
-//}
-//
-//- (void)setRightImage:(UIImage *)image {
-//    if (!self.rightImageView) {
-//        self.rightImageView = [[UIImageView alloc] init];
-//        self.rightImageView.frame = CGRectMake(self.frame.size.width - 4 - 34, 4, 34, 34);
-//        self.rightImageView.layer.borderColor = [UIColor whiteColor].CGColor;
-//        self.rightImageView.layer.borderWidth = 1;
-//        self.rightImageView.layer.cornerRadius = self.rightImageView.frame.size.height / 2;
-//        self.rightImageView.layer.masksToBounds = YES;
-//        [self.contentView addSubview:self.rightImageView];
-//    }
-//    self.rightImageView.image = image;
-//}
 
 - (void)setColor:(UIColor *)color {
     self.contentView.backgroundColor = color;
