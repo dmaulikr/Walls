@@ -154,7 +154,7 @@ static NSString *gameCellIdentifier = @"GameCell";
             int row = i * 2;
             if (i >= self.inProgressGames.count) {
                 section = 1;
-                row = (i - self.inProgressGames.count) * 2;
+                row = (i - (int)self.inProgressGames.count) * 2;
             }
             NSIndexPath* cellIndexPath = [NSIndexPath indexPathForRow:row inSection:section];
             [indexPaths addObject:cellIndexPath];

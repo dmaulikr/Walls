@@ -428,6 +428,9 @@
         ((NSNumber*)([self.board.specialWallsRemaining objectAtIndex:self.localPlayer])).intValue <= 0)) {
         self.colorButton.enabled = NO;
     }
+    else if (self.game.match.status == GKTurnBasedMatchStatusEnded) {
+        self.colorButton.enabled = NO;
+    }
     else {
         self.colorButton.enabled = YES;
         self.colorButton.selected = ((NSNumber*)([self.board.normalWallsRemaining objectAtIndex:self.localPlayer])).intValue <= 0;
@@ -436,7 +439,14 @@
     //Adjust the bottom color
     self.bottomView.backgroundColor = [self.playerColors objectAtIndex:self.currentPlayer];
     
-    if (self.opponentName) {
+    if (self.game.match.status == GKTurnBasedMatchStatusEnded) {
+        self.bottomView.backgroundColor = [SVTheme sharedTheme].endedGameColor;
+        if (((SVTurn*)[self.game.turns lastObject]).player == self.localPlayer)
+            self.bottomLabel.text = @"Won";
+        else
+            self.bottomLabel.text = @"Lost";
+    }
+    else if (self.opponentName) {
         if (self.currentPlayer == self.localPlayer) {
             self.bottomLabel.text = @"You turn";
         }
@@ -783,6 +793,8 @@
 }
 
 - (BOOL)canPlayAction:(kSVAction)action withInfo:(id)actionInfo {
+    if (self.game.match.status == GKTurnBasedMatchStatusEnded)
+        return NO;
     if (self.currentTurn.action != kSVNoAction || self.currentPlayer == self.opponentPlayer)
         return NO;
     if (action == kSVMoveAction) {
