@@ -9,5 +9,8 @@
 #import <UIKit/UIKit.h>
 
 @interface SVGameTableSectionView : UIView
+@property (strong) UIView* line;
+@property (strong) UILabel* label;
+
 - (id)initWithTitle:(NSString*)title;
 @end
