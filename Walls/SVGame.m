@@ -37,7 +37,7 @@
     }
     SVGame* other = (SVGame*)object;
     return [self.turns isEqualToArray:other.turns] &&
-           [self.match isEqual:other.match];
+           [self.match.matchID isEqual:other.match.matchID];
     
 }
 

@@ -298,6 +298,7 @@ static NSString *gameCellIdentifier = @"GameCell";
 }
 
 - (void)player:(GKPlayer *)player receivedTurnEventForMatch:(GKTurnBasedMatch *)match didBecomeActive:(BOOL)didBecomeActive {
+    NSLog(@"turn event");
     if (self.currentController && [match.matchID isEqualToString:self.currentController.game.match.matchID]) {
         [GKTurnBasedMatch loadMatchWithID:match.matchID withCompletionHandler:^(GKTurnBasedMatch *match, NSError *error) {
             SVGame* game = [SVGame gameWithMatch:match];
@@ -311,7 +312,7 @@ static NSString *gameCellIdentifier = @"GameCell";
     else {
         int index = 0;
         for (SVGame* game in self.inProgressGames) {
-            if ([game.match isEqual:match]) {
+            if ([game.match.matchID isEqual:match.matchID]) {
                 break;
             }
             index++;
@@ -329,7 +330,7 @@ static NSString *gameCellIdentifier = @"GameCell";
     int index = 0;
     SVGame* endedGame;
     for (SVGame* game in self.inProgressGames) {
-        if ([game.match isEqual:match]) {
+        if ([game.match.matchID isEqual:match.matchID]) {
             endedGame = game;
             break;
         }
