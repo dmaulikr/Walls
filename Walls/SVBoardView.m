@@ -18,6 +18,7 @@
 @property (assign) CGPoint initialPoint;
 @property (assign) CGPoint nearestIntersectionPoint;
 @property (assign) CGPoint offset;
+@property (assign) BOOL rotated;
 
 @property (strong) void(^hideRowsFinishBlock)(void);
 @property (strong) void(^showRowsFinishBlock)(void);
@@ -41,6 +42,7 @@
         _squareViewForPosition = [[NSMutableDictionary alloc] init];
         _initialPanDirection = kSVNoDirection;
         _squareRows = [[NSMutableArray alloc] init];
+        _rotated = rotated;
         
         if (rotated) {
             self.transform = CGAffineTransformMakeRotation(M_PI);
@@ -128,15 +130,27 @@
 }
 
 - (void)hideRowsAnimated:(BOOL)animated withFinishBlock:(void (^)(void))block {
+    NSEnumerator* enumerator;
+    int originX;
+    if (self.rotated) {
+        originX = -self.frame.size.width;
+        enumerator = [self.squareRows reverseObjectEnumerator];
+    }
+    else {
+        originX = self.frame.size.width;
+        enumerator = [self.squareRows objectEnumerator];
+    }
+    UIView* row;
+    
     if (animated) {
         self.hideRowsFinishBlock = block;
         float delay = 0;
-        for (UIView* row in self.squareRows) {
+        while ((row = [enumerator nextObject])) {
             [UIView beginAnimations:@"rowOut" context:nil];
             [UIView setAnimationDuration:0.3];
             [UIView setAnimationDelay:delay];
             [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
-            row.frame = CGRectMake(row.frame.origin.x + self.frame.size.width,
+            row.frame = CGRectMake(originX,
                                    row.frame.origin.y,
                                    row.frame.size.width,
                                    row.frame.size.height);
@@ -149,8 +163,8 @@
         }
     }
     else {
-        for (UIView* row in self.squareRows) {
-            row.frame = CGRectMake(row.frame.origin.x + self.frame.size.width,
+        while ((row = [enumerator nextObject])) {
+            row.frame = CGRectMake(originX,
                                    row.frame.origin.y,
                                    row.frame.size.width,
                                    row.frame.size.height);
@@ -159,10 +173,19 @@
 }
 
 - (void)showRowsAnimated:(BOOL)animated withFinishBlock:(void (^)(void))block {
+    NSEnumerator* enumerator;
+    if (self.rotated) {
+        enumerator = [self.squareRows reverseObjectEnumerator];
+    }
+    else {
+        enumerator = [self.squareRows objectEnumerator];
+    }
+    UIView* row;
+    
     if (animated) {
         self.showRowsFinishBlock = block;
         float delay = 0;
-        for (UIView* row in self.squareRows) {
+        while ((row = [enumerator nextObject])) {
             [UIView beginAnimations:@"rowIn" context:nil];
             [UIView setAnimationDuration:0.3];
             [UIView setAnimationDelay:delay];

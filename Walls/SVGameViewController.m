@@ -130,6 +130,7 @@
     [self.view addSubview:self.boardView];
     
     CGPoint point1 = [self.boardView squareCenterForPosition:self.board.playerPositions[self.localPlayer]];
+    NSLog(@"%@", NSStringFromCGPoint(point1));
     SVPawnView* pawnView1 = [[SVPawnView alloc] initWithFrame:CGRectMake(point1.x - 15, point1.y - 15, 30, 30)
                                                        color1:[SVTheme sharedTheme].localPlayerColor
                                                     andColor2:[SVTheme sharedTheme].localPlayerLightColor];
@@ -386,7 +387,7 @@
             [animation2 setValue:@"pawnAnimaiton2" forKey:@"id"];
             for (int i = 0; i < self.pawnViews.count; i++) {
                 UIView* pawn = [weakSelf.pawnViews objectAtIndex:i];
-                [weakSelf.view addSubview:pawn];
+                [weakSelf.boardView addSubview:pawn];
                 CAAnimation* animation = [animations objectAtIndex:i];
                 [pawn.layer addAnimation:animation forKey:[animation valueForKey:@"id"]];
                 pawn.transform = CGAffineTransformIdentity;
