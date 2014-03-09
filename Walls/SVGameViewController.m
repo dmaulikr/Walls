@@ -54,6 +54,8 @@
 @property (assign) kSVPanDirection pawnPanDirection;
 @property (strong) UIView* pawnPanView;
 
+@property (assign) BOOL gameUpdated;
+
 //Private
 - (void)adjustUI;
 - (void)newTurn;
@@ -97,6 +99,7 @@
         _wallViews = [[NSMutableArray alloc] init];
         _playerCircles = [[NSMutableArray alloc] init];
         _hiddingView = NO;
+        _gameUpdated = NO;
         
         [self newTurn];
     }
@@ -670,6 +673,7 @@
 }
 
 - (void)commitCurrentTurn {
+    self.gameUpdated = YES;
     if (self.currentTurn.action == kSVMoveAction) {
         [self.board movePlayer:self.currentPlayer to:self.currentTurn.actionInfo];
     }
@@ -1050,8 +1054,8 @@
 }
 
 - (void)didClickBackButton:(id)sender {
-    if (self.delegate && [self.delegate respondsToSelector:@selector(gameViewControllerDidClickBack:)]) {
-        [self.delegate gameViewControllerDidClickBack:self];
+    if (self.delegate && [self.delegate respondsToSelector:@selector(gameViewControllerDidClickBack:gameUpdated:)]) {
+        [self.delegate gameViewControllerDidClickBack:self gameUpdated:self.gameUpdated];
     }
 }
 

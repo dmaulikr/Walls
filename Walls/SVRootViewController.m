@@ -60,7 +60,9 @@
 #pragma mark - Private
 
 - (void)showSignIn {
-    [self.wallsLabel removeFromSuperview];
+    for (UIView* view in self.view.subviews) {
+        [view removeFromSuperview];
+    }
     self.view.backgroundColor = [SVTheme sharedTheme].darkSquareColor;
     NSString* welcomeString = @"Welcome";
     NSMutableAttributedString* welcomeText = [[NSMutableAttributedString alloc] initWithString:welcomeString];
