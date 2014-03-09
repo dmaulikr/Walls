@@ -145,6 +145,7 @@
     if (animated) {
         self.hideRowsFinishBlock = block;
         float delay = 0;
+        int i = 0;
         while ((row = [enumerator nextObject])) {
             [UIView beginAnimations:@"rowOut" context:nil];
             [UIView setAnimationDuration:0.3];
@@ -155,10 +156,11 @@
                                    row.frame.size.width,
                                    row.frame.size.height);
             delay += 0.05;
-            if (row == [self.squareRows lastObject]) {
+            if (i == self.squareRows.count - 1) {
                 [UIView setAnimationDelegate:self];
                 [UIView setAnimationDidStopSelector:@selector(hideRowsAnimationDidStop:finished:context:)];
             }
+            i++;
             [UIView commitAnimations];
         }
     }
@@ -185,6 +187,7 @@
     if (animated) {
         self.showRowsFinishBlock = block;
         float delay = 0;
+        int i = 0;
         while ((row = [enumerator nextObject])) {
             [UIView beginAnimations:@"rowIn" context:nil];
             [UIView setAnimationDuration:0.3];
@@ -195,10 +198,11 @@
                                    row.frame.size.width,
                                    row.frame.size.height);
             delay += 0.05;
-            if (row == [self.squareRows lastObject]) {
+            if (i == self.squareRows.count - 1) {
                 [UIView setAnimationDelegate:self];
                 [UIView setAnimationDidStopSelector:@selector(showRowsAnimationDidStop:finished:context:)];
             }
+            i++;
             [UIView commitAnimations];
         }
     }
@@ -332,13 +336,13 @@
 #pragma mark - Delegates
 
 - (void)hideRowsAnimationDidStop:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context {
-    if (self.hideRowsFinishBlock) {
+    if (self.hideRowsFinishBlock && finished.boolValue) {
         self.hideRowsFinishBlock();
     }
 }
 
 - (void)showRowsAnimationDidStop:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context {
-    if (self.showRowsFinishBlock) {
+    if (self.showRowsFinishBlock && finished.boolValue) {
         self.showRowsFinishBlock();
     }
 }

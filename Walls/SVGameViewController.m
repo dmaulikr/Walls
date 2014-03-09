@@ -130,7 +130,6 @@
     [self.view addSubview:self.boardView];
     
     CGPoint point1 = [self.boardView squareCenterForPosition:self.board.playerPositions[self.localPlayer]];
-    NSLog(@"%@", NSStringFromCGPoint(point1));
     SVPawnView* pawnView1 = [[SVPawnView alloc] initWithFrame:CGRectMake(point1.x - 15, point1.y - 15, 30, 30)
                                                        color1:[SVTheme sharedTheme].localPlayerColor
                                                     andColor2:[SVTheme sharedTheme].localPlayerLightColor];
@@ -413,7 +412,7 @@
             view.alpha = 0;
         }
     } completion:nil];
-    [UIView animateWithDuration:0.25 delay:0.3 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+    [UIView animateWithDuration:0.25 delay:0.2 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         self.slidingBottom.frame = CGRectMake(self.slidingBottom.frame.origin.x,
                                               self.view.frame.size.height,
                                               self.slidingBottom.frame.size.width,
