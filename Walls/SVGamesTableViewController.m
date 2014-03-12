@@ -429,18 +429,18 @@ static NSString *gameCellIdentifier = @"GameCell";
                 self.deleteLabel = nil;
             }];
         }
-        
     }
-    
 }
 
 #pragma mark - Delegates
 
 - (void)turnBasedMatchmakerViewController:(GKTurnBasedMatchmakerViewController *)viewController didFindMatch:(GKTurnBasedMatch *)match {
-    [self.tableView insertRowsAtIndexPaths:[NSArray arrayWithObject:[NSIndexPath indexPathForRow:0 inSection:0]]
-                          withRowAnimation:UITableViewRowAnimationNone];
+    SVGame* game = [SVGame gameWithMatch:match];
+    [self.inProgressGames insertObject:game atIndex:0];
+    NSArray* indexPaths = [NSArray arrayWithObjects:[NSIndexPath indexPathForRow:0 inSection:0],
+                                                    [NSIndexPath indexPathForRow:1 inSection:0], nil];
+    [self.tableView insertRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationNone];
     [self dismissViewControllerAnimated:YES completion:^{
-        SVGame* game = [SVGame gameWithMatch:match];
         [self loadGame:game];
         self.plusButton.enabled = YES;
     }];
