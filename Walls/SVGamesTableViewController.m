@@ -115,38 +115,43 @@ static NSString *gameCellIdentifier = @"GameCell";
             NSLog(@"error : %@", error);
             return;
         }
-        int i = 0;
-        for (GKTurnBasedMatch* match in matches) {
-            [match loadMatchDataWithCompletionHandler:nil];
-            SVGame* game = [SVGame gameWithMatch:match];
-            if (game.match.status == GKTurnBasedMatchStatusEnded) {
-                [self.endedGames addObject:game];
-            }
-            else {
-                [self.inProgressGames addObject:game];
-            }
-            i++;
-        }
-        NSComparator comparator = ^(SVGame* obj1, SVGame* obj2) {
-            return [obj2.match.creationDate compare:obj1.match.creationDate];
-        };
-        [self.endedGames sortUsingComparator:comparator];
-        [self.inProgressGames sortUsingComparator:comparator];
         
-        NSMutableArray* indexPaths = [[NSMutableArray alloc] init];
-        for (int i = 0; i < self.inProgressGames.count + self.endedGames.count; i++) {
-            int section = 0;
-            int row = i * 2;
-            if (i >= self.inProgressGames.count) {
-                section = 1;
-                row = (i - (int)self.inProgressGames.count) * 2;
+        void(^block)(void) = ^{
+            NSComparator comparator = ^(SVGame* obj1, SVGame* obj2) {
+                return [obj2.match.creationDate compare:obj1.match.creationDate];
+            };
+            [self.endedGames sortUsingComparator:comparator];
+            [self.inProgressGames sortUsingComparator:comparator];
+            
+            NSMutableArray* indexPaths = [[NSMutableArray alloc] init];
+            for (int i = 0; i < self.inProgressGames.count + self.endedGames.count; i++) {
+                int section = 0;
+                int row = i * 2;
+                if (i >= self.inProgressGames.count) {
+                    section = 1;
+                    row = (i - (int)self.inProgressGames.count) * 2;
+                }
+                NSIndexPath* cellIndexPath = [NSIndexPath indexPathForRow:row inSection:section];
+                [indexPaths addObject:cellIndexPath];
+                NSIndexPath* spaceIndexPath = [NSIndexPath indexPathForRow:row + 1 inSection:section];
+                [indexPaths addObject:spaceIndexPath];
             }
-            NSIndexPath* cellIndexPath = [NSIndexPath indexPathForRow:row inSection:section];
-            [indexPaths addObject:cellIndexPath];
-            NSIndexPath* spaceIndexPath = [NSIndexPath indexPathForRow:row + 1 inSection:section];
-            [indexPaths addObject:spaceIndexPath];
+            [self.tableView insertRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationTop];
+        };
+        
+        for (GKTurnBasedMatch* match in matches) {
+            [match loadMatchDataWithCompletionHandler:^(NSData *matchData, NSError *error) {
+                SVGame* game = [SVGame gameWithMatch:match];
+                if (game.match.status == GKTurnBasedMatchStatusEnded) {
+                    [self.endedGames addObject:game];
+                }
+                else {
+                    [self.inProgressGames addObject:game];
+                }
+                if ([matches lastObject] == match)
+                    block();
+            }];
         }
-        [self.tableView insertRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationTop];
     }];
 }
 
@@ -271,6 +276,7 @@ static NSString *gameCellIdentifier = @"GameCell";
 }
 
 - (void)deleteGame:(SVGame*)game {
+    NSLog(@"delete");
     void(^deleteBlock)(void) = ^{
         [game.match removeWithCompletionHandler:^(NSError *error) {
             if (error) {

@@ -40,8 +40,8 @@
     SVGame* other = (SVGame*)object;
     return [self.turns isEqualToArray:other.turns] &&
            [self.match.matchID isEqual:other.match.matchID] &&
-            [self.firstPlayerID isEqual:other.firstPlayerID] &&
-            [self.secondPlayerID isEqual:other.secondPlayerID];
+           [self.firstPlayerID isEqual:other.firstPlayerID] &&
+           [self.secondPlayerID isEqual:other.secondPlayerID];
     
 }
 
