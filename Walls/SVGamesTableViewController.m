@@ -138,6 +138,8 @@ static NSString *gameCellIdentifier = @"GameCell";
             [self.tableView insertRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationTop];
         };
         
+        __block int count = 0;
+        
         for (GKTurnBasedMatch* match in matches) {
             [match loadMatchDataWithCompletionHandler:^(NSData *matchData, NSError *error) {
                 
@@ -158,7 +160,9 @@ static NSString *gameCellIdentifier = @"GameCell";
                 else {
                     [self.inProgressGames addObject:game];
                 }
-                if ([matches lastObject] == match)
+                
+                count++;
+                if (count == matches.count)
                     block();
             }];
         }
