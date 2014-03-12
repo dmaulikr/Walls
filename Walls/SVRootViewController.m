@@ -130,10 +130,12 @@
 }
 
 - (void)didAuthenticateLocalPlayer:(GKLocalPlayer *)localPlayer {
-    SVGamesTableViewController* controller = [[SVGamesTableViewController alloc] init];
-    self.containerController.view.frame = self.view.bounds;
-    [self.containerController pushViewController:controller];
-    [self.view addSubview:self.containerController.view];
+    if (self.containerController.view.superview != self.view) {
+        SVGamesTableViewController* controller = [[SVGamesTableViewController alloc] init];
+        self.containerController.view.frame = self.view.bounds;
+        [self.containerController pushViewController:controller];
+        [self.view addSubview:self.containerController.view];
+    }
 }
 
 #pragma mark - Target
