@@ -345,6 +345,7 @@ static NSString *gameCellIdentifier = @"GameCell";
 #pragma mark - Targets
 
 - (void)didClickPlusButton:(id)sender {
+    self.plusButton.enabled = NO;
     [self newGame];
 }
 
@@ -436,24 +437,30 @@ static NSString *gameCellIdentifier = @"GameCell";
 #pragma mark - Delegates
 
 - (void)turnBasedMatchmakerViewController:(GKTurnBasedMatchmakerViewController *)viewController didFindMatch:(GKTurnBasedMatch *)match {
+    [self.tableView insertRowsAtIndexPaths:[NSArray arrayWithObject:[NSIndexPath indexPathForRow:0 inSection:0]]
+                          withRowAnimation:UITableViewRowAnimationNone];
     [self dismissViewControllerAnimated:YES completion:^{
-        [self loadGame:[SVGame gameWithMatch:match]];
+        SVGame* game = [SVGame gameWithMatch:match];
+        [self loadGame:game];
         self.plusButton.enabled = YES;
     }];
 }
 
 - (void)turnBasedMatchmakerViewController:(GKTurnBasedMatchmakerViewController *)viewController playerQuitForMatch:(GKTurnBasedMatch *)match {
     NSLog(@"quit");
+    self.plusButton.enabled = YES;
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)turnBasedMatchmakerViewControllerWasCancelled:(GKTurnBasedMatchmakerViewController *)viewController {
     NSLog(@"cancelled");
+    self.plusButton.enabled = YES;
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)turnBasedMatchmakerViewController:(GKTurnBasedMatchmakerViewController *)viewController didFailWithError:(NSError *)error {
     NSLog(@"fail");
+    self.plusButton.enabled = YES;
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
