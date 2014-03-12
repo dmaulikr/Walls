@@ -443,7 +443,14 @@
     
     if (self.game.match.status == GKTurnBasedMatchStatusEnded) {
         self.bottomView.backgroundColor = [SVTheme sharedTheme].endedGameColor;
-        if (((SVTurn*)[self.game.turns lastObject]).player == self.localPlayer)
+        GKTurnBasedParticipant* localParticipant;
+        for (GKTurnBasedParticipant* participant in self.game.match.participants) {
+            if ([participant.playerID isEqualToString:[GKLocalPlayer localPlayer].playerID]) {
+                localParticipant = participant;
+                break;
+            }
+        }
+        if (localParticipant.matchOutcome == GKTurnBasedMatchOutcomeWon)
             self.bottomLabel.text = @"Won";
         else
             self.bottomLabel.text = @"Lost";
@@ -483,16 +490,14 @@
         self.opponentPlayer = kSVPlayer2;
     }
     else {
-        SVTurn* turn = [self.game.turns lastObject];
-        if ([self.game.match.currentParticipant.playerID isEqualToString:[GKLocalPlayer localPlayer].playerID]) {
-            self.localPlayer = (turn.player + 1) % 2;
-            self.opponentPlayer = turn.player;
+        if ([self.game.firstPlayerID isEqualToString:[GKLocalPlayer localPlayer].playerID]) {
+            self.localPlayer = kSVPlayer1;
+            self.opponentPlayer = kSVPlayer2;
+        } else {
+            self.localPlayer = kSVPlayer2;
+            self.opponentPlayer = kSVPlayer1;
         }
-        else {
-            self.opponentPlayer = (turn.player + 1) % 2;
-            self.localPlayer = turn.player;
-        }
-        self.currentPlayer = (turn.player + 1) % 2;
+        self.currentPlayer = self.game.turns.count % 2;
         
     }
     if (self.localPlayer == kSVPlayer1) {
