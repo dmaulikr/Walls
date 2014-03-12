@@ -454,14 +454,18 @@
             self.bottomLabel.text = @"Won";
         else
             self.bottomLabel.text = @"Lost";
-    }
-    else if (self.opponentName) {
+    } else {
         if (self.currentPlayer == self.localPlayer) {
             self.bottomLabel.text = @"Your turn";
         }
         else {
-            self.bottomLabel.text = [@"Waiting for " stringByAppendingString:[self.opponentName objectAtIndex:0]];
+            if (self.opponentName) {
+                self.bottomLabel.text = [@"Waiting for " stringByAppendingString:[self.opponentName objectAtIndex:0]];
+            }
         }
+    }
+    
+    if (self.opponentName) {
         if (self.opponentName.count == 1) {
             self.opponentPlayerLabel.text = [[self.opponentName objectAtIndex:0] substringWithRange:NSMakeRange(0, 2)];
         }
@@ -471,9 +475,8 @@
         }
     }
     else {
-        int index = [((GKTurnBasedParticipant*)[self.game.match.participants objectAtIndex:0]).playerID isEqualToString:[GKLocalPlayer localPlayer].playerID] ? 1 : 0;
-        GKTurnBasedParticipant* opponent = [self.game.match.participants objectAtIndex:index];
-        [GKPlayer loadPlayersForIdentifiers:[NSArray arrayWithObject:opponent.playerID]
+        NSString* opponentID = [self.game.firstPlayerID isEqualToString:[GKLocalPlayer localPlayer].playerID] ? self.game.secondPlayerID : self.game.firstPlayerID;
+        [GKPlayer loadPlayersForIdentifiers:[NSArray arrayWithObject:opponentID]
                       withCompletionHandler:^(NSArray *players, NSError *error) {
                           GKPlayer* player = [players objectAtIndex:0];
                           NSArray* words = [player.displayName componentsSeparatedByString:@" "];
