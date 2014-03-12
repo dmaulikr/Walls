@@ -17,6 +17,8 @@
     if (match.matchData.length == 0) {
         game = [[SVGame alloc] init];
         game.turns = [[NSMutableArray alloc] init];
+        game.firstPlayerID = [match.participants objectAtIndex:0];
+        game.secondPlayerID = [match.participants objectAtIndex:1];
     }
     else {
         game = [NSKeyedUnarchiver unarchiveObjectWithData:match.matchData];
@@ -37,7 +39,9 @@
     }
     SVGame* other = (SVGame*)object;
     return [self.turns isEqualToArray:other.turns] &&
-           [self.match.matchID isEqual:other.match.matchID];
+           [self.match.matchID isEqual:other.match.matchID] &&
+            [self.firstPlayerID isEqual:other.firstPlayerID] &&
+            [self.secondPlayerID isEqual:other.secondPlayerID];
     
 }
 
@@ -45,11 +49,15 @@
     self = [super init];
     if (self) {
         _turns = [aDecoder decodeObjectForKey:@"turns"];
+        _firstPlayerID = [aDecoder decodeObjectForKey:@"firstPlayerID"];
+        _secondPlayerID = [aDecoder decodeObjectForKey:@"secondPlayerID"];
     }
     return self;
 }
 
 - (void)encodeWithCoder:(NSCoder *)aCoder {
     [aCoder encodeObject:self.turns forKey:@"turns"];
+    [aCoder encodeObject:self.firstPlayerID forKey:@"firstPlayerID"];
+    [aCoder encodeObject:self.secondPlayerID forKey:@"secondPlayerID"];
 }
 @end

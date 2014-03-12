@@ -13,8 +13,8 @@
 @interface SVGame : NSObject <NSCoding>
 @property (strong) NSMutableArray* turns;
 @property (strong) GKTurnBasedMatch* match;
-@property (strong) GKPlayer* localPlayer;
-@property (strong) GKPlayer* opponentPlayer;
+@property (strong) NSString* firstPlayerID;
+@property (strong) NSString* secondPlayerID;
 
 + (id)gameWithMatch:(GKTurnBasedMatch*)match;
 - (NSData*)data;
