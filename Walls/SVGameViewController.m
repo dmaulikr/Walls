@@ -63,7 +63,7 @@
 - (SVWallView*)wallViewForWall:(SVWall*)wall;
 - (void)commitCurrentTurn;
 - (void)cancelCurrentTurn;
-- (void)addInfoWallOfType:(kSVWallType)type andPlay:(kSVPlayer)player;
+- (SVInfoWallView*)addInfoWallOfType:(kSVWallType)type andPlay:(kSVPlayer)player;
 - (SVInfoWallView*)firstInfoWallOfType:(kSVWallType)type andPlayer:(kSVPlayer)player;
 - (void)removeInfoWallOfType:(kSVWallType)type forPlayer:(kSVPlayer)player;
 - (BOOL)canPlayAction:(kSVAction)action withInfo:(id)actionInfo;
@@ -730,22 +730,25 @@
     self.currentTurn.action = kSVNoAction;
 }
 
-- (void)addInfoWallOfType:(kSVWallType)type andPlay:(kSVPlayer)player {
+- (SVInfoWallView*)addInfoWallOfType:(kSVWallType)type andPlay:(kSVPlayer)player {
     UIColor* color;
-    
-    if (type != kSVWallNormal)
-        color = self.playerColors[player];
-    else
-        color = [SVTheme sharedTheme].normalWallColor;
     
     int originX;
     int animationOffset;
-    if (player == self.localPlayer) {
-        originX = 38;
-        animationOffset = 7;
+    
+    int offsetCount = 0;
+    if (type != kSVWallNormal) {
+        color = self.playerColors[player];
+    } else {
+        color = [SVTheme sharedTheme].normalWallColor;
+        offsetCount = ((NSNumber*)[self.board.specialWallsRemaining objectAtIndex:player]).intValue;
     }
-    else {
-        originX = self.infoView.frame.size.width - 38 - 4;
+    
+    if (player == self.localPlayer) {
+        originX = 38 + 7 * offsetCount;
+        animationOffset = 7;
+    } else {
+        originX = self.infoView.frame.size.width - 38 - 4 - 7 * offsetCount;
         animationOffset = -7;
     }
     
@@ -756,7 +759,7 @@
                                                                                     15)
                                                         andColor:color];
     
-    for (int i = 0; i < infoWallViews.count; i++) {
+    for (int i = offsetCount; i < infoWallViews.count; i++) {
         [UIView animateWithDuration:0.5 animations:^{
             SVInfoWallView* wall = [infoWallViews objectAtIndex:i];
             wall.frame = CGRectMake(wall.frame.origin.x + animationOffset,
@@ -765,8 +768,9 @@
                                     wall.frame.size.height);
         }];
     }
-    [infoWallViews insertObject:infoWallView atIndex:0];
+    [infoWallViews insertObject:infoWallView atIndex:offsetCount];
     [self.infoView addSubview:infoWallView];
+    return infoWallView;
     
 };
 
@@ -979,8 +983,7 @@
     else if (turn.action == kSVAddWallAction) {
         SVWall* wall = turn.actionInfo;
         [self.board removeWallAtPosition:wall.position];
-        [self addInfoWallOfType:wall.type andPlay:turn.player];
-        SVInfoWallView* infoWallView = [[self.infoWallViews objectAtIndex:turn.player] firstObject];
+        SVInfoWallView* infoWallView = [self addInfoWallOfType:wall.type andPlay:turn.player];
         infoWallView.alpha = 0;
         SVWallView* wallView = [self.wallViews objectAtIndex:self.wallViews.count - 1];
         [UIView animateWithDuration:0.3 delay:0.2 options:UIViewAnimationOptionCurveEaseInOut animations:^{
@@ -1063,6 +1066,22 @@
 - (void)didClickBackButton:(id)sender {
     if (self.delegate && [self.delegate respondsToSelector:@selector(gameViewControllerDidClickBack:gameUpdated:)]) {
         [self.delegate gameViewControllerDidClickBack:self gameUpdated:self.gameUpdated];
+    }
+}
+
+- (void)didClickPlayerCircle:(id)sender {
+    UIButton* button = (UIButton*)sender;
+    //Avoid double clicking
+    button.enabled = NO;
+    if (button == [self.playerCircles objectAtIndex:self.currentPlayer]) {
+        [self replayTurn:(int)self.game.turns.count - 2 finishBlock:^{
+            button.enabled = YES;
+        }];
+    }
+    else {
+        [self replayTurn:(int)self.game.turns.count - 1 finishBlock:^{
+            button.enabled = YES;
+        }];
     }
 }
 
@@ -1303,22 +1322,6 @@
     if ([[theAnimation valueForKey:@"id"] isEqualToString:@"pawnAnimation1"]) {
         [self playTurn:(int)self.game.turns.count - 1 animated:YES delay:0.3 finishBlock:^{
             self.view.userInteractionEnabled = YES;
-        }];
-    }
-}
-
-- (void)didClickPlayerCircle:(id)sender {
-    UIButton* button = (UIButton*)sender;
-    //Avoid double clicking
-    button.enabled = NO;
-    if (button == [self.playerCircles objectAtIndex:self.currentPlayer]) {
-        [self replayTurn:(int)self.game.turns.count - 2 finishBlock:^{
-            button.enabled = YES;
-        }];
-    }
-    else {
-        [self replayTurn:(int)self.game.turns.count - 1 finishBlock:^{
-            button.enabled = YES;
         }];
     }
 }
