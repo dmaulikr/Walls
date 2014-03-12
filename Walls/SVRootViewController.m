@@ -31,8 +31,6 @@
 - (id)init {
     self = [super init];
     if (self) {
-        _containerController = [[SVCustomContainerController alloc] init];
-        _containerController.delegate = self;
         [self authenticateLocalPlayer];
         
     }
@@ -130,7 +128,9 @@
 }
 
 - (void)didAuthenticateLocalPlayer:(GKLocalPlayer *)localPlayer {
-    if (self.containerController.view.superview != self.view) {
+    if (!self.containerController || self.containerController.view.superview != self.view) {
+        self.containerController = [[SVCustomContainerController alloc] init];
+        self.containerController.delegate = self;
         SVGamesTableViewController* controller = [[SVGamesTableViewController alloc] init];
         self.containerController.view.frame = self.view.bounds;
         [self.containerController pushViewController:controller];

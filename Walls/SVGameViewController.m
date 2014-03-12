@@ -450,7 +450,7 @@
     }
     else if (self.opponentName) {
         if (self.currentPlayer == self.localPlayer) {
-            self.bottomLabel.text = @"You turn";
+            self.bottomLabel.text = @"Your turn";
         }
         else {
             self.bottomLabel.text = [@"Waiting for " stringByAppendingString:[self.opponentName objectAtIndex:0]];
