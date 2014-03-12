@@ -675,7 +675,8 @@
 - (void)commitCurrentTurn {
     self.gameUpdated = YES;
     if (self.currentTurn.action == kSVMoveAction) {
-        [self.board movePlayer:self.currentPlayer to:self.currentTurn.actionInfo];
+        NSDictionary* info = self.currentTurn.actionInfo;
+        [self.board movePlayer:self.currentPlayer to:[info objectForKey:@"newPosition"]];
     }
     else if (self.currentTurn.action == kSVAddWallAction) {
         SVWall* wall = self.currentTurn.actionInfo;
@@ -793,7 +794,7 @@
             SVInfoWallView* wall = [array objectAtIndex:i];
             wall.frame = CGRectMake(wall.frame.origin.x + offset, wall.frame.origin.y, wall.frame.size.width, wall.frame.size.height);
         }];
-    }
+    } 
 }
 
 - (BOOL)canPlayAction:(kSVAction)action withInfo:(id)actionInfo {
@@ -802,7 +803,7 @@
     if (self.currentTurn.action != kSVNoAction || self.currentPlayer == self.opponentPlayer)
         return NO;
     if (action == kSVMoveAction) {
-        return [self.board canPlayer:self.currentPlayer moveTo:actionInfo];
+        return [self.board canPlayer:self.currentPlayer moveTo:[actionInfo objectForKey:@"newPosition"]];
     }
     else if (action == kSVAddWallAction) {
         SVWall* wall = actionInfo;
@@ -899,8 +900,9 @@
             return;
         SVTurn* turn = [self.game.turns objectAtIndex:index];
         if (turn.action == kSVMoveAction) {
-            [self.board movePlayer:turn.player to:turn.actionInfo];
-            [self movePawnToPosition:turn.actionInfo forPlayer:turn.player animated:animated finishBlock:finishBlock];
+            NSDictionary* info = turn.actionInfo;
+            [self.board movePlayer:turn.player to:[info objectForKey:@"newPosition"]];
+            [self movePawnToPosition:[info objectForKey:@"newPosition"] forPlayer:turn.player animated:animated finishBlock:finishBlock];
         }
         else if (turn.action == kSVAddWallAction) {
             SVWall* wall = turn.actionInfo;
@@ -966,8 +968,9 @@
     };
     
     if (turn.action == kSVMoveAction) {
-        [self.board movePlayer:turn.player to:turn.actionInfo];
-        [self movePawnToPosition:turn.actionInfo forPlayer:turn.player animated:YES finishBlock:animationFinishBlock];
+        NSDictionary* info = turn.actionInfo;
+        [self.board movePlayer:turn.player to:[info objectForKey:@"oldPosition"]];
+        [self movePawnToPosition:[info objectForKey:@"oldPosition"] forPlayer:turn.player animated:YES finishBlock:animationFinishBlock];
     }
     else if (turn.action == kSVAddWallAction) {
         SVWall* wall = turn.actionInfo;
@@ -1059,87 +1062,87 @@
     }
 }
 
-- (void)didPanPawn:(UIPanGestureRecognizer *)gestureRecognizer {
-    SVPawnView* pawnView = [self.pawnViews objectAtIndex:self.localPlayer];
-    CGPoint point = [gestureRecognizer translationInView:pawnView];
-    
-    if (gestureRecognizer.state == UIGestureRecognizerStateBegan) {
-        CGPoint velocity = [gestureRecognizer velocityInView:pawnView];
-        if (abs(velocity.x) > abs(velocity.y)) {
-            if (velocity.x > 0) {
-                self.pawnPanDirection = kSVRightDirection;
-                self.pawnPanView = [[UIView alloc] initWithFrame:CGRectMake(pawnView.frame.origin.x,
-                                                                            pawnView.frame.origin.y,
-                                                                            point.x,
-                                                                            20)];
-            }
-            else {
-                self.pawnPanDirection = kSVLeftDirection;
-                self.pawnPanView = [[UIView alloc] initWithFrame:CGRectMake(pawnView.frame.origin.x + point.x,
-                                                                            pawnView.frame.origin.y,
-                                                                            -point.x,
-                                                                            20)];
-            }
-        }
-        else {
-            if (velocity.y > 0) {
-                self.pawnPanDirection = kSVBottomDirection;
-                self.pawnPanView = [[UIView alloc] initWithFrame:CGRectMake(pawnView.frame.origin.x,
-                                                                            pawnView.frame.origin.y,
-                                                                            20,
-                                                                            point.y)];
-            }
-            else {
-                self.pawnPanDirection = kSVTopDirection;
-                self.pawnPanView = [[UIView alloc] initWithFrame:CGRectMake(pawnView.frame.origin.x,
-                                                                            pawnView.frame.origin.y + point.y,
-                                                                            20,
-                                                                            -point.y)];
-            }
-        }
-        self.pawnPanView.backgroundColor = [UIColor redColor];
-        [self.boardView addSubview:self.pawnPanView];
-    }
-    else if (gestureRecognizer.state == UIGestureRecognizerStateChanged) {
-        if (self.pawnPanDirection == kSVLeftDirection)
-            self.pawnPanView.frame = CGRectMake(pawnView.frame.origin.x,
-                                                                        pawnView.frame.origin.y,
-                                                                        point.x,
-                                                                        20);
-        else if (self.pawnPanDirection == kSVRightDirection)
-            self.pawnPanView.frame = CGRectMake(pawnView.frame.origin.x + point.x,
-                                                                        pawnView.frame.origin.y,
-                                                                        -point.x,
-                                                                        20);
-        else if (self.pawnPanDirection == kSVTopDirection)
-            self.pawnPanView.frame = CGRectMake(pawnView.frame.origin.x,
-                                                                        pawnView.frame.origin.y,
-                                                                        20,
-                                                                        point.y);
-        else
-            self.pawnPanView.frame = CGRectMake(pawnView.frame.origin.x,
-                                                                        pawnView.frame.origin.y + point.y,
-                                                                        20,
-                                                                        -point.y);
-    }
-    else if (gestureRecognizer.state == UIGestureRecognizerStateEnded) {
-        SVPosition* position = [self.board.playerPositions objectAtIndex:self.localPlayer];
-        SVPosition* nextPosition;
-        if (self.pawnPanDirection == kSVLeftDirection)
-            nextPosition = [[SVPosition alloc] initWithX:position.x - 1 andY:position.y];
-        else if (self.pawnPanDirection == kSVRightDirection)
-            nextPosition = [[SVPosition alloc] initWithX:position.x + 1 andY:position.y];
-        else if (self.pawnPanDirection == kSVTopDirection)
-            nextPosition = [[SVPosition alloc] initWithX:position.x andY:position.y - 1];
-        else
-            nextPosition = [[SVPosition alloc] initWithX:position.x andY:position.y + 1];
-        
-        [self.pawnPanView removeFromSuperview];
-        if ([self.board canPlayer:self.localPlayer moveTo:nextPosition]) {
-            [self movePawnToPosition:nextPosition forPlayer:self.localPlayer animated:YES finishBlock:nil];
-        }
-    }
-}
+//- (void)didPanPawn:(UIPanGestureRecognizer *)gestureRecognizer {
+//    SVPawnView* pawnView = [self.pawnViews objectAtIndex:self.localPlayer];
+//    CGPoint point = [gestureRecognizer translationInView:pawnView];
+//    
+//    if (gestureRecognizer.state == UIGestureRecognizerStateBegan) {
+//        CGPoint velocity = [gestureRecognizer velocityInView:pawnView];
+//        if (abs(velocity.x) > abs(velocity.y)) {
+//            if (velocity.x > 0) {
+//                self.pawnPanDirection = kSVRightDirection;
+//                self.pawnPanView = [[UIView alloc] initWithFrame:CGRectMake(pawnView.frame.origin.x,
+//                                                                            pawnView.frame.origin.y,
+//                                                                            point.x,
+//                                                                            20)];
+//            }
+//            else {
+//                self.pawnPanDirection = kSVLeftDirection;
+//                self.pawnPanView = [[UIView alloc] initWithFrame:CGRectMake(pawnView.frame.origin.x + point.x,
+//                                                                            pawnView.frame.origin.y,
+//                                                                            -point.x,
+//                                                                            20)];
+//            }
+//        }
+//        else {
+//            if (velocity.y > 0) {
+//                self.pawnPanDirection = kSVBottomDirection;
+//                self.pawnPanView = [[UIView alloc] initWithFrame:CGRectMake(pawnView.frame.origin.x,
+//                                                                            pawnView.frame.origin.y,
+//                                                                            20,
+//                                                                            point.y)];
+//            }
+//            else {
+//                self.pawnPanDirection = kSVTopDirection;
+//                self.pawnPanView = [[UIView alloc] initWithFrame:CGRectMake(pawnView.frame.origin.x,
+//                                                                            pawnView.frame.origin.y + point.y,
+//                                                                            20,
+//                                                                            -point.y)];
+//            }
+//        }
+//        self.pawnPanView.backgroundColor = [UIColor redColor];
+//        [self.boardView addSubview:self.pawnPanView];
+//    }
+//    else if (gestureRecognizer.state == UIGestureRecognizerStateChanged) {
+//        if (self.pawnPanDirection == kSVLeftDirection)
+//            self.pawnPanView.frame = CGRectMake(pawnView.frame.origin.x,
+//                                                                        pawnView.frame.origin.y,
+//                                                                        point.x,
+//                                                                        20);
+//        else if (self.pawnPanDirection == kSVRightDirection)
+//            self.pawnPanView.frame = CGRectMake(pawnView.frame.origin.x + point.x,
+//                                                                        pawnView.frame.origin.y,
+//                                                                        -point.x,
+//                                                                        20);
+//        else if (self.pawnPanDirection == kSVTopDirection)
+//            self.pawnPanView.frame = CGRectMake(pawnView.frame.origin.x,
+//                                                                        pawnView.frame.origin.y,
+//                                                                        20,
+//                                                                        point.y);
+//        else
+//            self.pawnPanView.frame = CGRectMake(pawnView.frame.origin.x,
+//                                                                        pawnView.frame.origin.y + point.y,
+//                                                                        20,
+//                                                                        -point.y);
+//    }
+//    else if (gestureRecognizer.state == UIGestureRecognizerStateEnded) {
+//        SVPosition* position = [self.board.playerPositions objectAtIndex:self.localPlayer];
+//        SVPosition* nextPosition;
+//        if (self.pawnPanDirection == kSVLeftDirection)
+//            nextPosition = [[SVPosition alloc] initWithX:position.x - 1 andY:position.y];
+//        else if (self.pawnPanDirection == kSVRightDirection)
+//            nextPosition = [[SVPosition alloc] initWithX:position.x + 1 andY:position.y];
+//        else if (self.pawnPanDirection == kSVTopDirection)
+//            nextPosition = [[SVPosition alloc] initWithX:position.x andY:position.y - 1];
+//        else
+//            nextPosition = [[SVPosition alloc] initWithX:position.x andY:position.y + 1];
+//        
+//        [self.pawnPanView removeFromSuperview];
+//        if ([self.board canPlayer:self.localPlayer moveTo:nextPosition]) {
+//            [self movePawnToPosition:nextPosition forPlayer:self.localPlayer animated:YES finishBlock:nil];
+//        }
+//    }
+//}
 
 #pragma mark - Delegates
 
@@ -1281,10 +1284,13 @@
 }
 
 - (void)boardView:(SVBoardView *)boardView didTapSquare:(SVPosition *)position {
-    if ([self canPlayAction:kSVMoveAction withInfo:position]) {
+    NSMutableDictionary* info = [[NSMutableDictionary alloc] init];
+    [info setObject:[self.board.playerPositions objectAtIndex:self.currentPlayer] forKey:@"oldPosition"];
+    [info setObject:position forKey:@"newPosition"];
+    if ([self canPlayAction:kSVMoveAction withInfo:info]) {
         [self movePawnToPosition:position forPlayer:self.currentPlayer animated:YES finishBlock:nil];
         self.currentTurn.action = kSVMoveAction;
-        self.currentTurn.actionInfo = position;
+        self.currentTurn.actionInfo = info;
         [self didPlayAction];
     }
 }

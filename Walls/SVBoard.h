@@ -18,6 +18,7 @@ typedef enum {
 @interface SVBoard : NSObject <NSCopying, NSCoding>
 @property (assign, readonly) CGSize size;
 @property (strong, readonly) NSMutableDictionary* walls;
+@property (strong, readonly) NSArray* startPositions;
 @property (strong, readonly) NSMutableArray* playerPositions;
 @property (strong) NSMutableArray* normalWallsRemaining;
 @property (strong) NSMutableArray* specialWallsRemaining;

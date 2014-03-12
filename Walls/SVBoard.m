@@ -21,9 +21,11 @@
     if (self) {
         _size = CGSizeMake(7, 9);
         _walls = [[NSMutableDictionary alloc] init];
+        _startPositions = [[NSArray alloc] initWithObjects:[[SVPosition alloc] initWithX:floor(_size.width / 2) andY:_size.height - 1],
+                                                            [[SVPosition alloc] initWithX:floor(_size.width / 2) andY:0], nil];
         _playerPositions = [[NSMutableArray alloc] init];
-        [_playerPositions addObject:[[SVPosition alloc] initWithX:floor(_size.width / 2) andY:_size.height - 1]];
-        [_playerPositions addObject:[[SVPosition alloc] initWithX:floor(_size.width / 2) andY:0]];
+        [_playerPositions addObject:[_startPositions objectAtIndex:kSVPlayer1]];
+        [_playerPositions addObject:[_startPositions objectAtIndex:kSVPlayer2]];
         _playerGoalsY = [[NSMutableArray alloc] initWithObjects:[NSNumber numberWithInt:0],
                                                                 [NSNumber numberWithInt:_size.height - 1], nil];
         _normalWallsRemaining = [[NSMutableArray alloc] initWithObjects:[NSNumber numberWithInt:6],
