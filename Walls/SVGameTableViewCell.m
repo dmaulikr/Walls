@@ -108,45 +108,45 @@ static NSCache* imageCache;
     
     //Load images
     
-//    UIImage* image1 = [imageCache objectForKey:game.firstPlayerID];
-//    UIImage* image2 = [imageCache objectForKey:game.secondPlayerID];
-//    if (!image1) {
-//        [GKPlayer loadPlayersForIdentifiers:[NSArray arrayWithObject:game.firstPlayerID]
-//                      withCompletionHandler:^(NSArray *players, NSError *error) {
-//                          if (!error) {
-//                              GKPlayer* player = [players objectAtIndex:0];
-//                              [player loadPhotoForSize:GKPhotoSizeSmall
-//                                 withCompletionHandler:^(UIImage *photo, NSError *error) {
-//                                     if (!error) {
-//                                         UIImage* image = [self resizedImage:photo];
-//                                         [imageCache setObject:image forKey:game.firstPlayerID];
-//                                         [self drawLeftImage:image];
-//                                     }
-//                              }];
-//                          }
-//                      }];
-//    }
-//    else
-//        [self drawLeftImage:image1];
-//    
-//    if (!image2) {
-//        [GKPlayer loadPlayersForIdentifiers:[NSArray arrayWithObject:game.secondPlayerID]
-//                      withCompletionHandler:^(NSArray *players, NSError *error) {
-//                          if (!error) {
-//                              GKPlayer* player = [players objectAtIndex:0];
-//                              [player loadPhotoForSize:GKPhotoSizeSmall
-//                                 withCompletionHandler:^(UIImage *photo, NSError *error) {
-//                                     if (!error) {
-//                                         UIImage* image = [self resizedImage:photo];
-//                                         [imageCache setObject:image forKey:game.secondPlayerID];
-//                                         [self drawRightImage:image];
-//                                     }
-//                              }];
-//                          }
-//                      }];
-//    }
-//    else
-//        [self drawRightImage:image2];
+    UIImage* image1 = [imageCache objectForKey:game.firstPlayerID];
+    UIImage* image2 = [imageCache objectForKey:game.secondPlayerID];
+    if (!image1) {
+        [GKPlayer loadPlayersForIdentifiers:[NSArray arrayWithObject:game.firstPlayerID]
+                      withCompletionHandler:^(NSArray *players, NSError *error) {
+                          if (!error) {
+                              GKPlayer* player = [players objectAtIndex:0];
+                              [player loadPhotoForSize:GKPhotoSizeSmall
+                                 withCompletionHandler:^(UIImage *photo, NSError *error) {
+                                     if (!error) {
+                                         UIImage* image = [self resizedImage:photo];
+                                         [imageCache setObject:image forKey:game.firstPlayerID];
+                                         [self drawLeftImage:image];
+                                     }
+                              }];
+                          }
+                      }];
+    }
+    else
+        [self drawLeftImage:image1];
+    
+    if (!image2) {
+        [GKPlayer loadPlayersForIdentifiers:[NSArray arrayWithObject:game.secondPlayerID]
+                      withCompletionHandler:^(NSArray *players, NSError *error) {
+                          if (!error) {
+                              GKPlayer* player = [players objectAtIndex:0];
+                              [player loadPhotoForSize:GKPhotoSizeSmall
+                                 withCompletionHandler:^(UIImage *photo, NSError *error) {
+                                     if (!error) {
+                                         UIImage* image = [self resizedImage:photo];
+                                         [imageCache setObject:image forKey:game.secondPlayerID];
+                                         [self drawRightImage:image];
+                                     }
+                              }];
+                          }
+                      }];
+    }
+    else
+        [self drawRightImage:image2];
 }
 
 - (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated {
