@@ -138,10 +138,10 @@
     SVPawnView* pawnView2 =  [[SVPawnView alloc] initWithFrame:CGRectMake(point2.x - 15, point2.y - 15, 30, 30)
                                                         color1:[SVTheme sharedTheme].opponentPlayerColor
                                                      andColor2:[SVTheme sharedTheme].opponentPlayerLightColor];
-    UIPanGestureRecognizer* panGestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(didPanPawn:)];
-    panGestureRecognizer.minimumNumberOfTouches = 1;
-    panGestureRecognizer.maximumNumberOfTouches = 1;
-    [pawnView1 addGestureRecognizer:panGestureRecognizer];
+//    UIPanGestureRecognizer* panGestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(didPanPawn:)];
+//    panGestureRecognizer.minimumNumberOfTouches = 1;
+//    panGestureRecognizer.maximumNumberOfTouches = 1;
+//    [pawnView1 addGestureRecognizer:panGestureRecognizer];
     
     //Info
     self.slidingBottom = [[UIView alloc] initWithFrame:CGRectMake(0,
@@ -279,9 +279,7 @@
 }
 
 - (void)opponentPlayerDidPlayTurn:(SVGame*)game {
-    self.game.turns = game.turns;
-    self.game.match = game.match;
-    
+    self.game = game;
     [self newTurn];
     [self adjustUI];
     //Prevent player to play until new turn is played

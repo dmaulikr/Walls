@@ -13,5 +13,6 @@
 
 @interface SVGamesTableViewController : UITableViewController <GKTurnBasedMatchmakerViewControllerDelegate,
                                                                GKLocalPlayerListener,
-                                                               SVGameViewControllerDelegate>
+                                                               SVGameViewControllerDelegate,
+                                                               UIGestureRecognizerDelegate>
 @end

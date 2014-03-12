@@ -63,7 +63,7 @@ static NSCache* imageCache;
 
 - (void)setFrame:(CGRect)frame {
     frame.origin.x += kSVGameTableViewCellXOffset;
-    frame.size.width -= 2 * kSVGameTableViewCellXOffset;
+    frame.size.width = self.superview.frame.size.width -  2 * kSVGameTableViewCellXOffset;
     self.label.frame = CGRectMake(30,
                                   (frame.size.height - 30) / 2,
                                   frame.size.width - 60, 30);
@@ -107,47 +107,46 @@ static NSCache* imageCache;
     [self setColor:self.originalColor];
     
     //Load images
-    GKTurnBasedParticipant* participant1 = [game.match.participants objectAtIndex:0];
-    GKTurnBasedParticipant* participant2 = [game.match.participants objectAtIndex:1];
-    UIImage* image1 = [imageCache objectForKey:participant1.playerID];
-    UIImage* image2 = [imageCache objectForKey:participant2.playerID];
-    if (!image1) {
-        [GKPlayer loadPlayersForIdentifiers:[NSArray arrayWithObject:participant1.playerID]
-                      withCompletionHandler:^(NSArray *players, NSError *error) {
-                          if (!error) {
-                              GKPlayer* player = [players objectAtIndex:0];
-                              [player loadPhotoForSize:GKPhotoSizeSmall
-                                 withCompletionHandler:^(UIImage *photo, NSError *error) {
-                                     if (!error) {
-                                         UIImage* image = [self resizedImage:photo];
-                                         [imageCache setObject:image forKey:participant1.playerID];
-                                         [self drawLeftImage:image];
-                                     }
-                              }];
-                          }
-                      }];
-    }
-    else
-        [self drawLeftImage:image1];
     
-    if (!image2) {
-        [GKPlayer loadPlayersForIdentifiers:[NSArray arrayWithObject:participant2.playerID]
-                      withCompletionHandler:^(NSArray *players, NSError *error) {
-                          if (!error) {
-                              GKPlayer* player = [players objectAtIndex:0];
-                              [player loadPhotoForSize:GKPhotoSizeSmall
-                                 withCompletionHandler:^(UIImage *photo, NSError *error) {
-                                     if (!error) {
-                                         UIImage* image = [self resizedImage:photo];
-                                         [imageCache setObject:image forKey:participant2.playerID];
-                                         [self drawRightImage:image];
-                                     }
-                              }];
-                          }
-                      }];
-    }
-    else
-        [self drawRightImage:image2];
+//    UIImage* image1 = [imageCache objectForKey:game.firstPlayerID];
+//    UIImage* image2 = [imageCache objectForKey:game.secondPlayerID];
+//    if (!image1) {
+//        [GKPlayer loadPlayersForIdentifiers:[NSArray arrayWithObject:game.firstPlayerID]
+//                      withCompletionHandler:^(NSArray *players, NSError *error) {
+//                          if (!error) {
+//                              GKPlayer* player = [players objectAtIndex:0];
+//                              [player loadPhotoForSize:GKPhotoSizeSmall
+//                                 withCompletionHandler:^(UIImage *photo, NSError *error) {
+//                                     if (!error) {
+//                                         UIImage* image = [self resizedImage:photo];
+//                                         [imageCache setObject:image forKey:game.firstPlayerID];
+//                                         [self drawLeftImage:image];
+//                                     }
+//                              }];
+//                          }
+//                      }];
+//    }
+//    else
+//        [self drawLeftImage:image1];
+//    
+//    if (!image2) {
+//        [GKPlayer loadPlayersForIdentifiers:[NSArray arrayWithObject:game.secondPlayerID]
+//                      withCompletionHandler:^(NSArray *players, NSError *error) {
+//                          if (!error) {
+//                              GKPlayer* player = [players objectAtIndex:0];
+//                              [player loadPhotoForSize:GKPhotoSizeSmall
+//                                 withCompletionHandler:^(UIImage *photo, NSError *error) {
+//                                     if (!error) {
+//                                         UIImage* image = [self resizedImage:photo];
+//                                         [imageCache setObject:image forKey:game.secondPlayerID];
+//                                         [self drawRightImage:image];
+//                                     }
+//                              }];
+//                          }
+//                      }];
+//    }
+//    else
+//        [self drawRightImage:image2];
 }
 
 - (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated {

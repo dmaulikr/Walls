@@ -30,6 +30,8 @@
 
 - (void)testEncoding {
     SVGame* game = [[SVGame alloc] init];
+    game.firstPlayerID = @"player1ID";
+    game.secondPlayerID = @"player2ID";
     SVTurn* turn = [[SVTurn alloc] init];
     turn.action = kSVMoveAction;
     turn.actionInfo = [NSNumber numberWithBool:YES];
@@ -38,6 +40,8 @@
     NSData* data = [game data];
     SVGame* newGame = [NSKeyedUnarchiver unarchiveObjectWithData:data];
     XCTAssertEqualObjects(game.turns, newGame.turns, @"Games not equal after encoding");
+    XCTAssertEqualObjects(game.firstPlayerID, newGame.firstPlayerID, @"Games not equal after encoding");
+    XCTAssertEqualObjects(game.secondPlayerID, newGame.secondPlayerID, @"Games not equal after encoding");
 }
 
 @end
