@@ -324,14 +324,6 @@
         } completion:nil];
         
         [self.boardView showRowsAnimated:YES withFinishBlock:^{
-            for (int i = 0; i < (int)weakSelf.game.turns.count - 1; i++) {
-                SVTurn* turn = [weakSelf.game.turns objectAtIndex:i];
-                if (turn.action == kSVMoveAction)
-                    [weakSelf playTurn:i animated:NO delay:0 finishBlock:nil];
-                else
-                    [weakSelf playTurn:i animated:YES delay:0 finishBlock:nil];
-            }
-            
             //Build info walls
             int leftOffset = 38;
             int specialWallsCount = ((NSNumber*)[self.board.specialWallsRemaining objectAtIndex:self.localPlayer]).intValue;
@@ -365,6 +357,15 @@
                 rightOffset = CGRectGetMinX(wall.frame) - 3 - 4;
                 [[self.infoWallViews objectAtIndex:self.opponentPlayer] addObject:wall];
                 [self.infoView addSubview:wall];
+            }
+            
+            
+            for (int i = 0; i < (int)weakSelf.game.turns.count - 1; i++) {
+                SVTurn* turn = [weakSelf.game.turns objectAtIndex:i];
+                if (turn.action == kSVMoveAction)
+                    [weakSelf playTurn:i animated:NO delay:0 finishBlock:nil];
+                else
+                    [weakSelf playTurn:i animated:YES delay:0 finishBlock:nil];
             }
         
             //Animate pawns and walls
