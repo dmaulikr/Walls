@@ -73,7 +73,6 @@ static NSString *gameCellIdentifier = @"GameCell";
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     [self setTopBarButtonsAnimated:NO];
-    
 }
 
 - (void)didReceiveMemoryWarning
@@ -141,6 +140,17 @@ static NSString *gameCellIdentifier = @"GameCell";
         
         for (GKTurnBasedMatch* match in matches) {
             [match loadMatchDataWithCompletionHandler:^(NSData *matchData, NSError *error) {
+                
+//                GKTurnBasedParticipant* p1 = [match.participants objectAtIndex:0];
+//                GKTurnBasedParticipant* p2 = [match.participants objectAtIndex:1];
+//                p1.matchOutcome = GKTurnBasedMatchOutcomeLost;
+//                p2.matchOutcome = GKTurnBasedMatchOutcomeWon;
+//                [match endMatchInTurnWithMatchData:match.matchData completionHandler:^(NSError *error) {
+//                    [match removeWithCompletionHandler:^(NSError *error) {
+//                        NSLog(@"deleted");
+//                    }];
+//                }];
+//                return;
                 SVGame* game = [SVGame gameWithMatch:match];
                 if (game.match.status == GKTurnBasedMatchStatusEnded) {
                     [self.endedGames addObject:game];
@@ -276,7 +286,6 @@ static NSString *gameCellIdentifier = @"GameCell";
 }
 
 - (void)deleteGame:(SVGame*)game {
-    NSLog(@"delete");
     void(^deleteBlock)(void) = ^{
         [game.match removeWithCompletionHandler:^(NSError *error) {
             if (error) {

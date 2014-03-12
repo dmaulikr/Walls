@@ -17,8 +17,8 @@
     if (match.matchData.length == 0) {
         game = [[SVGame alloc] init];
         game.turns = [[NSMutableArray alloc] init];
-        game.firstPlayerID = [match.participants objectAtIndex:0];
-        game.secondPlayerID = [match.participants objectAtIndex:1];
+        game.firstPlayerID = ((GKTurnBasedParticipant*)[match.participants objectAtIndex:0]).playerID;
+        game.secondPlayerID = ((GKTurnBasedParticipant*)[match.participants objectAtIndex:1]).playerID;
     }
     else {
         game = [NSKeyedUnarchiver unarchiveObjectWithData:match.matchData];
