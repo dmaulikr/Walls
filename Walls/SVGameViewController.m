@@ -21,29 +21,41 @@
 
 @interface SVGameViewController ()
 
-//Game data
+/////////////////////////////////////////////////////
+// Game data
+/////////////////////////////////////////////////////
 @property (strong) SVGame* game;
 @property (strong) SVBoard* board;
 @property (strong) NSArray* playerColors;
 
-//Views
+/////////////////////////////////////////////////////
+// Views
+/////////////////////////////////////////////////////
+
+//Top
 @property (strong) UIView* topLine;
+
+//Board
 @property (strong) SVBoardView* boardView;
-@property (strong) UIView* slidingBottom;
-@property (strong) SVCustomView* infoView;
-@property (strong) UIView* bottomView;
-@property (strong) UILabel* bottomLabel;
-@property (strong) NSMutableArray* infoWallViews;
 @property (strong) NSMutableArray* pawnViews;
-@property (strong) NSMutableArray* wallViews;
+@property (strong) NSMutableDictionary* wallViews;
+
+//Bottom
+@property (strong) UIView* bottomView;
+@property (strong) SVCustomView* infoView;
+@property (strong) UIView* footerView;
+@property (strong) UILabel* footerLabel;
+@property (strong) NSMutableArray* playerCircles;
 @property (strong) SVColorButton* colorButton;
 @property (strong) UIButton* cancelButton;
 @property (strong) UIButton* validateButton;
 @property (strong) UILabel* opponentPlayerLabel;
-@property (strong) NSMutableArray* playerCircles;
-@property (assign) BOOL hiddingView;
+@property (strong) NSMutableArray* infoWallViews;
 
-//Turn info
+/////////////////////////////////////////////////////
+// Turn info
+/////////////////////////////////////////////////////
+
 @property (strong) SVTurn* currentTurn;
 @property (strong) NSMutableDictionary* buildingWallInfo;
 @property (assign) kSVPlayer currentPlayer;
@@ -53,23 +65,32 @@
 @property (strong) NSArray* opponentName;
 @property (assign) kSVPanDirection pawnPanDirection;
 @property (strong) UIView* pawnPanView;
-
 @property (assign) BOOL gameUpdated;
 
+
+/////////////////////////////////////////////////////
+// Other
+/////////////////////////////////////////////////////
+
+@property (assign) BOOL hiddingView;
+
+
+
 //Private
-- (void)adjustUI;
+- (void)updateUI;
 - (void)newTurn;
 - (UIColor*)colorForWall:(SVWall*)wall;
 - (SVWallView*)wallViewForWall:(SVWall*)wall;
 - (void)commitCurrentTurn;
 - (void)cancelCurrentTurn;
-- (SVInfoWallView*)addInfoWallOfType:(kSVWallType)type andPlay:(kSVPlayer)player;
-- (SVInfoWallView*)firstInfoWallOfType:(kSVWallType)type andPlayer:(kSVPlayer)player;
+- (SVInfoWallView*)addInfoWallOfType:(kSVWallType)type forPlayer:(kSVPlayer)player;
+- (SVInfoWallView*)firstInfoWallOfType:(kSVWallType)type forPlayer:(kSVPlayer)player;
 - (void)removeInfoWallOfType:(kSVWallType)type forPlayer:(kSVPlayer)player;
 - (BOOL)canPlayAction:(kSVAction)action withInfo:(id)actionInfo;
 - (void)didPlayAction;
-- (void)playTurn:(int)index animated:(BOOL)animated delay:(NSTimeInterval)delay finishBlock:(void(^)(void))finishBlock;
-- (void)replayTurn:(int)index finishBlock:(void(^)(void))finishBlock;
+- (void)playTurn:(SVTurn*)turn;
+- (void)displayTurn:(SVTurn*)turn animated:(BOOL)animated delay:(NSTimeInterval)delay finishBlock:(void(^)(void))finishBlock;
+- (void)reDisplayTurnAnimated:(SVTurn*)turn finishBlock:(void(^)(void))finishBlock;
 - (void)performBlock:(void(^)(void))block;
 - (void)movePawnToPosition:(SVPosition*)position forPlayer:(kSVPlayer)player animated:(BOOL)animated finishBlock:(void(^)(void))finishBlock;
 
@@ -96,7 +117,7 @@
         [_infoWallViews addObject:[[NSMutableArray alloc] init]];
         [_infoWallViews addObject:[[NSMutableArray alloc] init]];
         _pawnViews = [[NSMutableArray alloc] init];
-        _wallViews = [[NSMutableArray alloc] init];
+        _wallViews = [[NSMutableDictionary alloc] init];
         _playerCircles = [[NSMutableArray alloc] init];
         _hiddingView = NO;
         _gameUpdated = NO;
@@ -108,9 +129,19 @@
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    //Init view
+    
     //Prevent user from playing before last turn is shown
     self.view.userInteractionEnabled = NO;
+    
+    //Play turns except last one
+    for (int i = 0; i < (int)self.game.turns.count - 1; i++) {
+        SVTurn* turn = [self.game.turns objectAtIndex:i];
+        [self playTurn:turn];
+    }
+    
+    /////////////////////////////////////////////////////
+    // Top
+    /////////////////////////////////////////////////////
     
     self.topLine = [[UIView alloc] initWithFrame:CGRectMake(0,
                                                               0,
@@ -119,6 +150,10 @@
     self.topLine.backgroundColor = [SVTheme sharedTheme].squareBorderColor;
     self.topLine.alpha = 0;
     [self.view addSubview:self.topLine];
+    
+    /////////////////////////////////////////////////////
+    // Board
+    /////////////////////////////////////////////////////
     
     self.boardView = [[SVBoardView alloc] initWithFrame:CGRectMake(0,
                                                                    CGRectGetMaxY(self.topLine.frame),
@@ -129,6 +164,7 @@
     [self.boardView hideRowsAnimated:NO withFinishBlock:nil];
     [self.view addSubview:self.boardView];
     
+    //Already positioned to last position (turn - 1)
     CGPoint point1 = [self.boardView squareCenterForPosition:self.board.playerPositions[self.localPlayer]];
     SVPawnView* pawnView1 = [[SVPawnView alloc] initWithFrame:CGRectMake(point1.x - 15, point1.y - 15, 30, 30)
                                                        color1:[SVTheme sharedTheme].localPlayerColor
@@ -143,12 +179,16 @@
 //    panGestureRecognizer.maximumNumberOfTouches = 1;
 //    [pawnView1 addGestureRecognizer:panGestureRecognizer];
     
-    //Info
-    self.slidingBottom = [[UIView alloc] initWithFrame:CGRectMake(0,
-                                                                  CGRectGetMaxY(self.boardView.frame),
-                                                                  self.view.frame.size.width,
-                                                                  self.view.frame.size.height - CGRectGetMaxY(self.boardView.frame))];
-    [self.view addSubview:self.slidingBottom];
+    /////////////////////////////////////////////////////
+    // Bottom
+    /////////////////////////////////////////////////////
+    
+    self.bottomView = [[UIView alloc] initWithFrame:CGRectMake(0,
+                                                               CGRectGetMaxY(self.boardView.frame),
+                                                               self.view.frame.size.width,
+                                                               self.view.frame.size.height - CGRectGetMaxY(self.boardView.frame))];
+    [self.view addSubview:self.bottomView];
+    
     self.infoView = [[SVCustomView alloc] initWithFrame:CGRectMake(0,
                                                                    0,
                                                                    self.view.frame.size.width,
@@ -161,7 +201,43 @@
         [bezierPath fill];
     }];
     
-    [self.slidingBottom addSubview:self.infoView];
+    //Build info walls
+    int leftOffset = 38;
+    int specialWallsCount = ((NSNumber*)[self.board.specialWallsRemaining objectAtIndex:self.localPlayer]).intValue;
+    int normalWallsCount = ((NSNumber*)[self.board.normalWallsRemaining objectAtIndex:self.localPlayer]).intValue;
+    for (int i = 0; i <  specialWallsCount + normalWallsCount ; i++) {
+        UIColor* color;
+        if (i < specialWallsCount)
+            color = self.playerColors[self.localPlayer];
+        else
+            color = [SVTheme sharedTheme].normalWallColor;
+        
+        SVInfoWallView* wall = [[SVInfoWallView alloc] initWithFrame:CGRectMake(leftOffset, (self.infoView.frame.size.height - 15) / 2, 4, 15)
+                                                            andColor:color];
+        leftOffset = CGRectGetMaxX(wall.frame) + 3;
+        [[self.infoWallViews objectAtIndex:self.localPlayer] addObject:wall];
+        [self.infoView addSubview:wall];
+    }
+    
+    int rightOffset = self.infoView.frame.size.width - 38 - 4;
+    specialWallsCount = ((NSNumber*)[self.board.specialWallsRemaining objectAtIndex:self.opponentPlayer]).intValue;
+    normalWallsCount = ((NSNumber*)[self.board.normalWallsRemaining objectAtIndex:self.opponentPlayer]).intValue;
+    for (int i = 0; i <  specialWallsCount + normalWallsCount ; i++) {
+        UIColor* color;
+        if (i < specialWallsCount)
+            color = self.playerColors[self.opponentPlayer];
+        else
+            color = [SVTheme sharedTheme].normalWallColor;
+        
+        SVInfoWallView* wall = [[SVInfoWallView alloc] initWithFrame:CGRectMake(rightOffset, (self.infoView.frame.size.height - 15) / 2, 4, 15)
+                                                            andColor:color];
+        rightOffset = CGRectGetMinX(wall.frame) - 3 - 4;
+        [[self.infoWallViews objectAtIndex:self.opponentPlayer] addObject:wall];
+        [self.infoView addSubview:wall];
+    }
+
+    
+    [self.bottomView addSubview:self.infoView];
     
     SVCustomButton* localPlayerCircle = [[SVCustomButton alloc] initWithFrame:CGRectMake(7,
                                                                                          (self.infoView.frame.size.height - 24) / 2,
@@ -233,28 +309,27 @@
     [self.colorButton addTarget:self action:@selector(didClickColorButton:) forControlEvents:UIControlEventTouchUpInside];
     [self.infoView addSubview:self.colorButton];
     
-    //Bottom
-    self.bottomView = [[UIView alloc] initWithFrame:CGRectMake(0,
+    self.footerView = [[UIView alloc] initWithFrame:CGRectMake(0,
                                                                CGRectGetMaxY(self.infoView.frame),
-                                                               self.slidingBottom.frame.size.width,
-                                                               self.slidingBottom.frame.size.height - CGRectGetMaxY(self.infoView.frame))];
-    [self.slidingBottom addSubview:self.bottomView];
+                                                               self.bottomView.frame.size.width,
+                                                               self.bottomView.frame.size.height - CGRectGetMaxY(self.infoView.frame))];
+    [self.bottomView addSubview:self.footerView];
     
-    self.bottomLabel = [[UILabel alloc] initWithFrame:CGRectMake((self.bottomView.frame.size.width - 250) / 2,
+    self.footerLabel = [[UILabel alloc] initWithFrame:CGRectMake((self.footerView.frame.size.width - 250) / 2,
                                                                  0,
                                                                  250,
-                                                                 self.bottomView.frame.size.height)];
-    self.bottomLabel.textColor = [UIColor whiteColor];
-    self.bottomLabel.font = [UIFont fontWithName:@"HelveticaNeue" size:20];
-    self.bottomLabel.lineBreakMode = NSLineBreakByTruncatingTail;
-    self.bottomLabel.textAlignment = NSTextAlignmentCenter;
-    [self.bottomView addSubview:self.bottomLabel];
+                                                                 self.footerView.frame.size.height)];
+    self.footerLabel.textColor = [UIColor whiteColor];
+    self.footerLabel.font = [UIFont fontWithName:@"HelveticaNeue" size:20];
+    self.footerLabel.lineBreakMode = NSLineBreakByTruncatingTail;
+    self.footerLabel.textAlignment = NSTextAlignmentCenter;
+    [self.footerView addSubview:self.footerLabel];
     
     //Move off screen for animation
-    self.slidingBottom.frame = CGRectMake(self.slidingBottom.frame.origin.x,
-                                          self.view.frame.size.height,
-                                          self.slidingBottom.frame.size.width,
-                                          self.slidingBottom.frame.size.height);
+    self.bottomView.frame = CGRectMake(self.bottomView.frame.origin.x,
+                                       self.view.frame.size.height,
+                                       self.bottomView.frame.size.width,
+                                       self.bottomView.frame.size.height);
     
     //Store views in the right order
     if (self.localPlayer == kSVPlayer1) {
@@ -270,7 +345,11 @@
         [self.playerCircles addObject:localPlayerCircle];
     }
     
-    [self adjustUI];
+    //Play last turn now that the info walls are displayed
+    if (self.game.turns.count > 0)
+        [self playTurn:[self.game.turns lastObject]];
+    
+    [self updateUI];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -280,13 +359,16 @@
 
 - (void)opponentPlayerDidPlayTurn:(SVGame*)game {
     self.game = game;
-    [self newTurn];
-    [self adjustUI];
+    
     //Prevent player to play until new turn is played
     self.view.userInteractionEnabled = NO;
-    [self playTurn:(int)self.game.turns.count - 1 animated:YES delay:0 finishBlock:^{
+    [self playTurn:[self.game.turns lastObject]];
+    [self displayTurn:[self.game.turns lastObject] animated:YES delay:0 finishBlock:^{
         self.view.userInteractionEnabled = YES;
     }];
+    
+    [self newTurn];
+    [self updateUI];
 }
 
 - (void)show {
@@ -308,66 +390,32 @@
         [container.topBarView setLeftButton:backButton animated:YES];
         [container.topBarView setRightButton:nil animated:YES];
     
-        __weak SVGameViewController* weakSelf = self;
         
         [UIView animateWithDuration:0.15 delay:0.1 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             self.topLine.alpha = 1.0;
         } completion:nil];
         
-        self.slidingBottom.alpha = 0;
+        self.bottomView.alpha = 0;
         [UIView animateWithDuration:0.4 delay:0.5 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-            self.slidingBottom.frame = CGRectMake(self.slidingBottom.frame.origin.x,
+            self.bottomView.frame = CGRectMake(self.bottomView.frame.origin.x,
                                                   CGRectGetMaxY(self.boardView.frame),
-                                                  self.slidingBottom.frame.size.width,
-                                                  self.slidingBottom.frame.size.height);
-            self.slidingBottom.alpha = 1;
+                                                  self.bottomView.frame.size.width,
+                                                  self.bottomView.frame.size.height);
+            self.bottomView.alpha = 1;
         } completion:nil];
         
-        [self.boardView showRowsAnimated:YES withFinishBlock:^{
-            //Build info walls
-            int leftOffset = 38;
-            int specialWallsCount = ((NSNumber*)[self.board.specialWallsRemaining objectAtIndex:self.localPlayer]).intValue;
-            int normalWallsCount = ((NSNumber*)[self.board.normalWallsRemaining objectAtIndex:self.localPlayer]).intValue;
-            for (int i = 0; i <  specialWallsCount + normalWallsCount ; i++) {
-                UIColor* color;
-                if (i < specialWallsCount)
-                    color = self.playerColors[self.localPlayer];
-                else
-                    color = [SVTheme sharedTheme].normalWallColor;
-                
-                SVInfoWallView* wall = [[SVInfoWallView alloc] initWithFrame:CGRectMake(leftOffset, (self.infoView.frame.size.height - 15) / 2, 4, 15)
-                                                                    andColor:color];
-                leftOffset = CGRectGetMaxX(wall.frame) + 3;
-                [[self.infoWallViews objectAtIndex:self.localPlayer] addObject:wall];
-                [self.infoView addSubview:wall];
-            }
-            
-            int rightOffset = self.infoView.frame.size.width - 38 - 4;
-            specialWallsCount = ((NSNumber*)[self.board.specialWallsRemaining objectAtIndex:self.opponentPlayer]).intValue;
-            normalWallsCount = ((NSNumber*)[self.board.normalWallsRemaining objectAtIndex:self.opponentPlayer]).intValue;
-            for (int i = 0; i <  specialWallsCount + normalWallsCount ; i++) {
-                UIColor* color;
-                if (i < specialWallsCount)
-                    color = self.playerColors[self.opponentPlayer];
-                else
-                    color = [SVTheme sharedTheme].normalWallColor;
-                
-                SVInfoWallView* wall = [[SVInfoWallView alloc] initWithFrame:CGRectMake(rightOffset, (self.infoView.frame.size.height - 15) / 2, 4, 15)
-                                                                    andColor:color];
-                rightOffset = CGRectGetMinX(wall.frame) - 3 - 4;
-                [[self.infoWallViews objectAtIndex:self.opponentPlayer] addObject:wall];
-                [self.infoView addSubview:wall];
-            }
-            
-            
-            for (int i = 0; i < (int)weakSelf.game.turns.count - 1; i++) {
-                SVTurn* turn = [weakSelf.game.turns objectAtIndex:i];
-                if (turn.action == kSVMoveAction)
-                    [weakSelf playTurn:i animated:NO delay:0 finishBlock:nil];
-                else
-                    [weakSelf playTurn:i animated:YES delay:0 finishBlock:nil];
-            }
+        for (id key in self.board.walls) {
+            SVWall* wall = [self.board.walls objectForKey:key];
+            SVWallView* wallView = [self wallViewForWall:wall];
+            [wallView showRect:wallView.bounds animated:NO duration:0 withFinishBlock:nil];
+            wallView.alpha = 0;
+            [self.boardView addSubview:wallView];
+            [self.wallViews setObject:wallView forKey:wall.position];
+        }
         
+        __weak SVGameViewController* weakSelf = self;
+
+        [self.boardView showRowsAnimated:YES withFinishBlock:^{
             //Animate pawns and walls
             CAKeyframeAnimation* animation1 = [CAKeyframeAnimation animationWithKeyPath:@"transform.scale"];
             animation1.values = [NSArray arrayWithObjects:[NSNumber numberWithFloat:2.0],
@@ -378,25 +426,25 @@
                                   [NSNumber numberWithFloat:1.0], nil];
             animation1.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
             animation1.duration = 0.5;
-            animation1.delegate = self;
+            animation1.delegate = weakSelf;
             CAKeyframeAnimation* animation2 = [animation1 mutableCopy];
             NSArray* animations = [NSArray arrayWithObjects:animation1, animation2, nil];
             [animation1 setValue:@"pawnAnimation1" forKey:@"id"];
             [animation2 setValue:@"pawnAnimaiton2" forKey:@"id"];
-            for (int i = 0; i < self.pawnViews.count; i++) {
+            for (int i = 0; i < weakSelf.pawnViews.count; i++) {
                 UIView* pawn = [weakSelf.pawnViews objectAtIndex:i];
                 [weakSelf.boardView addSubview:pawn];
                 CAAnimation* animation = [animations objectAtIndex:i];
                 [pawn.layer addAnimation:animation forKey:[animation valueForKey:@"id"]];
                 pawn.transform = CGAffineTransformIdentity;
             }
-            
+
             [UIView animateWithDuration:0.15 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-                for (UIView* wallView in weakSelf.wallViews) {
+                for (id key in weakSelf.wallViews) {
+                    SVWallView* wallView = [weakSelf.wallViews objectForKey:key];
                     wallView.alpha = 1;
                 }
             } completion:nil];
-
         }];
     }
 }
@@ -404,7 +452,10 @@
 - (void)hideWithFinishBlock:(void (^)(void))block {
     self.hiddingView = YES;
     NSMutableArray* views = [NSMutableArray arrayWithArray:self.pawnViews];
-    [views addObjectsFromArray:self.wallViews];
+    for (id key in self.wallViews) {
+        SVWallView* wallView = [self.wallViews objectForKey:key];
+        [views addObject:wallView];
+    }
     [UIView animateWithDuration:0.15 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         self.topLine.alpha = 0;
         for (UIView* view in views) {
@@ -412,10 +463,10 @@
         }
     } completion:nil];
     [UIView animateWithDuration:0.25 delay:0.2 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        self.slidingBottom.frame = CGRectMake(self.slidingBottom.frame.origin.x,
-                                              self.view.frame.size.height,
-                                              self.slidingBottom.frame.size.width,
-                                              self.slidingBottom.frame.size.height);
+        self.bottomView.frame = CGRectMake(self.bottomView.frame.origin.x,
+                                           self.view.frame.size.height,
+                                           self.bottomView.frame.size.width,
+                                           self.bottomView.frame.size.height);
         
     } completion:nil];
     [self.boardView hideRowsAnimated:YES withFinishBlock:block];
@@ -423,8 +474,8 @@
 
 #pragma mark - Private
 
-- (void)adjustUI {
-    //Adjust the color dependent on the number of walls remaining
+- (void)updateUI {
+    //Adjust the wall button color dependent on the number of walls remaining
     if ((self.currentPlayer == self.opponentPlayer) ||
         (((NSNumber*)([self.board.normalWallsRemaining objectAtIndex:self.localPlayer])).intValue <= 0 &&
         ((NSNumber*)([self.board.specialWallsRemaining objectAtIndex:self.localPlayer])).intValue <= 0)) {
@@ -438,11 +489,11 @@
         self.colorButton.selected = ((NSNumber*)([self.board.normalWallsRemaining objectAtIndex:self.localPlayer])).intValue <= 0;
     }
     
-    //Adjust the bottom color
-    self.bottomView.backgroundColor = [self.playerColors objectAtIndex:self.currentPlayer];
+    //Adjust the footer color
+    self.footerView.backgroundColor = [self.playerColors objectAtIndex:self.currentPlayer];
     
     if (self.game.match.status == GKTurnBasedMatchStatusEnded) {
-        self.bottomView.backgroundColor = [SVTheme sharedTheme].endedGameColor;
+        self.footerView.backgroundColor = [SVTheme sharedTheme].endedGameColor;
         GKTurnBasedParticipant* localParticipant;
         for (GKTurnBasedParticipant* participant in self.game.match.participants) {
             if ([participant.playerID isEqualToString:[GKLocalPlayer localPlayer].playerID]) {
@@ -451,16 +502,16 @@
             }
         }
         if (localParticipant.matchOutcome == GKTurnBasedMatchOutcomeWon)
-            self.bottomLabel.text = @"Won";
+            self.footerLabel.text = @"Won";
         else
-            self.bottomLabel.text = @"Lost";
+            self.footerLabel.text = @"Lost";
     } else {
         if (self.currentPlayer == self.localPlayer) {
-            self.bottomLabel.text = @"Your turn";
+            self.footerLabel.text = @"Your turn";
         }
         else {
             if (self.opponentName) {
-                self.bottomLabel.text = [@"Waiting for " stringByAppendingString:[self.opponentName objectAtIndex:0]];
+                self.footerLabel.text = [@"Waiting for " stringByAppendingString:[self.opponentName objectAtIndex:0]];
             }
         }
     }
@@ -481,7 +532,7 @@
                           GKPlayer* player = [players objectAtIndex:0];
                           NSArray* words = [player.displayName componentsSeparatedByString:@" "];
                           self.opponentName = words;
-                          [self adjustUI];
+                          [self updateUI];
                       }];
     }
 }
@@ -513,6 +564,241 @@
     }
     self.currentTurn = [[SVTurn alloc] init];
     self.currentTurn.player = self.currentPlayer;
+}
+
+- (void)commitCurrentTurn {
+    self.gameUpdated = YES;
+    [self.game.turns addObject:self.currentTurn];
+    [self playTurn:self.currentTurn];
+    
+    if (self.currentTurn.action == kSVAddWallAction) {
+        SVWall* wall = self.currentTurn.actionInfo;
+        //Remove info wall
+        [self removeInfoWallOfType:(kSVWallType)wall.type forPlayer:self.currentPlayer];
+        [self.wallViews setObject:[self.buildingWallInfo objectForKey:@"view"] forKey:wall.position];
+    }
+    if (self.delegate && [self.delegate respondsToSelector:@selector(gameViewController:didPlayTurn:ended:)]) {
+        [self.delegate gameViewController:self didPlayTurn:self.game ended:[self.board didPlayerWin:self.localPlayer]];
+    }
+    [self newTurn];
+    [self updateUI];
+}
+
+- (void)cancelCurrentTurn {
+    if (self.currentTurn.action == kSVMoveAction) {
+        [self movePawnToPosition:[self.board.playerPositions objectAtIndex:self.currentPlayer]
+                       forPlayer:self.currentPlayer
+                        animated:YES
+                     finishBlock:nil];
+    }
+    else if (self.currentTurn.action == kSVAddWallAction) {
+        SVWallView* wallView = [self.buildingWallInfo objectForKey:@"view"];
+        CGRect rect;
+        kSVPanDirection wallDirection = ((NSNumber*)[self.buildingWallInfo objectForKey:@"direction"]).intValue;
+        if (wallDirection == kSVTopDirection)
+            rect = CGRectMake(0, wallView.frame.size.height, wallView.frame.size.width, 0);
+        else if (wallDirection == kSVRightDirection)
+            rect = CGRectMake(0, 0, 0, wallView.frame.size.height);
+        else if (wallDirection == kSVBottomDirection)
+            rect = CGRectMake(0, 0, wallView.frame.size.width, 0);
+        else
+            rect = CGRectMake(wallView.frame.size.width, 0, 0, wallView.frame.size.height);
+        
+        [wallView showRect:rect animated:YES duration:0.15 withFinishBlock:^(void){
+            [wallView removeFromSuperview];
+        }];
+        SVInfoWallView* infoWall = [self firstInfoWallOfType:((NSNumber*)[self.buildingWallInfo objectForKey:@"type"]).intValue
+                                                   forPlayer:self.currentPlayer];
+        [infoWall showRect:infoWall.bounds animated:YES withFinishBlock:nil];
+        [self.buildingWallInfo removeAllObjects];
+    }
+    self.currentTurn.action = kSVNoAction;
+}
+
+- (BOOL)canPlayAction:(kSVAction)action withInfo:(id)actionInfo {
+    if (self.game.match.status == GKTurnBasedMatchStatusEnded)
+        return NO;
+    if (self.currentTurn.action != kSVNoAction || self.currentPlayer == self.opponentPlayer)
+        return NO;
+    if (action == kSVMoveAction) {
+        return [self.board canPlayer:self.currentPlayer moveTo:[actionInfo objectForKey:@"newPosition"]];
+    }
+    else if (action == kSVAddWallAction) {
+        SVWall* wall = actionInfo;
+        if (![self.board isWallLegalAtPosition:wall.position withOrientation:wall.orientation type:wall.type forPlayer:self.currentPlayer]) {
+            return NO;
+        }
+        if (wall.type == kSVWallNormal) {
+            return ((NSNumber*)[self.board.normalWallsRemaining objectAtIndex:self.currentPlayer]).intValue > 0;
+        }
+        else {
+            return ((NSNumber*)[self.board.specialWallsRemaining objectAtIndex:self.currentPlayer]).intValue > 0;
+        }
+    }
+    return YES;
+}
+
+- (void)didPlayAction {
+    UIButton* cancelButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    [cancelButton setTitle:@"Cancel" forState:UIControlStateNormal];
+    [cancelButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    cancelButton.titleLabel.font = [UIFont fontWithName:@"HelveticaNeue" size:20];
+    [cancelButton addTarget:self action:@selector(didClickCancelButton:) forControlEvents:UIControlEventTouchUpInside];
+    cancelButton.alpha = 0;
+    cancelButton.frame = CGRectMake((self.bottomView.frame.size.width - 100) / 2,
+                                    (self.bottomView.frame.size.height - 40) / 2,
+                                    100,
+                                    40);
+    [self.bottomView addSubview:cancelButton];
+    
+    UIButton* validateButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    [validateButton setTitle:@"Validate" forState:UIControlStateNormal];
+    [validateButton setTitleColor:[SVTheme sharedTheme].localPlayerColor forState:UIControlStateNormal];
+    validateButton.layer.cornerRadius = 20;
+    validateButton.backgroundColor = [UIColor whiteColor];
+    [validateButton addTarget:self action:@selector(didClickValidateButton:) forControlEvents:UIControlEventTouchUpInside];
+    validateButton.titleLabel.font = [UIFont fontWithName:@"HelveticaNeue" size:20];
+    validateButton.alpha = 0;
+    validateButton.frame = CGRectMake((self.bottomView.frame.size.width - 100) / 2,
+                                      (self.bottomView.frame.size.height - 40) / 2,
+                                      100,
+                                      40);
+    
+    [self.bottomView addSubview:validateButton];
+    
+    [UIView animateWithDuration:0.3 animations:^{
+        self.footerLabel.alpha = 0;
+        cancelButton.alpha = 1;
+        cancelButton.frame = CGRectMake(40,
+                                        cancelButton.frame.origin.y,
+                                        cancelButton.frame.size.width,
+                                        cancelButton.frame.size.height);
+        validateButton.alpha = 1;
+        validateButton.frame = CGRectMake(self.bottomView.frame.size.width - 40 - validateButton.frame.size.width,
+                                          validateButton.frame.origin.y,
+                                          validateButton.frame.size.width,
+                                          validateButton.frame.size.height);
+    }];
+    
+    self.cancelButton = cancelButton;
+    self.validateButton = validateButton;
+}
+
+- (void)playTurn:(SVTurn*)turn {
+    if (turn.action == kSVMoveAction) {
+        NSDictionary* info = turn.actionInfo;
+        [self.board movePlayer:turn.player to:[info objectForKey:@"newPosition"]];
+    }
+    else if (turn.action == kSVAddWallAction) {
+        SVWall* wall = turn.actionInfo;
+        [self.board addWallAtPosition:wall.position
+                      withOrientation:wall.orientation
+                                 type:wall.type
+                            forPlayer:turn.player];
+    }
+}
+
+- (void)displayTurn:(SVTurn*)turn animated:(BOOL)animated delay:(NSTimeInterval)delay finishBlock:(void(^)(void))finishBlock {
+    void(^block)(void) = ^{
+        if (self.hiddingView)
+            return;
+        
+        if (turn.action == kSVMoveAction) {
+            NSDictionary* info = turn.actionInfo;
+            [self movePawnToPosition:[info objectForKey:@"newPosition"] forPlayer:turn.player animated:animated finishBlock:finishBlock];
+        }
+        else if (turn.action == kSVAddWallAction) {
+            SVWall* wall = turn.actionInfo;
+            SVWallView* wallView = [self wallViewForWall:wall];
+            [self.wallViews setObject:wallView forKey:wall.position];
+            [wallView showRect:wallView.bounds animated:NO duration:0 withFinishBlock:nil];
+            if (animated) {
+                wallView.alpha = 0;
+                [self.boardView addSubview:wallView];
+                [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+                    [self firstInfoWallOfType:wall.type forPlayer:turn.player].alpha = 0;
+                    wallView.alpha = 1;
+                } completion:^(BOOL finished){
+                    if (finished) {
+                        [self removeInfoWallOfType:wall.type forPlayer:turn.player];
+                        if (finishBlock)
+                            finishBlock();
+                    }
+                }];
+            }
+            else {
+                [self.boardView addSubview:wallView];
+                [self removeInfoWallOfType:wall.type forPlayer:turn.player];
+                if (finishBlock)
+                    finishBlock();
+            }
+        }
+        
+        //Animate player circle
+        if (animated) {
+            UIView* circle = [self.playerCircles objectAtIndex:turn.player];
+            CABasicAnimation* animation = [CABasicAnimation animationWithKeyPath:@"transform.scale"];
+            animation.fromValue = [NSNumber numberWithFloat:1.0];
+            animation.toValue = [NSNumber numberWithFloat:1.2];
+            animation.autoreverses = YES;
+            animation.duration = 0.3;
+            animation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+            [circle.layer addAnimation:animation forKey:@"playerCircleAnimation"];
+        }
+    };
+    if (delay > 0)
+        [self performSelector:@selector(performBlock:) withObject:block afterDelay:delay];
+    else
+        block();
+}
+
+- (void)reDisplayTurnAnimated:(SVTurn*)turn finishBlock:(void(^)(void))finishBlock {
+    void(^animationFinishBlock)(void) = ^{
+        if (self.hiddingView)
+            return;
+        [self displayTurn:turn animated:YES delay:0.3 finishBlock:finishBlock];
+    };
+    
+    if (turn.action == kSVMoveAction) {
+        NSDictionary* info = turn.actionInfo;
+        [self movePawnToPosition:[info objectForKey:@"oldPosition"] forPlayer:turn.player animated:YES finishBlock:animationFinishBlock];
+    }
+    else if (turn.action == kSVAddWallAction) {
+        SVWall* wall = turn.actionInfo;
+        SVInfoWallView* infoWallView = [self addInfoWallOfType:wall.type forPlayer:turn.player];
+        infoWallView.alpha = 0;
+        SVWallView* wallView = [self.wallViews objectForKey:wall.position];
+        [UIView animateWithDuration:0.3 delay:0.2 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            wallView.alpha = 0;
+            infoWallView.alpha = 1;
+        } completion:^(BOOL finished){
+            if (finished && !self.hiddingView)
+                animationFinishBlock();
+        }];
+    }
+}
+
+- (void)movePawnToPosition:(SVPosition*)position forPlayer:(kSVPlayer)player animated:(BOOL)animated finishBlock:(void(^)(void))finishBlock {
+    CGPoint point = [self.boardView squareCenterForPosition:position];
+    SVPawnView* pawnView = [self.pawnViews objectAtIndex:player];
+    CGRect newFrame = CGRectMake(point.x - pawnView.frame.size.width / 2,
+                                 point.y - pawnView.frame.size.height / 2,
+                                 pawnView.frame.size.width,
+                                 pawnView.frame.size.height);
+    if (animated) {
+        [UIView animateWithDuration:0.3
+                         animations:^{
+                             pawnView.frame = newFrame;
+                         } completion:^(BOOL finished){
+                             if (finished && finishBlock)
+                                 finishBlock();
+                         }];
+    }
+    else {
+        pawnView.frame = newFrame;
+        if (finishBlock)
+            finishBlock();
+    }
 }
 
 - (UIColor*)colorForWall:(SVWall*)wall {
@@ -679,61 +965,7 @@
     return wallView;
 }
 
-- (void)commitCurrentTurn {
-    self.gameUpdated = YES;
-    if (self.currentTurn.action == kSVMoveAction) {
-        NSDictionary* info = self.currentTurn.actionInfo;
-        [self.board movePlayer:self.currentPlayer to:[info objectForKey:@"newPosition"]];
-    }
-    else if (self.currentTurn.action == kSVAddWallAction) {
-        SVWall* wall = self.currentTurn.actionInfo;
-        //Remove info wall
-        [self removeInfoWallOfType:(kSVWallType)wall.type forPlayer:self.currentPlayer];
-        
-        [self.board addWallAtPosition:wall.position
-                           withOrientation:wall.orientation
-                                      type:wall.type
-                                 forPlayer:self.currentPlayer];
-        [self.wallViews addObject:[self.buildingWallInfo objectForKey:@"view"]];
-    }
-    [self.game.turns addObject:self.currentTurn];
-    if (self.delegate && [self.delegate respondsToSelector:@selector(gameViewController:didPlayTurn:ended:)]) {
-        [self.delegate gameViewController:self didPlayTurn:self.game ended:[self.board didPlayerWin:self.localPlayer]];
-    }
-}
-
-- (void)cancelCurrentTurn {
-    if (self.currentTurn.action == kSVMoveAction) {
-        [self movePawnToPosition:[self.board.playerPositions objectAtIndex:self.currentPlayer]
-                       forPlayer:self.currentPlayer
-                        animated:YES
-                     finishBlock:nil];
-    }
-    else if (self.currentTurn.action == kSVAddWallAction) {
-        SVWallView* wallView = [self.buildingWallInfo objectForKey:@"view"];
-        CGRect rect;
-        kSVPanDirection wallDirection = ((NSNumber*)[self.buildingWallInfo objectForKey:@"direction"]).intValue;
-        if (wallDirection == kSVTopDirection)
-            rect = CGRectMake(0, wallView.frame.size.height, wallView.frame.size.width, 0);
-        else if (wallDirection == kSVRightDirection)
-            rect = CGRectMake(0, 0, 0, wallView.frame.size.height);
-        else if (wallDirection == kSVBottomDirection)
-            rect = CGRectMake(0, 0, wallView.frame.size.width, 0);
-        else
-            rect = CGRectMake(wallView.frame.size.width, 0, 0, wallView.frame.size.height);
-        
-        [wallView showRect:rect animated:YES duration:0.15 withFinishBlock:^(void){
-            [wallView removeFromSuperview];
-        }];
-        SVInfoWallView* infoWall = [self firstInfoWallOfType:((NSNumber*)[self.buildingWallInfo objectForKey:@"type"]).intValue
-                                                   andPlayer:self.currentPlayer];
-        [infoWall showRect:infoWall.bounds animated:YES withFinishBlock:nil];
-        [self.buildingWallInfo removeAllObjects];
-    }
-    self.currentTurn.action = kSVNoAction;
-}
-
-- (SVInfoWallView*)addInfoWallOfType:(kSVWallType)type andPlay:(kSVPlayer)player {
+- (SVInfoWallView*)addInfoWallOfType:(kSVWallType)type forPlayer:(kSVPlayer)player {
     UIColor* color;
     
     int originX;
@@ -777,7 +1009,7 @@
     
 };
 
-- (SVInfoWallView*)firstInfoWallOfType:(kSVWallType)type andPlayer:(kSVPlayer)player {
+- (SVInfoWallView*)firstInfoWallOfType:(kSVWallType)type forPlayer:(kSVPlayer)player {
     NSMutableArray* array = [self.infoWallViews objectAtIndex:player];
     int index = -1;
     if (type == kSVWallNormal && ((NSNumber*)[self.board.normalWallsRemaining objectAtIndex:player]).intValue > 0) {
@@ -808,197 +1040,6 @@
     } 
 }
 
-- (BOOL)canPlayAction:(kSVAction)action withInfo:(id)actionInfo {
-    if (self.game.match.status == GKTurnBasedMatchStatusEnded)
-        return NO;
-    if (self.currentTurn.action != kSVNoAction || self.currentPlayer == self.opponentPlayer)
-        return NO;
-    if (action == kSVMoveAction) {
-        return [self.board canPlayer:self.currentPlayer moveTo:[actionInfo objectForKey:@"newPosition"]];
-    }
-    else if (action == kSVAddWallAction) {
-        SVWall* wall = actionInfo;
-        if (![self.board isWallLegalAtPosition:wall.position withOrientation:wall.orientation type:wall.type forPlayer:self.currentPlayer]) {
-            return NO;
-        }
-        if (wall.type == kSVWallNormal) {
-            return ((NSNumber*)[self.board.normalWallsRemaining objectAtIndex:self.currentPlayer]).intValue > 0;
-        }
-        else {
-            return ((NSNumber*)[self.board.specialWallsRemaining objectAtIndex:self.currentPlayer]).intValue > 0;
-        }
-    }
-    return YES;
-}
-
-- (void)didPlayAction {
-    UIButton* cancelButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    [cancelButton setTitle:@"Cancel" forState:UIControlStateNormal];
-    [cancelButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    cancelButton.titleLabel.font = [UIFont fontWithName:@"HelveticaNeue" size:20];
-    [cancelButton addTarget:self action:@selector(didClickCancelButton:) forControlEvents:UIControlEventTouchUpInside];
-    cancelButton.alpha = 0;
-    cancelButton.frame = CGRectMake((self.bottomView.frame.size.width - 100) / 2,
-                                      (self.bottomView.frame.size.height - 40) / 2,
-                                      100,
-                                      40);
-    [self.bottomView addSubview:cancelButton];
-    
-    UIButton* validateButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    [validateButton setTitle:@"Validate" forState:UIControlStateNormal];
-    [validateButton setTitleColor:[SVTheme sharedTheme].localPlayerColor forState:UIControlStateNormal];
-    validateButton.layer.cornerRadius = 20;
-    validateButton.backgroundColor = [UIColor whiteColor];
-    [validateButton addTarget:self action:@selector(didClickValidateButton:) forControlEvents:UIControlEventTouchUpInside];
-    validateButton.titleLabel.font = [UIFont fontWithName:@"HelveticaNeue" size:20];
-    validateButton.alpha = 0;
-    validateButton.frame = CGRectMake((self.bottomView.frame.size.width - 100) / 2,
-                                    (self.bottomView.frame.size.height - 40) / 2,
-                                    100,
-                                    40);
-
-    [self.bottomView addSubview:validateButton];
-    
-    [UIView animateWithDuration:0.3 animations:^{
-        self.bottomLabel.alpha = 0;
-        cancelButton.alpha = 1;
-        cancelButton.frame = CGRectMake(40,
-                                        cancelButton.frame.origin.y,
-                                        cancelButton.frame.size.width,
-                                        cancelButton.frame.size.height);
-        validateButton.alpha = 1;
-        validateButton.frame = CGRectMake(self.bottomView.frame.size.width - 40 - validateButton.frame.size.width,
-                                        validateButton.frame.origin.y,
-                                        validateButton.frame.size.width,
-                                        validateButton.frame.size.height);
-    }];
-    
-    self.cancelButton = cancelButton;
-    self.validateButton = validateButton;
-}
-
-- (void)movePawnToPosition:(SVPosition*)position forPlayer:(kSVPlayer)player animated:(BOOL)animated finishBlock:(void(^)(void))finishBlock {
-    CGPoint point = [self.boardView squareCenterForPosition:position];
-    SVPawnView* pawnView = [self.pawnViews objectAtIndex:player];
-    CGRect newFrame = CGRectMake(point.x - pawnView.frame.size.width / 2,
-                                 point.y - pawnView.frame.size.height / 2,
-                                 pawnView.frame.size.width,
-                                 pawnView.frame.size.height);
-    if (animated) {
-        [UIView animateWithDuration:0.3
-                         animations:^{
-                             pawnView.frame = newFrame;
-                         } completion:^(BOOL finished){
-                             if (finished && finishBlock)
-                                 finishBlock();
-                         }];
-    }
-    else {
-        pawnView.frame = newFrame;
-        if (finishBlock)
-            finishBlock();
-    }
-}
-
-- (void)playTurn:(int)index animated:(BOOL)animated delay:(NSTimeInterval)delay finishBlock:(void(^)(void))finishBlock {
-    if (index >= self.game.turns.count || index < 0) {
-        finishBlock();
-        return;
-    }
-    
-    void(^block)(void) = ^{
-        if (self.hiddingView)
-            return;
-        SVTurn* turn = [self.game.turns objectAtIndex:index];
-        if (turn.action == kSVMoveAction) {
-            NSDictionary* info = turn.actionInfo;
-            [self.board movePlayer:turn.player to:[info objectForKey:@"newPosition"]];
-            [self movePawnToPosition:[info objectForKey:@"newPosition"] forPlayer:turn.player animated:animated finishBlock:finishBlock];
-        }
-        else if (turn.action == kSVAddWallAction) {
-            SVWall* wall = turn.actionInfo;
-            [self.board addWallAtPosition:wall.position
-                          withOrientation:wall.orientation
-                                     type:wall.type
-                                forPlayer:turn.player];
-            SVWallView* wallView = [self wallViewForWall:wall];
-            [self.wallViews addObject:wallView];
-            [wallView showRect:wallView.bounds animated:NO duration:0 withFinishBlock:nil];
-            if (animated) {
-                wallView.alpha = 0;
-                [self.boardView addSubview:wallView];
-                [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-                    [self firstInfoWallOfType:wall.type andPlayer:turn.player].alpha = 0;
-                    wallView.alpha = 1;
-                } completion:^(BOOL finished){
-                    if (finished) {
-                        [self removeInfoWallOfType:wall.type forPlayer:turn.player];
-                        if (finishBlock)
-                            finishBlock();
-                    }
-                }];
-            }
-            else {
-                [self.boardView addSubview:wallView];
-                [self removeInfoWallOfType:wall.type forPlayer:turn.player];
-                if (finishBlock)
-                    finishBlock();
-            }
-        }
-        
-        //Animate player circle
-        if (animated) {
-            UIView* circle = [self.playerCircles objectAtIndex:turn.player];
-            CABasicAnimation* animation = [CABasicAnimation animationWithKeyPath:@"transform.scale"];
-            animation.fromValue = [NSNumber numberWithFloat:1.0];
-            animation.toValue = [NSNumber numberWithFloat:1.2];
-            animation.autoreverses = YES;
-            animation.duration = 0.3;
-            animation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
-            [circle.layer addAnimation:animation forKey:@"playerCircleAnimation"];
-        }
-    };
-    if (delay > 0)
-        [self performSelector:@selector(performBlock:) withObject:block afterDelay:delay];
-    else
-        block();
-}
-
-- (void)replayTurn:(int)index finishBlock:(void(^)(void))finishBlock {
-    if (index >= self.game.turns.count || index < 0) {
-        finishBlock();
-        return;
-    }
-    
-    SVTurn* turn = [self.game.turns objectAtIndex:index];
-    
-    void(^animationFinishBlock)(void) = ^{
-        if (self.hiddingView)
-            return;
-        [self playTurn:index animated:YES delay:0.3 finishBlock:finishBlock];
-    };
-    
-    if (turn.action == kSVMoveAction) {
-        NSDictionary* info = turn.actionInfo;
-        [self.board movePlayer:turn.player to:[info objectForKey:@"oldPosition"]];
-        [self movePawnToPosition:[info objectForKey:@"oldPosition"] forPlayer:turn.player animated:YES finishBlock:animationFinishBlock];
-    }
-    else if (turn.action == kSVAddWallAction) {
-        SVWall* wall = turn.actionInfo;
-        [self.board removeWallAtPosition:wall.position];
-        SVInfoWallView* infoWallView = [self addInfoWallOfType:wall.type andPlay:turn.player];
-        infoWallView.alpha = 0;
-        SVWallView* wallView = [self.wallViews objectAtIndex:self.wallViews.count - 1];
-        [UIView animateWithDuration:0.3 delay:0.2 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-            wallView.alpha = 0;
-            infoWallView.alpha = 1;
-        } completion:^(BOOL finished){
-            if (finished && !self.hiddingView)
-                animationFinishBlock();
-        }];
-    }
-}
-
 - (void)performBlock:(void(^)(void))block {
     block();
 }
@@ -1019,7 +1060,7 @@
     self.cancelButton.enabled = NO;
     self.validateButton.enabled = NO;
     [UIView animateWithDuration:0.3 animations:^{
-        self.bottomLabel.alpha = 1;
+        self.footerLabel.alpha = 1;
         self.cancelButton.alpha = 0;
         self.cancelButton.frame = CGRectMake((self.bottomView.frame.size.width - 100) / 2,
                                         (self.bottomView.frame.size.height - 32) / 2,
@@ -1043,7 +1084,7 @@
     self.cancelButton.enabled = NO;
     self.validateButton.enabled = NO;
     [UIView animateWithDuration:0.3 animations:^{
-        self.bottomLabel.alpha = 1;
+        self.footerLabel.alpha = 1;
         self.cancelButton.alpha = 0;
         self.cancelButton.frame = CGRectMake((self.bottomView.frame.size.width - 100) / 2,
                                              (self.bottomView.frame.size.height - 40) / 2,
@@ -1062,8 +1103,6 @@
         }
     }];
     [self commitCurrentTurn];
-    [self newTurn];
-    [self adjustUI];
 }
 
 - (void)didClickBackButton:(id)sender {
@@ -1077,14 +1116,20 @@
     //Avoid double clicking
     button.enabled = NO;
     if (button == [self.playerCircles objectAtIndex:self.currentPlayer]) {
-        [self replayTurn:(int)self.game.turns.count - 2 finishBlock:^{
-            button.enabled = YES;
-        }];
+        if (self.game.turns.count >= 2) {
+            SVTurn* turn = [self.game.turns objectAtIndex:self.game.turns.count - 2];
+            [self reDisplayTurnAnimated:turn finishBlock:^{
+                button.enabled = YES;
+            }];
+        }
     }
     else {
-        [self replayTurn:(int)self.game.turns.count - 1 finishBlock:^{
-            button.enabled = YES;
-        }];
+        if (self.game.turns.count >= 1) {
+            SVTurn* turn = [self.game.turns objectAtIndex:self.game.turns.count - 1];
+            [self reDisplayTurnAnimated:turn finishBlock:^{
+                button.enabled = YES;
+            }];
+        }
     }
 }
 
@@ -1262,7 +1307,7 @@
     
     //Hide info wall
     SVInfoWallView* infoWall = [self firstInfoWallOfType:((NSNumber*)[self.buildingWallInfo objectForKey:@"type"]).intValue
-                                        andPlayer:self.currentPlayer];
+                                               forPlayer:self.currentPlayer];
     CGRect infoWallRect = CGRectMake(0,
                                      infoWall.frame.size.height * sizeRatio,
                                      infoWall.frame.size.width,
@@ -1284,7 +1329,7 @@
                                                 andType:((NSNumber*)[self.buildingWallInfo objectForKey:@"type"]).intValue];
         self.currentTurn.action = kSVAddWallAction;
         self.currentTurn.actionInfo = wall;
-        SVInfoWallView* infoWallView =[self firstInfoWallOfType:wall.type andPlayer:self.currentPlayer];
+        SVInfoWallView* infoWallView = [self firstInfoWallOfType:wall.type forPlayer:self.currentPlayer];
         [infoWallView showRect:CGRectZero animated:NO withFinishBlock:nil];
         [self didPlayAction];
     }
@@ -1304,7 +1349,7 @@
             [wallView removeFromSuperview];
         }];
         SVInfoWallView* infoWall = [self firstInfoWallOfType:((NSNumber*)[self.buildingWallInfo objectForKey:@"type"]).intValue
-                                            andPlayer:self.currentPlayer];
+                                                   forPlayer:self.currentPlayer];
         [infoWall showRect:infoWall.bounds animated:YES withFinishBlock:nil];
     }
 }
@@ -1323,9 +1368,11 @@
 
 - (void)animationDidStop:(CAAnimation *)theAnimation finished:(BOOL)flag {
     if ([[theAnimation valueForKey:@"id"] isEqualToString:@"pawnAnimation1"]) {
-        [self playTurn:(int)self.game.turns.count - 1 animated:YES delay:0.3 finishBlock:^{
-            self.view.userInteractionEnabled = YES;
-        }];
+        if (self.game.turns.count > 0) {
+            [self displayTurn:[self.game.turns lastObject] animated:YES delay:0.3 finishBlock:^{
+                self.view.userInteractionEnabled = YES;
+            }];
+        }
     }
 }
 

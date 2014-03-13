@@ -28,6 +28,7 @@ static NSString *gameCellIdentifier = @"GameCell";
 @property (strong) UIView* deleteView;
 @property (strong) UILabel* deleteLabel;
 
+- (void)refresh;
 - (void)newGame;
 - (void)loadGame:(SVGame*)game;
 - (void)loadGames;
@@ -56,22 +57,29 @@ static NSString *gameCellIdentifier = @"GameCell";
         _sectionViews = [[NSMutableDictionary alloc] init];
         [[GKLocalPlayer localPlayer] unregisterAllListeners];
         [[GKLocalPlayer localPlayer] registerListener:self];
-        [self loadGames];
+        
+        NSNotificationCenter* center = [NSNotificationCenter defaultCenter];
+        [center addObserver:self selector:@selector(refresh) name:@"ApplicationDidBecomeActiveNotification" object:nil];
     }
     return self;
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.tableView.backgroundColor = [SVTheme sharedTheme].darkSquareColor;
+
+    self.view.backgroundColor = [SVTheme sharedTheme].darkSquareColor;
     self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     [self.tableView registerClass:SVGameTableViewCell.class forCellReuseIdentifier:gameCellIdentifier];
     [self.tableView registerClass:UITableViewCell.class forCellReuseIdentifier:spaceCellIdentifer];
+
+    self.refreshControl = [[UIRefreshControl alloc] init];
+    self.refreshControl.tintColor = [UIColor whiteColor];
+    [self.refreshControl addTarget:self action:@selector(loadGames) forControlEvents:UIControlEventValueChanged];
+    [self refresh];
 }
 
-
-- (void)viewDidAppear:(BOOL)animated {
-    [super viewDidAppear:animated];
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
     [self setTopBarButtonsAnimated:NO];
 }
 
@@ -81,7 +89,20 @@ static NSString *gameCellIdentifier = @"GameCell";
     // Dispose of any resources that can be recreated.
 }
 
+- (void)dealloc {
+    NSNotificationCenter* center = [NSNotificationCenter defaultCenter];
+    [center removeObserver:self];
+}
+
 #pragma mark - Private
+
+- (void)refresh {
+    if (!self.refreshControl.refreshing) {
+        [self.tableView setContentOffset:CGPointMake(0, -self.refreshControl.frame.size.height) animated:YES];
+        [self.refreshControl beginRefreshing];
+        [self loadGames];
+    }
+}
 
 - (void)newGame {
     GKMatchRequest* request = [[GKMatchRequest alloc] init];
@@ -114,32 +135,73 @@ static NSString *gameCellIdentifier = @"GameCell";
             NSLog(@"error : %@", error);
             return;
         }
+
+        NSMutableArray* newEndedGames = [[NSMutableArray alloc] init];
+        NSMutableArray* newInProgressGames = [[NSMutableArray alloc] init];
         
         void(^block)(void) = ^{
             NSComparator comparator = ^(SVGame* obj1, SVGame* obj2) {
                 return [obj2.match.creationDate compare:obj1.match.creationDate];
             };
-            [self.endedGames sortUsingComparator:comparator];
-            [self.inProgressGames sortUsingComparator:comparator];
             
-            NSMutableArray* indexPaths = [[NSMutableArray alloc] init];
-            for (int i = 0; i < self.inProgressGames.count + self.endedGames.count; i++) {
-                int section = 0;
-                int row = i * 2;
-                if (i >= self.inProgressGames.count) {
-                    section = 1;
-                    row = (i - (int)self.inProgressGames.count) * 2;
+            [newInProgressGames sortUsingComparator:comparator];
+            [newEndedGames sortUsingComparator:comparator];
+            
+            NSMutableArray* indexPathsToInsert = [[NSMutableArray alloc] init];
+            NSMutableArray* indexPathsToRemove = [[NSMutableArray alloc] init];
+            NSMutableArray* indexPathsToReload = [[NSMutableArray alloc] init];
+            
+            //Check if games have changed or were added
+            
+            for (SVGame* game in newInProgressGames) {
+                NSUInteger index = [self.inProgressGames indexOfObject:game];
+                if (index == NSNotFound) {
+                    NSIndexPath* cellIndexPath = [NSIndexPath indexPathForRow:indexPathsToInsert.count inSection:0];
+                    NSIndexPath* spaceIndexPath = [NSIndexPath indexPathForRow:indexPathsToInsert.count + 1 inSection:0];
+                    [indexPathsToInsert addObject:cellIndexPath];
+                    [indexPathsToInsert addObject:spaceIndexPath];
+                    
+                } else {
+                    SVGame* oldGame = [self.inProgressGames objectAtIndex:index];
+                    if (game.turns.count != oldGame.turns.count) {
+                        NSIndexPath* cellIndexPath = [NSIndexPath indexPathForRow:index inSection:1];
+                        [indexPathsToReload addObject:cellIndexPath];
+                        if (self.currentController && self.currentController.game == game) {
+                            [self.currentController opponentPlayerDidPlayTurn:game];
+                        }
+                    }
                 }
-                NSIndexPath* cellIndexPath = [NSIndexPath indexPathForRow:row inSection:section];
-                [indexPaths addObject:cellIndexPath];
-                NSIndexPath* spaceIndexPath = [NSIndexPath indexPathForRow:row + 1 inSection:section];
-                [indexPaths addObject:spaceIndexPath];
             }
-            [self.tableView insertRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationTop];
+
+            for (SVGame* game in newEndedGames) {
+                NSUInteger index = [self.endedGames indexOfObject:game];
+                if (index == NSNotFound) {
+                    NSIndexPath* cellIndexPath = [NSIndexPath indexPathForRow:indexPathsToInsert.count inSection:1];
+                    NSIndexPath* spaceIndexPath = [NSIndexPath indexPathForRow:indexPathsToInsert.count + 1 inSection:1];
+                    [indexPathsToInsert addObject:cellIndexPath];
+                    [indexPathsToInsert addObject:spaceIndexPath];
+                    
+                    if ([self.inProgressGames indexOfObject:game] != NSNotFound) {
+                        [indexPathsToRemove addObject:cellIndexPath];
+                        [indexPathsToRemove addObject:spaceIndexPath];
+                    }
+                }
+            }
+        
+            self.inProgressGames = newInProgressGames;
+            self.endedGames = newEndedGames;
+            
+            [self.tableView beginUpdates];
+            [self.tableView insertRowsAtIndexPaths:indexPathsToInsert withRowAnimation:UITableViewRowAnimationTop];
+            [self.tableView deleteRowsAtIndexPaths:indexPathsToRemove withRowAnimation:UITableViewRowAnimationLeft];
+            [self.tableView reloadRowsAtIndexPaths:indexPathsToReload withRowAnimation:UITableViewRowAnimationFade];
+            [self.tableView endUpdates];
+            
+            [self.refreshControl endRefreshing];
         };
         
         __block int count = 0;
-        
+//
         for (GKTurnBasedMatch* match in matches) {
             [match loadMatchDataWithCompletionHandler:^(NSData *matchData, NSError *error) {
                 
@@ -155,10 +217,10 @@ static NSString *gameCellIdentifier = @"GameCell";
 //                return;
                 SVGame* game = [SVGame gameWithMatch:match];
                 if (game.match.status == GKTurnBasedMatchStatusEnded) {
-                    [self.endedGames addObject:game];
+                    [newEndedGames addObject:game];
                 }
                 else {
-                    [self.inProgressGames addObject:game];
+                    [newInProgressGames addObject:game];
                 }
                 
                 count++;
