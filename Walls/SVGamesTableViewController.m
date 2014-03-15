@@ -237,6 +237,9 @@ static NSString *gameCellIdentifier = @"GameCell";
                     block();
             }];
         }
+        
+        if (matches.count == 0)
+            [self.refreshControl endRefreshing];
     }];
 }
 
@@ -408,13 +411,18 @@ static NSString *gameCellIdentifier = @"GameCell";
 
 - (void)moveGameToCompleted:(SVGame*)game {
     NSInteger index = [self.inProgressGames indexOfObject:game];
-    NSIndexPath* indexPath = [NSIndexPath indexPathForRow:index * 2 inSection:0];
+    NSIndexPath* cellIndexPath = [NSIndexPath indexPathForRow:index * 2 inSection:0];
+    NSIndexPath* spaceIndexPath = [NSIndexPath indexPathForRow:index * 2 + 1 inSection:0];
+    NSArray* indexPaths = [NSArray arrayWithObjects:cellIndexPath, spaceIndexPath, nil];
+    
+    NSIndexPath* newCellIndexPath = [NSIndexPath indexPathForRow:0 inSection:1];
+    NSIndexPath* newSpaceIndexPath = [NSIndexPath indexPathForRow:1 inSection:1];
+    NSArray* newIndexPaths = [NSArray arrayWithObjects:newCellIndexPath, newSpaceIndexPath, nil];
     [self.inProgressGames removeObjectAtIndex:index];
-    [self.endedGames addObject:game];
+    [self.endedGames insertObject:game atIndex:0];
     [self.tableView beginUpdates];
-    [self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationLeft];
-    NSIndexPath* newIndexPath = [NSIndexPath indexPathForRow:self.endedGames.count * 2 inSection:1];
-    [self.tableView insertRowsAtIndexPaths:[NSArray arrayWithObject:newIndexPath] withRowAnimation:UITableViewRowAnimationRight];
+    [self.tableView deleteRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationLeft];
+    [self.tableView insertRowsAtIndexPaths:newIndexPaths withRowAnimation:UITableViewRowAnimationLeft];
     [self.tableView endUpdates];
 }
 
