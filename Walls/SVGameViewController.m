@@ -645,11 +645,11 @@
     cancelButton.titleLabel.font = [UIFont fontWithName:@"HelveticaNeue" size:20];
     [cancelButton addTarget:self action:@selector(didClickCancelButton:) forControlEvents:UIControlEventTouchUpInside];
     cancelButton.alpha = 0;
-    cancelButton.frame = CGRectMake((self.bottomView.frame.size.width - 100) / 2,
-                                    (self.bottomView.frame.size.height - 40) / 2,
+    cancelButton.frame = CGRectMake((self.footerView.frame.size.width - 100) / 2,
+                                    (self.footerView.frame.size.height - 40) / 2,
                                     100,
                                     40);
-    [self.bottomView addSubview:cancelButton];
+    [self.footerView addSubview:cancelButton];
     
     UIButton* validateButton = [UIButton buttonWithType:UIButtonTypeSystem];
     [validateButton setTitle:@"Validate" forState:UIControlStateNormal];
@@ -659,12 +659,12 @@
     [validateButton addTarget:self action:@selector(didClickValidateButton:) forControlEvents:UIControlEventTouchUpInside];
     validateButton.titleLabel.font = [UIFont fontWithName:@"HelveticaNeue" size:20];
     validateButton.alpha = 0;
-    validateButton.frame = CGRectMake((self.bottomView.frame.size.width - 100) / 2,
-                                      (self.bottomView.frame.size.height - 40) / 2,
+    validateButton.frame = CGRectMake((self.footerView.frame.size.width - 100) / 2,
+                                      (self.footerView.frame.size.height - 40) / 2,
                                       100,
                                       40);
     
-    [self.bottomView addSubview:validateButton];
+    [self.footerView addSubview:validateButton];
     
     [UIView animateWithDuration:0.3 animations:^{
         self.footerLabel.alpha = 0;
@@ -674,7 +674,7 @@
                                         cancelButton.frame.size.width,
                                         cancelButton.frame.size.height);
         validateButton.alpha = 1;
-        validateButton.frame = CGRectMake(self.bottomView.frame.size.width - 40 - validateButton.frame.size.width,
+        validateButton.frame = CGRectMake(self.footerView.frame.size.width - 40 - validateButton.frame.size.width,
                                           validateButton.frame.origin.y,
                                           validateButton.frame.size.width,
                                           validateButton.frame.size.height);
@@ -1062,13 +1062,13 @@
     [UIView animateWithDuration:0.3 animations:^{
         self.footerLabel.alpha = 1;
         self.cancelButton.alpha = 0;
-        self.cancelButton.frame = CGRectMake((self.bottomView.frame.size.width - 100) / 2,
-                                        (self.bottomView.frame.size.height - 32) / 2,
+        self.cancelButton.frame = CGRectMake((self.footerView.frame.size.width - 100) / 2,
+                                        (self.footerView.frame.size.height - 32) / 2,
                                         100,
                                         32);
         self.validateButton.alpha = 0;
-        self.validateButton.frame = CGRectMake((self.bottomView.frame.size.width - 100) / 2,
-                                          (self.bottomView.frame.size.height - 32) / 2,
+        self.validateButton.frame = CGRectMake((self.footerView.frame.size.width - 100) / 2,
+                                          (self.footerView.frame.size.height - 32) / 2,
                                           100,
                                           32);
     } completion:^(BOOL finished) {
@@ -1086,16 +1086,16 @@
     [UIView animateWithDuration:0.3 animations:^{
         self.footerLabel.alpha = 1;
         self.cancelButton.alpha = 0;
-        self.cancelButton.frame = CGRectMake((self.bottomView.frame.size.width - 100) / 2,
-                                             (self.bottomView.frame.size.height - 40) / 2,
+        self.cancelButton.frame = CGRectMake((self.footerView.frame.size.width - 100) / 2,
+                                             (self.footerView.frame.size.height - 40) / 2,
                                              100,
                                              40);
         self.validateButton.alpha = 0;
-        self.validateButton.frame = CGRectMake((self.bottomView.frame.size.width - 100) / 2,
-                                               (self.bottomView.frame.size.height - 40) / 2,
+        self.validateButton.frame = CGRectMake((self.footerView.frame.size.width - 100) / 2,
+                                               (self.footerView.frame.size.height - 40) / 2,
                                                100,
                                                40);
-        self.bottomView.backgroundColor = [self.playerColors objectAtIndex:self.opponentPlayer];
+        self.footerView.backgroundColor = [self.playerColors objectAtIndex:self.opponentPlayer];
     } completion:^(BOOL finished) {
         if (finished) {
             self.cancelButton = nil;
