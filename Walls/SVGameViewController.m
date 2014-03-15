@@ -345,10 +345,6 @@
         [self.playerCircles addObject:localPlayerCircle];
     }
     
-    //Play last turn now that the info walls are displayed
-    if (self.game.turns.count > 0)
-        [self playTurn:[self.game.turns lastObject]];
-    
     [self updateUI];
 }
 
@@ -414,6 +410,10 @@
         }
         
         __weak SVGameViewController* weakSelf = self;
+        
+        //Play last turn
+        if (self.game.turns.count > 0)
+            [self playTurn:[self.game.turns lastObject]];
 
         [self.boardView showRowsAnimated:YES withFinishBlock:^{
             //Animate pawns and walls
