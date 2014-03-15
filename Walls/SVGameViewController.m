@@ -1372,6 +1372,8 @@
             [self displayTurn:[self.game.turns lastObject] animated:YES delay:0.3 finishBlock:^{
                 self.view.userInteractionEnabled = YES;
             }];
+        } else {
+            self.view.userInteractionEnabled = YES;
         }
     }
 }
