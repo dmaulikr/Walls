@@ -450,6 +450,7 @@ static NSString *gameCellIdentifier = @"GameCell";
                                                                      90,
                                                                      30)];
         self.deleteLabel.layer.cornerRadius = 15;
+        self.deleteLabel.clipsToBounds = YES;
         self.deleteLabel.backgroundColor = [UIColor clearColor];
         NSString* deleteString = @"Delete";
         NSMutableAttributedString* deleteText = [[NSMutableAttributedString alloc] initWithString:deleteString];
