@@ -26,10 +26,5 @@ typedef enum {
 } kSVSquareViewColor;
 
 @interface SVSquareView : UIView
-@property (weak) id delegate;
 - (id)initWithOrigin:(CGPoint)origin row:(kSVSquareViewRow)row col:(kSVSquareViewCol)col andColor:(kSVSquareViewColor)color;
-@end
-
-@protocol SVSquareViewDelegate <NSObject>
-- (void)squareViewDidTap:(SVSquareView*)squareView;
 @end

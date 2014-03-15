@@ -23,7 +23,6 @@
 @property (strong) void(^showRowsFinishBlock)(void);
 
 - (void)didPan:(UIPanGestureRecognizer*)gestureRecognizer;
-- (void)squareViewDidTap:(SVSquareView *)squareView;
 - (void)hideRowsAnimationDidStop:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context;
 - (void)showRowsAnimationDidStop:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context;
 @end
@@ -96,7 +95,6 @@
                 
                 SVSquareView* squareView = [[SVSquareView alloc] initWithOrigin:origin row:row col:col andColor:color];
                 [rowView addSubview:squareView];
-                squareView.delegate = self;
                 [_squareViewForPosition setObject:squareView forKey:[[SVPosition alloc] initWithX:j andY:i]];
                 lastSquareView = squareView;
                 
@@ -251,13 +249,6 @@
 #pragma mark - Private
 
 #pragma mark - Targets
-
-- (void)squareViewDidTap:(SVSquareView *)squareView {
-    if (self.delegate && [self.delegate respondsToSelector:@selector(boardView:didTapSquare:)]) {
-        SVPosition* position = [[self.squareViewForPosition allKeysForObject:squareView] objectAtIndex:0];
-        [self.delegate boardView:self didTapSquare:position];
-    }
-}
 
 - (void)didPan:(UIPanGestureRecognizer*)gestureRecognizer {
     CGPoint point = [gestureRecognizer locationInView:self];
