@@ -24,20 +24,41 @@
         self.backgroundColor = [UIColor clearColor];
         _color1 = color1;
         _color2 = color2;
+        [self addObserver:self forKeyPath:@"frame" options:NSKeyValueObservingOptionOld context:nil];
     }
     return self;
 }
 
 #pragma mark - Private
 
+
 - (void)drawRect:(CGRect)rect {
     UIBezierPath* largeCircle = [UIBezierPath bezierPathWithOvalInRect:self.bounds];
     [self.color2 setFill];
     [largeCircle fill];
     
-    UIBezierPath* smallCircle = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(4, 4, self.frame.size.width - 8, self.frame.size.height - 8)];
+    float ratio = self.frame.size.width / kSVPawnViewNormalSize.width;
+    
+    UIBezierPath* smallCircle = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(4 * ratio,
+                                                                                  4 * ratio,
+                                                                                  self.frame.size.width - 8 * ratio,
+                                                                                  self.frame.size.height - 8 * ratio)];
     [self.color1 setFill];
     [smallCircle fill];
+}
+
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
+    NSValue* value = [change objectForKey:NSKeyValueChangeOldKey];
+    CGRect oldFrame;
+    [value getValue:&oldFrame];
+    if (self.frame.size.width != oldFrame.size.width ||
+        self.frame.size.height != oldFrame.size.height) {
+        [self setNeedsDisplay];
+    }
+}
+
+- (void)dealloc {
+    [self removeObserver:self forKeyPath:@"frame"];
 }
 
 @end

@@ -18,7 +18,6 @@
 @property (assign) CGPoint initialPoint;
 @property (assign) CGPoint nearestIntersectionPoint;
 @property (assign) CGPoint offset;
-@property (assign) BOOL rotated;
 
 @property (strong) void(^hideRowsFinishBlock)(void);
 @property (strong) void(^showRowsFinishBlock)(void);

@@ -166,12 +166,34 @@
     
     //Already positioned to last position (turn - 1)
     CGPoint point1 = [self.boardView squareCenterForPosition:self.board.playerPositions[self.localPlayer]];
-    SVPawnView* pawnView1 = [[SVPawnView alloc] initWithFrame:CGRectMake(point1.x - 15, point1.y - 15, 30, 30)
+    SVPawnView* pawnView1 = [[SVPawnView alloc] initWithFrame:CGRectMake(point1.x - 15,
+                                                                         point1.y - 15,
+                                                                         kSVPawnViewNormalSize.width,
+                                                                         kSVPawnViewNormalSize.height)
                                                        color1:[SVTheme sharedTheme].localPlayerColor
                                                     andColor2:[SVTheme sharedTheme].localPlayerLightColor];
     
     CGPoint point2 = [self.boardView squareCenterForPosition:self.board.playerPositions[self.opponentPlayer]];
-    SVPawnView* pawnView2 =  [[SVPawnView alloc] initWithFrame:CGRectMake(point2.x - 15, point2.y - 15, 30, 30)
+    CGRect pawnView2Frame;
+    if (CGPointEqualToPoint(point1, point2)) {
+        if (self.boardView.rotated) {
+            pawnView2Frame = CGRectMake(point2.x - kSVPawnViewNormalSize.width / 2 - 3,
+                                        point2.y + 3,
+                                        kSVPawnViewNormalSize.width / 2,
+                                        kSVPawnViewNormalSize.height / 2);
+        } else {
+            pawnView2Frame = CGRectMake(point2.x + 3,
+                                        point2.y - kSVPawnViewNormalSize.height / 2  - 3,
+                                        kSVPawnViewNormalSize.width / 2,
+                                        kSVPawnViewNormalSize.height / 2);
+        }
+    } else {
+        pawnView2Frame = CGRectMake(point2.x - 15,
+                                    point2.y - 15,
+                                    kSVPawnViewNormalSize.width,
+                                    kSVPawnViewNormalSize.height);
+    }
+    SVPawnView* pawnView2 =  [[SVPawnView alloc] initWithFrame:pawnView2Frame
                                                         color1:[SVTheme sharedTheme].opponentPlayerColor
                                                      andColor2:[SVTheme sharedTheme].opponentPlayerLightColor];
 //    UIPanGestureRecognizer* panGestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(didPanPawn:)];
@@ -431,8 +453,17 @@
             NSArray* animations = [NSArray arrayWithObjects:animation1, animation2, nil];
             [animation1 setValue:@"pawnAnimation1" forKey:@"id"];
             [animation2 setValue:@"pawnAnimaiton2" forKey:@"id"];
-            for (int i = 0; i < weakSelf.pawnViews.count; i++) {
-                UIView* pawn = [weakSelf.pawnViews objectAtIndex:i];
+            
+            NSMutableArray* sortedPawnViews;
+            if (self.localPlayer == kSVPlayer1) {
+                sortedPawnViews = weakSelf.pawnViews;
+            } else {
+                sortedPawnViews = [[NSMutableArray alloc] init];
+                [sortedPawnViews addObject:[self.pawnViews objectAtIndex:kSVPlayer2]];
+                [sortedPawnViews addObject:[self.pawnViews objectAtIndex:kSVPlayer1]];
+            }
+            for (int i = 0; i < sortedPawnViews.count; i++) {
+                UIView* pawn = [sortedPawnViews objectAtIndex:i];
                 [weakSelf.boardView addSubview:pawn];
                 CAAnimation* animation = [animations objectAtIndex:i];
                 [pawn.layer addAnimation:animation forKey:[animation valueForKey:@"id"]];
@@ -780,24 +811,77 @@
 
 - (void)movePawnToPosition:(SVPosition*)position forPlayer:(kSVPlayer)player animated:(BOOL)animated finishBlock:(void(^)(void))finishBlock {
     CGPoint point = [self.boardView squareCenterForPosition:position];
-    SVPawnView* pawnView = [self.pawnViews objectAtIndex:player];
-    CGRect newFrame = CGRectMake(point.x - pawnView.frame.size.width / 2,
-                                 point.y - pawnView.frame.size.height / 2,
-                                 pawnView.frame.size.width,
-                                 pawnView.frame.size.height);
-    if (animated) {
-        [UIView animateWithDuration:0.3
-                         animations:^{
-                             pawnView.frame = newFrame;
-                         } completion:^(BOOL finished){
-                             if (finished && finishBlock)
-                                 finishBlock();
-                         }];
-    }
-    else {
-        pawnView.frame = newFrame;
-        if (finishBlock)
-            finishBlock();
+    SVPawnView* localPawnView = [self.pawnViews objectAtIndex:self.localPlayer];
+    SVPawnView* opponentPawnView = [self.pawnViews objectAtIndex:self.opponentPlayer];
+
+    if ([position isEqual:[self.board.playerPositions objectAtIndex:(player + 1) % 2]]) {
+        CGRect opponentPawnViewFrame;
+        
+        if (self.boardView.rotated) {
+            opponentPawnViewFrame = CGRectMake(point.x - kSVPawnViewNormalSize.width / 2 - 3,
+                                               point.y + 3,
+                                               kSVPawnViewNormalSize.width / 2,
+                                               kSVPawnViewNormalSize.height / 2);
+        } else {
+            opponentPawnViewFrame = CGRectMake(point.x + 3,
+                                               point.y - kSVPawnViewNormalSize.height / 2  - 3,
+                                               kSVPawnViewNormalSize.width / 2,
+                                               kSVPawnViewNormalSize.height / 2);
+        }
+        
+        CGRect localPawnViewFrame;
+        
+        if (player == self.localPlayer)
+            localPawnViewFrame = CGRectMake(point.x - kSVPawnViewNormalSize.width / 2,
+                                            point.y - kSVPawnViewNormalSize.height / 2,
+                                            kSVPawnViewNormalSize.width,
+                                            kSVPawnViewNormalSize.height);
+        else
+            localPawnViewFrame = localPawnView.frame;
+            
+        if (animated) {
+            [UIView animateWithDuration:0.3
+                             animations:^{
+                                 localPawnView.frame = localPawnViewFrame;
+                                 opponentPawnView.frame = opponentPawnViewFrame;
+                             } completion:^(BOOL finished){
+                                 if (finished && finishBlock)
+                                     finishBlock();
+                             }];
+        } else {
+            localPawnView.frame = localPawnViewFrame;
+            opponentPawnView.frame = opponentPawnViewFrame;
+        }
+
+    } else {
+        SVPawnView* pawnView1 = [self.pawnViews objectAtIndex:player];
+        SVPawnView* pawnView2 = [self.pawnViews objectAtIndex:(player + 1) % 2];
+        CGPoint point2 = [self.boardView squareCenterForPosition:[self.board.playerPositions objectAtIndex:(player + 1) % 2]];
+        CGRect framePawnView1 = CGRectMake(point.x - kSVPawnViewNormalSize.width / 2,
+                                           point.y - kSVPawnViewNormalSize.height / 2,
+                                           kSVPawnViewNormalSize.width,
+                                           kSVPawnViewNormalSize.height);
+        CGRect framePawnView2 = CGRectMake(point2.x - kSVPawnViewNormalSize.width / 2,
+                                           point2.y - kSVPawnViewNormalSize.height / 2,
+                                           kSVPawnViewNormalSize.width,
+                                           kSVPawnViewNormalSize.height);
+        
+        if (animated) {
+            [UIView animateWithDuration:0.3
+                             animations:^{
+                                 pawnView1.frame = framePawnView1;
+                                 pawnView2.frame = framePawnView2;
+                             } completion:^(BOOL finished){
+                                 if (finished && finishBlock)
+                                     finishBlock();
+                             }];
+        }
+        else {
+            pawnView1.frame = framePawnView1;
+            pawnView2.frame = framePawnView2;
+            if (finishBlock)
+                finishBlock();
+        }
     }
 }
 

@@ -21,6 +21,7 @@ typedef enum {
 
 @interface SVBoardView : UIView <SVSquareViewDelegate>
 @property (weak) id delegate;
+@property (assign, readonly) BOOL rotated;
 
 - (id)initWithFrame:(CGRect)frame rotated:(BOOL)rotated;
 - (SVPosition*)intersectionPositionForPoint:(CGPoint)point;
