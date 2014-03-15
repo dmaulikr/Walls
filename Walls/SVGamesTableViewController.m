@@ -147,6 +147,9 @@ static NSString *gameCellIdentifier = @"GameCell";
             [newInProgressGames sortUsingComparator:comparator];
             [newEndedGames sortUsingComparator:comparator];
             
+            int newInProgessGamesInsertionCount = 0;
+            int newEndedGamesInsertionCount = 0;
+            
             NSMutableArray* indexPathsToInsert = [[NSMutableArray alloc] init];
             NSMutableArray* indexPathsToRemove = [[NSMutableArray alloc] init];
             NSMutableArray* indexPathsToReload = [[NSMutableArray alloc] init];
@@ -156,15 +159,16 @@ static NSString *gameCellIdentifier = @"GameCell";
             for (SVGame* game in newInProgressGames) {
                 NSUInteger index = [self.inProgressGames indexOfObject:game];
                 if (index == NSNotFound) {
-                    NSIndexPath* cellIndexPath = [NSIndexPath indexPathForRow:indexPathsToInsert.count inSection:0];
-                    NSIndexPath* spaceIndexPath = [NSIndexPath indexPathForRow:indexPathsToInsert.count + 1 inSection:0];
+                    NSIndexPath* cellIndexPath = [NSIndexPath indexPathForRow:newInProgessGamesInsertionCount * 2 inSection:0];
+                    NSIndexPath* spaceIndexPath = [NSIndexPath indexPathForRow:newInProgessGamesInsertionCount * 2 + 1 inSection:0];
                     [indexPathsToInsert addObject:cellIndexPath];
                     [indexPathsToInsert addObject:spaceIndexPath];
+                    newInProgessGamesInsertionCount++;
                     
                 } else {
                     SVGame* oldGame = [self.inProgressGames objectAtIndex:index];
                     if (game.turns.count != oldGame.turns.count) {
-                        NSIndexPath* cellIndexPath = [NSIndexPath indexPathForRow:index inSection:1];
+                        NSIndexPath* cellIndexPath = [NSIndexPath indexPathForRow:index inSection:0];
                         [indexPathsToReload addObject:cellIndexPath];
                         if (self.currentController && self.currentController.game == game) {
                             [self.currentController opponentPlayerDidPlayTurn:game];
@@ -176,18 +180,22 @@ static NSString *gameCellIdentifier = @"GameCell";
             for (SVGame* game in newEndedGames) {
                 NSUInteger index = [self.endedGames indexOfObject:game];
                 if (index == NSNotFound) {
-                    NSIndexPath* cellIndexPath = [NSIndexPath indexPathForRow:indexPathsToInsert.count inSection:1];
-                    NSIndexPath* spaceIndexPath = [NSIndexPath indexPathForRow:indexPathsToInsert.count + 1 inSection:1];
+                    NSIndexPath* cellIndexPath = [NSIndexPath indexPathForRow:newEndedGamesInsertionCount * 2 inSection:1];
+                    NSIndexPath* spaceIndexPath = [NSIndexPath indexPathForRow:newEndedGamesInsertionCount * 2 + 1 inSection:1];
                     [indexPathsToInsert addObject:cellIndexPath];
                     [indexPathsToInsert addObject:spaceIndexPath];
+                    newEndedGamesInsertionCount++;
                     
-                    if ([self.inProgressGames indexOfObject:game] != NSNotFound) {
+                    NSInteger index = [self.inProgressGames indexOfObject:game];
+                    if (index != NSNotFound) {
+                        NSIndexPath* cellIndexPath = [NSIndexPath indexPathForRow:index inSection:1];
+                        NSIndexPath* spaceIndexPath = [NSIndexPath indexPathForRow:index + 1 inSection:1];
                         [indexPathsToRemove addObject:cellIndexPath];
                         [indexPathsToRemove addObject:spaceIndexPath];
                     }
                 }
             }
-        
+            
             self.inProgressGames = newInProgressGames;
             self.endedGames = newEndedGames;
             
@@ -201,7 +209,7 @@ static NSString *gameCellIdentifier = @"GameCell";
         };
         
         __block int count = 0;
-//
+
         for (GKTurnBasedMatch* match in matches) {
             [match loadMatchDataWithCompletionHandler:^(NSData *matchData, NSError *error) {
                 
@@ -546,10 +554,12 @@ static NSString *gameCellIdentifier = @"GameCell";
 }
 
 - (void)player:(GKPlayer *)player receivedTurnEventForMatch:(GKTurnBasedMatch *)match didBecomeActive:(BOOL)didBecomeActive {
+    NSLog(@"received turn");
     if (!didBecomeActive)
         return;
     
-    NSLog(@"received turn");
+    NSLog(@"after received turn did become active");
+    
     if (match.participants.count < 2) {
         SVGame* game = [self gameForMatch:match];
         if (game)
