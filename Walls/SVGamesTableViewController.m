@@ -109,6 +109,7 @@ static NSString *gameCellIdentifier = @"GameCell";
     request.minPlayers = 2;
     request.maxPlayers = 2;
     GKTurnBasedMatchmakerViewController* controller = [[GKTurnBasedMatchmakerViewController alloc] initWithMatchRequest:request];
+    controller.showExistingMatches = NO;
     [self presentViewController:controller
                         animated:YES
                         completion:nil];
@@ -565,27 +566,29 @@ static NSString *gameCellIdentifier = @"GameCell";
         SVGame* game = [self gameForMatch:match];
         if (game)
             [self moveGameToCompleted:game];
-    }
-    else {
-        if (self.currentController && [match.matchID isEqualToString:self.currentController.game.match.matchID]) {
-            [GKTurnBasedMatch loadMatchWithID:match.matchID withCompletionHandler:^(GKTurnBasedMatch *match, NSError *error) {
-                SVGame* game = [SVGame gameWithMatch:match];
-                if (game.turns.count > self.currentController.game.turns.count) {
-                    [self.currentController opponentPlayerDidPlayTurn:game];
-                    
-                }
-            }];
-        }
-        
-        int index = 0;
-        for (SVGame* game in self.inProgressGames) {
-            if ([game.match.matchID isEqual:match.matchID]) {
-                break;
+    } else {
+        SVGame* game = [SVGame gameWithMatch:match];
+        if (game.turns.count <= 1) {
+            //New game
+            [self.inProgressGames insertObject:game atIndex:0];
+            NSIndexPath* cellIndexPath = [NSIndexPath indexPathForRow:0 inSection:0];
+            NSIndexPath* spaceIndexPath = [NSIndexPath indexPathForRow:1 inSection:0];
+            NSArray* indexPaths = [NSArray arrayWithObjects:cellIndexPath, spaceIndexPath, nil];
+            [self.tableView insertRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationTop];
+        } else {
+            if (self.currentController && [match.matchID isEqualToString:self.currentController.game.match.matchID]) {
+                [GKTurnBasedMatch loadMatchWithID:match.matchID withCompletionHandler:^(GKTurnBasedMatch *match, NSError *error) {
+                    if (game.turns.count > self.currentController.game.turns.count) {
+                        [self.currentController opponentPlayerDidPlayTurn:game];
+                        
+                    }
+                }];
             }
-            index++;
+            
+            NSInteger index = [self.inProgressGames indexOfObject:game];
+            NSIndexPath* indexPath = [NSIndexPath indexPathForRow:index * 2 inSection:0];
+            [self.tableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
         }
-        NSIndexPath* indexPath = [NSIndexPath indexPathForRow:index * 2 inSection:0];
-        [self.tableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
     }
 }
 
