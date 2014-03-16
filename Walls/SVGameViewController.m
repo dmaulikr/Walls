@@ -846,10 +846,30 @@
                              animations:^{
                                  localPawnView.frame = localPawnViewFrame;
                                  opponentPawnView.frame = opponentPawnViewFrame;
+                                 if (self.pawnPanView) {
+                                     self.pawnPanView.alpha = 0;
+                                 }
+
                              } completion:^(BOOL finished){
-                                 if (finished && finishBlock)
+                                 if (finished && finishBlock) {
+                                     if (self.pawnPanView && self.pawnPanView.superview) {
+                                         [self.pawnPanView removeFromSuperview];
+                                         self.pawnPanView = nil;
+                                     }
                                      finishBlock();
+                                 }
                              }];
+            
+            if (self.pawnPanView) {
+                [CATransaction begin];
+                [CATransaction setValue:[NSNumber numberWithFloat:0.3] forKey:kCATransactionAnimationDuration];
+                [CATransaction setValue:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut] forKey:kCATransactionAnimationTimingFunction];
+                self.pawnPanView.layer.mask.frame = CGRectMake(self.pawnPanView.bounds.size.width,
+                                                               0,
+                                                               0,
+                                                               self.pawnPanView.bounds.size.height);
+                [CATransaction commit];
+            }
         } else {
             localPawnView.frame = localPawnViewFrame;
             opponentPawnView.frame = opponentPawnViewFrame;
