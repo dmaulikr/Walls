@@ -132,6 +132,8 @@
         self.containerController = [[SVCustomContainerController alloc] init];
         self.containerController.delegate = self;
         SVGamesTableViewController* controller = [[SVGamesTableViewController alloc] init];
+        [[GKLocalPlayer localPlayer] unregisterAllListeners];
+        [[GKLocalPlayer localPlayer] registerListener:controller];
         self.containerController.view.frame = self.view.bounds;
         [self.containerController pushViewController:controller];
         [self.view addSubview:self.containerController.view];

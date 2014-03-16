@@ -55,8 +55,6 @@ static NSString *gameCellIdentifier = @"GameCell";
         _inProgressGames = [[NSMutableArray alloc] init];
         _endedGames = [[NSMutableArray alloc] init];
         _sectionViews = [[NSMutableDictionary alloc] init];
-        [[GKLocalPlayer localPlayer] unregisterAllListeners];
-        [[GKLocalPlayer localPlayer] registerListener:self];
         
         NSNotificationCenter* center = [NSNotificationCenter defaultCenter];
         [center addObserver:self selector:@selector(refresh) name:@"ApplicationDidBecomeActiveNotification" object:nil];
@@ -187,10 +185,11 @@ static NSString *gameCellIdentifier = @"GameCell";
                     [indexPathsToInsert addObject:spaceIndexPath];
                     newEndedGamesInsertionCount++;
                     
+                    
                     NSInteger index = [self.inProgressGames indexOfObject:game];
                     if (index != NSNotFound) {
-                        NSIndexPath* cellIndexPath = [NSIndexPath indexPathForRow:index inSection:1];
-                        NSIndexPath* spaceIndexPath = [NSIndexPath indexPathForRow:index + 1 inSection:1];
+                        NSIndexPath* cellIndexPath = [NSIndexPath indexPathForRow:index inSection:0];
+                        NSIndexPath* spaceIndexPath = [NSIndexPath indexPathForRow:index + 1 inSection:0];
                         [indexPathsToRemove addObject:cellIndexPath];
                         [indexPathsToRemove addObject:spaceIndexPath];
                     }
@@ -201,7 +200,7 @@ static NSString *gameCellIdentifier = @"GameCell";
             self.endedGames = newEndedGames;
             
             [self.tableView beginUpdates];
-            [self.tableView insertRowsAtIndexPaths:indexPathsToInsert withRowAnimation:UITableViewRowAnimationTop];
+            [self.tableView insertRowsAtIndexPaths:indexPathsToInsert withRowAnimation:UITableViewRowAnimationLeft];
             [self.tableView deleteRowsAtIndexPaths:indexPathsToRemove withRowAnimation:UITableViewRowAnimationLeft];
             [self.tableView reloadRowsAtIndexPaths:indexPathsToReload withRowAnimation:UITableViewRowAnimationFade];
             [self.tableView endUpdates];
@@ -213,7 +212,6 @@ static NSString *gameCellIdentifier = @"GameCell";
 
         for (GKTurnBasedMatch* match in matches) {
             [match loadMatchDataWithCompletionHandler:^(NSData *matchData, NSError *error) {
-                
 //                GKTurnBasedParticipant* p1 = [match.participants objectAtIndex:0];
 //                GKTurnBasedParticipant* p2 = [match.participants objectAtIndex:1];
 //                p1.matchOutcome = GKTurnBasedMatchOutcomeLost;
@@ -224,15 +222,41 @@ static NSString *gameCellIdentifier = @"GameCell";
 //                    }];
 //                }];
 //                return;
+                
+                //Check if a match is still open but a player quitted
                 SVGame* game = [SVGame gameWithMatch:match];
-                if (game.match.status == GKTurnBasedMatchStatusEnded) {
+                if (match.status == GKTurnBasedMatchStatusOpen) {
+                    BOOL quittedGame = NO;
+                    for (GKTurnBasedParticipant* participant in match.participants) {
+                        if (participant.matchOutcome == GKTurnBasedMatchOutcomeLost) {
+                            quittedGame = YES;
+                            break;
+                        }
+                    }
+                    if (quittedGame) {
+                        //End the game
+                        for (GKTurnBasedParticipant* participant in match.participants) {
+                            if (participant.matchOutcome != GKTurnBasedMatchOutcomeLost)
+                                participant.matchOutcome = GKTurnBasedMatchOutcomeWon;
+                        }
+                        [match endMatchInTurnWithMatchData:game.data completionHandler:^(NSError *error) {
+                            [newEndedGames addObject:game];
+                            count++;
+                            if (count == matches.count) {
+                                NSLog(@"block in delete");
+                                block();
+                            }
+                            NSLog(@"end match: %@", error);
+                        }];
+                    } else {
+                        [newInProgressGames addObject:game];
+                        count++;
+                    }
+                } else if (match.status == GKTurnBasedMatchStatusEnded){
                     [newEndedGames addObject:game];
-                }
-                else {
-                    [newInProgressGames addObject:game];
+                    count++;
                 }
                 
-                count++;
                 if (count == matches.count)
                     block();
             }];
@@ -240,6 +264,7 @@ static NSString *gameCellIdentifier = @"GameCell";
         
         if (matches.count == 0)
             [self.refreshControl endRefreshing];
+        
     }];
 }
 
@@ -386,12 +411,13 @@ static NSString *gameCellIdentifier = @"GameCell";
                 else
                     participant.matchOutcome = GKTurnBasedMatchOutcomeWon;
             }
+            
             [game.match endMatchInTurnWithMatchData:game.data completionHandler:^(NSError *error) {
                 if (error) {
                     NSLog(@"%@", error);
                 }
                 else {
-                    NSLog(@"quitted");
+                    NSLog(@"ended match");
                     deleteBlock();
                 }
             }];
@@ -410,7 +436,9 @@ static NSString *gameCellIdentifier = @"GameCell";
 }
 
 - (void)moveGameToCompleted:(SVGame*)game {
-    NSInteger index = [self.inProgressGames indexOfObject:game];
+    NSUInteger index = [self.inProgressGames indexOfObject:game];
+    if (index == NSNotFound)
+        return;
     NSIndexPath* cellIndexPath = [NSIndexPath indexPathForRow:index * 2 inSection:0];
     NSIndexPath* spaceIndexPath = [NSIndexPath indexPathForRow:index * 2 + 1 inSection:0];
     NSArray* indexPaths = [NSArray arrayWithObjects:cellIndexPath, spaceIndexPath, nil];
@@ -572,8 +600,15 @@ static NSString *gameCellIdentifier = @"GameCell";
     
     if (match.participants.count < 2) {
         SVGame* game = [self gameForMatch:match];
-        if (game)
+        if (game) {
+            if (game.match.status == GKTurnBasedMatchStatusUnknown) {
+                ((GKTurnBasedParticipant*)[game.match.participants objectAtIndex:0]).matchOutcome = GKTurnBasedMatchOutcomeWon;
+                [game.match endMatchInTurnWithMatchData:game.data completionHandler:^(NSError *error) {
+                    NSLog(@"in: %@", error);
+                }];
+            }
             [self moveGameToCompleted:game];
+        }
     } else {
         SVGame* game = [SVGame gameWithMatch:match];
         if (game.turns.count <= 1) {
@@ -588,7 +623,6 @@ static NSString *gameCellIdentifier = @"GameCell";
                 [GKTurnBasedMatch loadMatchWithID:match.matchID withCompletionHandler:^(GKTurnBasedMatch *match, NSError *error) {
                     if (game.turns.count > self.currentController.game.turns.count) {
                         [self.currentController opponentPlayerDidPlayTurn:game];
-                        
                     }
                 }];
             }
