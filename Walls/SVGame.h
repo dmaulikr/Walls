@@ -10,7 +10,7 @@
 #import <GameKit/GameKit.h>
 #import "SVBoard.h"
 
-@interface SVGame : NSObject <NSCoding>
+@interface SVGame : NSObject <NSCoding, NSCopying>
 @property (strong) NSMutableArray* turns;
 @property (strong) GKTurnBasedMatch* match;
 @property (strong) NSString* firstPlayerID;

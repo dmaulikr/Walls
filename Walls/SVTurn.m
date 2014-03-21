@@ -59,4 +59,12 @@
     [aCoder encodeObject:self.actionInfo forKey:@"actionInfo"];
     [aCoder encodeInt:self.player forKey:@"player"];
 }
+
+- (id)copyWithZone:(NSZone *)zone {
+    SVTurn* copy = [SVTurn allocWithZone:zone];
+    copy.player = self.player;
+    copy.action = self.action;
+    copy.actionInfo = self.actionInfo;
+    return copy;
+}
 @end

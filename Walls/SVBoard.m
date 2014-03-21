@@ -289,10 +289,9 @@
     copy.walls = wallsCopy;
     copy.playerPositions = [self.playerPositions mutableCopy];
     copy.playerGoalsY = [self.playerGoalsY mutableCopy];
-    copy.normalWallsRemaining = [[NSMutableArray alloc] initWithObjects:[NSNumber numberWithInt:((NSNumber*)[self.normalWallsRemaining objectAtIndex:0]).intValue], [NSNumber numberWithInt:((NSNumber*)[self.normalWallsRemaining objectAtIndex:1]).intValue], nil];
-    copy.specialWallsRemaining = [[NSMutableArray alloc] initWithObjects:[NSNumber numberWithInt:((NSNumber*)[self.specialWallsRemaining objectAtIndex:0]).intValue], [NSNumber numberWithInt:((NSNumber*)[self.specialWallsRemaining objectAtIndex:1]).intValue], nil];
+    copy.normalWallsRemaining = [[NSMutableArray alloc] initWithArray:self.normalWallsRemaining copyItems:YES];
+    copy.specialWallsRemaining = [[NSMutableArray alloc] initWithArray:self.specialWallsRemaining copyItems:YES];
     return copy;
-    return nil;
 }
 
 - (BOOL)isEqual:(id)object {

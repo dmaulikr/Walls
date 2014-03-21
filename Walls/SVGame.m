@@ -59,4 +59,13 @@
     [aCoder encodeObject:self.firstPlayerID forKey:@"firstPlayerID"];
     [aCoder encodeObject:self.secondPlayerID forKey:@"secondPlayerID"];
 }
+
+- (id)copyWithZone:(NSZone *)zone {
+    SVGame* copy = [SVGame allocWithZone:zone];
+    copy.turns = [[NSMutableArray alloc] initWithArray:self.turns copyItems:YES];
+    copy.firstPlayerID = [self.firstPlayerID copy];
+    copy.secondPlayerID = [self.secondPlayerID copy];
+    copy.match = self.match;
+    return copy;
+}
 @end

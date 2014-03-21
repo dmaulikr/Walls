@@ -15,7 +15,7 @@ typedef enum {
     kSVAddWallAction
 } kSVAction;
 
-@interface SVTurn : NSObject <NSCoding>
+@interface SVTurn : NSObject <NSCoding, NSCopying>
 @property (assign) kSVPlayer player;
 @property (assign) kSVAction action;
 @property (strong) id actionInfo;
