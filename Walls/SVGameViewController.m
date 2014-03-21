@@ -563,10 +563,12 @@
         NSString* opponentID = [self.game.firstPlayerID isEqualToString:[GKLocalPlayer localPlayer].playerID] ? self.game.secondPlayerID : self.game.firstPlayerID;
         [GKPlayer loadPlayersForIdentifiers:[NSArray arrayWithObject:opponentID]
                       withCompletionHandler:^(NSArray *players, NSError *error) {
-                          GKPlayer* player = [players objectAtIndex:0];
-                          NSArray* words = [player.displayName componentsSeparatedByString:@" "];
-                          self.opponentName = words;
-                          [self updateUI];
+                          if (!error) {
+                              GKPlayer* player = [players objectAtIndex:0];
+                              NSArray* words = [player.displayName componentsSeparatedByString:@" "];
+                              self.opponentName = words;
+                              [self updateUI];
+                          }
                       }];
     }
 }
