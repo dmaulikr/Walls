@@ -38,4 +38,16 @@
     XCTAssertEqualObjects(turn, turn2, @"Turns not equal after encoding");
 }
 
+- (void)testCopy {
+    SVTurn* turn = [[SVTurn alloc] init];
+    turn.action = kSVMoveAction;
+    turn.actionInfo = [NSNumber numberWithBool:YES];
+    turn.player = kSVPlayer2;
+    
+    SVTurn* copy = [turn copy];
+    XCTAssertEqual(turn.action, copy.action, @"Turn action not equal after copy");
+    XCTAssertEqual(turn.player, copy.player, @"Turn player not equal after copy");
+    XCTAssertEqualObjects(turn.actionInfo, copy.actionInfo, @"Turn info not equal after copy");
+}
+
 @end

@@ -44,4 +44,34 @@
     XCTAssertEqualObjects(game.secondPlayerID, newGame.secondPlayerID, @"Games not equal after encoding");
 }
 
+- (void)testCopy {
+    SVGame* game = [[SVGame alloc] init];
+    game.match = [[GKTurnBasedMatch alloc] init];
+    game.firstPlayerID = @"player1ID";
+    game.secondPlayerID = @"player2ID";
+    
+    SVTurn* turn1 = [[SVTurn alloc] init];
+    turn1.action = kSVMoveAction;
+    turn1.actionInfo = [NSNumber numberWithBool:YES];
+    turn1.player = kSVPlayer2;
+    
+    SVTurn* turn2 = [[SVTurn alloc] init];
+    turn2.action = kSVAddWallAction;
+    turn2.actionInfo = [[SVWall alloc] initWithPosition:[[SVPosition alloc] initWithX:2 andY:3]
+                                            orientation:kSVHorizontalOrientation
+                                                andType:kSVWallNormal];;
+    turn2.player = kSVPlayer1;
+    game.turns = [[NSMutableArray alloc] initWithObjects:turn1, turn2, nil];
+    
+    SVGame* copy = [game copy];
+    
+    XCTAssertEqualObjects(game.match, copy.match, @"Matches not equal");
+    XCTAssertEqualObjects(game.firstPlayerID, copy.firstPlayerID, @"FirstPlayer ID not equal");
+    XCTAssertEqual(game.firstPlayerID, copy.firstPlayerID, @"FirstPlayer IDs same object");
+    XCTAssertEqualObjects(game.secondPlayerID, copy.secondPlayerID, @"SecondPlayerID ID not equal");
+    XCTAssertEqual(game.secondPlayerID, copy.secondPlayerID, @"SecondPlayerID IDs same object");
+    XCTAssertEqualObjects(game.turns, copy.turns, @"Turns not equal");
+    XCTAssertNotEqual(game.turns, copy.turns, @"Turns same objects");
+}
+
 @end

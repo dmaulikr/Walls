@@ -82,6 +82,7 @@
 - (void)newTurn;
 - (UIColor*)colorForWall:(SVWall*)wall;
 - (SVWallView*)wallViewForWall:(SVWall*)wall;
+- (void)commitToGameCenter:(void(^)(NSError* error))finishBlock;
 - (void)commitCurrentTurn;
 - (void)cancelCurrentTurn;
 - (SVInfoWallView*)addInfoWallOfType:(kSVWallType)type forPlayer:(kSVPlayer)player;
@@ -599,22 +600,68 @@
     self.currentTurn.player = self.currentPlayer;
 }
 
-- (void)commitCurrentTurn {
-    self.gameUpdated = YES;
-    [self.game.turns addObject:self.currentTurn];
-    [self playTurn:self.currentTurn];
+- (void)commitToGameCenter:(void(^)(NSError* error))finishBlock {
+    //Commit to game center
+    NSData* data = [self.game data];
+    GKTurnBasedParticipant* nextParticipant;
+    for (GKTurnBasedParticipant* participant in self.game.match.participants) {
+        if (![participant.playerID isEqualToString:self.game.match.currentParticipant.playerID])
+            nextParticipant = participant;
+    }
     
-    if (self.currentTurn.action == kSVAddWallAction) {
-        SVWall* wall = self.currentTurn.actionInfo;
-        //Remove info wall
-        [self removeInfoWallOfType:(kSVWallType)wall.type forPlayer:self.currentPlayer];
-        [self.wallViews setObject:[self.buildingWallInfo objectForKey:@"view"] forKey:wall.position];
+    if ([self.board didPlayerWin:self.localPlayer]) {
+        for (GKTurnBasedParticipant* participant in self.game.match.participants) {
+            if ([participant.playerID isEqualToString:[GKLocalPlayer localPlayer].playerID])
+                participant.matchOutcome = GKTurnBasedMatchOutcomeWon;
+            else
+                participant.matchOutcome = GKTurnBasedMatchOutcomeLost;
+        }
+        [self.game.match endMatchInTurnWithMatchData:data completionHandler:^(NSError *error) {
+            finishBlock(error);
+        }];
     }
-    if (self.delegate && [self.delegate respondsToSelector:@selector(gameViewController:didPlayTurn:ended:)]) {
-        [self.delegate gameViewController:self didPlayTurn:self.game ended:[self.board didPlayerWin:self.localPlayer]];
+    else {
+        [self.game.match endTurnWithNextParticipants:[NSArray arrayWithObject:nextParticipant]
+                                         turnTimeout:GKTurnTimeoutNone
+                                           matchData:data
+                                   completionHandler:^(NSError *error) {
+                                       finishBlock(error);
+                                   }];
     }
-    [self newTurn];
-    [self updateUI];
+}
+
+- (void)commitCurrentTurn {
+    [self.game.turns addObject:self.currentTurn];
+    
+    [self commitToGameCenter:^(NSError *error) {
+        if (error) {
+            [self.game.turns removeLastObject];
+            NSString *titleString = @"Error contacting Game Center";
+            NSString *messageString = [error localizedDescription];
+            
+            UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:titleString
+                                                                message:messageString delegate:self
+                                                      cancelButtonTitle:@"Cancel"
+                                                      otherButtonTitles:@"Try again", nil];
+            alertView.delegate =  self;
+            alertView.tag = 0;
+            [alertView show];
+
+        }
+        else {
+            if (self.currentTurn.action == kSVAddWallAction) {
+                SVWall* wall = self.currentTurn.actionInfo;
+                //Remove info wall
+                [self removeInfoWallOfType:(kSVWallType)wall.type forPlayer:self.currentPlayer];
+                [self.wallViews setObject:[self.buildingWallInfo objectForKey:@"view"] forKey:wall.position];
+            }
+            self.gameUpdated = YES;
+            [self playTurn:self.currentTurn];
+
+            [self newTurn];
+            [self updateUI];
+        }
+    }];
 }
 
 - (void)cancelCurrentTurn {
@@ -646,6 +693,7 @@
         [self.buildingWallInfo removeAllObjects];
     }
     self.currentTurn.action = kSVNoAction;
+    [self updateUI];
 }
 
 - (BOOL)canPlayAction:(kSVAction)action withInfo:(id)actionInfo {
@@ -1219,7 +1267,7 @@
                                                (self.footerView.frame.size.height - 40) / 2,
                                                100,
                                                40);
-        self.footerView.backgroundColor = [self.playerColors objectAtIndex:self.opponentPlayer];
+        self.footerLabel.text = @"Sending ...";
     } completion:^(BOOL finished) {
         if (finished) {
             self.cancelButton = nil;
@@ -1568,6 +1616,18 @@
         nextPosition = [[SVPosition alloc] initWithX:position.x andY:position.y + 1];
     
     return [self.board canPlayer:self.currentPlayer moveTo:nextPosition];
+}
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    //Commit turn
+    if (alertView.tag == 0) {
+        if (buttonIndex == 1) {
+            [self commitCurrentTurn];
+        }
+        else {
+            [self cancelCurrentTurn];
+        }
+    }
 }
 
 @end

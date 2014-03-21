@@ -12,7 +12,8 @@
 #import "SVGame.h"
 
 @interface SVGameViewController : UIViewController <SVBoardViewDelegate,
-                                                    UIGestureRecognizerDelegate>
+                                                    UIGestureRecognizerDelegate,
+                                                    UIAlertViewDelegate>
 @property (strong, readonly) SVGame* game;
 @property (weak) id delegate;
 
@@ -23,7 +24,6 @@
 @end
 
 @protocol SVGameViewControllerDelegate <NSObject>
-- (void)gameViewController:(SVGameViewController*)controller didPlayTurn:(SVGame*)game ended:(BOOL)ended;
 - (void)gameViewControllerDidClickBack:(SVGameViewController*)controller gameUpdated:(BOOL)updated;
 @end
 

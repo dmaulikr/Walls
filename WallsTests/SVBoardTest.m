@@ -236,7 +236,8 @@
     
     XCTAssertEqualObjects(board.playerPositions, copy.playerPositions, @"Player positions not equal");
     XCTAssertEqualObjects(board.walls, copy.walls, @"Walls not equal");
-    XCTAssertEqual(board.size, copy.size, @"Sizes not equal");
+    XCTAssertEqual(board.size.width, copy.size.width, @"Size widths not equal");
+    XCTAssertEqual(board.size.height, copy.size.height, @"Size heights not equal");
     XCTAssertEqualObjects(board.playerGoalsY, copy.playerGoalsY, @"Sizes not equal");
     XCTAssertEqualObjects(board.normalWallsRemaining, copy.normalWallsRemaining, @"NormalWallsRemaining not equal");
     XCTAssertEqualObjects(board.specialWallsRemaining, copy.specialWallsRemaining, @"SpecialWallsRemaining not equal");
