@@ -19,6 +19,7 @@
 
 - (id)initWithGame:(SVGame*)game;
 - (void)opponentPlayerDidPlayTurn:(SVGame*)game;
+- (void)opponentPlayerDidResign:(SVGame*)game;
 - (void)show;
 - (void)hideWithFinishBlock:(void(^)(void))block;
 @end

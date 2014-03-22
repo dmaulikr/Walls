@@ -393,6 +393,11 @@
     [self updateUI];
 }
 
+- (void)opponentPlayerDidResign:(SVGame *)game {
+    self.game = game;
+    [self updateUI];
+}
+
 - (void)show {
     //Switch menu
     if ([self.parentViewController isKindOfClass:SVCustomContainerController.class]) {
@@ -700,7 +705,13 @@
 }
 
 - (BOOL)canPlayAction:(kSVAction)action withInfo:(id)actionInfo {
-    if (self.game.match.status == GKTurnBasedMatchStatusEnded)
+    BOOL ended = NO;
+    for (GKTurnBasedParticipant* participant in self.game.match.participants) {
+        if (participant.matchOutcome != GKTurnBasedMatchOutcomeNone) {
+            ended = YES;
+        }
+    }
+    if (self.game.match.status == GKTurnBasedMatchStatusEnded || ended)
         return NO;
     if (self.currentTurn.action != kSVNoAction || self.currentPlayer == self.opponentPlayer)
         return NO;
@@ -1633,7 +1644,10 @@
     else
         nextPosition = [[SVPosition alloc] initWithX:position.x andY:position.y + 1];
     
-    return [self.board canPlayer:self.currentPlayer moveTo:nextPosition];
+    NSMutableDictionary* info = [[NSMutableDictionary alloc] init];
+    [info setObject:position forKey:@"oldPosition"];
+    [info setObject:nextPosition forKey:@"newPosition"];
+    return [self canPlayAction:kSVMoveAction withInfo:info];
 }
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
