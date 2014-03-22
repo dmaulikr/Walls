@@ -83,18 +83,24 @@ static NSCache* imageCache;
 }
 
 - (void)displayForGame:(SVGame *)game {
-    if (game.match.status == GKTurnBasedMatchStatusEnded) {
-        for (GKTurnBasedParticipant* participant in game.match.participants) {
-            if ([participant.playerID isEqualToString:[GKLocalPlayer localPlayer].playerID]) {
-                if (participant.matchOutcome == GKTurnBasedMatchOutcomeWon)
-                    [self setText:@"Won"];
-                else
-                    [self setText:@"Lost"];
+    //Check if someone left or game is over
+    BOOL gameOver = NO;
+    for (GKTurnBasedParticipant* participant in game.match.participants) {
+        if ([participant.playerID isEqualToString:[GKLocalPlayer localPlayer].playerID]) {
+            if (participant.matchOutcome == GKTurnBasedMatchOutcomeWon) {
+                [self setText:@"Won"];
+                self.originalColor = [SVTheme sharedTheme].endedGameColor;
+                gameOver = YES;
             }
-            self.originalColor = [SVTheme sharedTheme].endedGameColor;
+            else if (participant.matchOutcome == GKTurnBasedMatchOutcomeLost) {
+                [self setText:@"Lost"];
+                self.originalColor = [SVTheme sharedTheme].endedGameColor;
+                gameOver = YES;
+            }
         }
     }
-    else {
+    
+    if (!gameOver) {
         if ([game.match.currentParticipant.playerID isEqualToString:[GKLocalPlayer localPlayer].playerID]) {
             [self setText:@"Your turn"];
             self.originalColor = [SVTheme sharedTheme].localPlayerColor;
@@ -104,6 +110,7 @@ static NSCache* imageCache;
             self.originalColor = [SVTheme sharedTheme].opponentPlayerColor;
         }
     }
+    
     [self setColor:self.originalColor];
     
     //Load images

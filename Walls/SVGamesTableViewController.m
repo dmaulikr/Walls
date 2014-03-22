@@ -27,6 +27,7 @@ static NSString *gameCellIdentifier = @"GameCell";
 @property (strong) UIButton* plusButton;
 @property (strong) UIView* deleteView;
 @property (strong) UILabel* deleteLabel;
+@property (strong) NSMutableDictionary* backupInfo;
 
 - (void)refresh;
 - (void)newGame;
@@ -35,9 +36,12 @@ static NSString *gameCellIdentifier = @"GameCell";
 - (void)showRowsAnimated:(BOOL)animated;
 - (void)hideRowsAnimated:(BOOL)animated;
 - (void)setTopBarButtonsAnimated:(BOOL)animated;
-- (void)moveGameToCompleted:(SVGame*)game;
+- (void)moveGameToEnded:(SVGame*)game;
+- (void)removeGameFromEnded:(SVGame*)game;
+- (void)showAlertView:(NSError*)error tag:(NSInteger)tag;
 - (SVGame*)gameForMatch:(GKTurnBasedMatch*)match;
-- (void)deleteGame:(SVGame*)game finishBlock:(void(^)(NSError* error))finishBlock;
+- (void)deleteGame:(SVGame*)game;
+- (void)resignGame:(SVGame*)game;
 - (void)performBlock:(void(^)(void))block;
 - (void)didClickPlusButton:(id)sender;
 - (void)didPanCell:(UIPanGestureRecognizer*)gestureRecognizer;
@@ -55,6 +59,7 @@ static NSString *gameCellIdentifier = @"GameCell";
         _inProgressGames = [[NSMutableArray alloc] init];
         _endedGames = [[NSMutableArray alloc] init];
         _sectionViews = [[NSMutableDictionary alloc] init];
+        _backupInfo = [[NSMutableDictionary alloc] init];
         
         NSNotificationCenter* center = [NSNotificationCenter defaultCenter];
         [center addObserver:self selector:@selector(refresh) name:@"ApplicationDidBecomeActiveNotification" object:nil];
@@ -269,8 +274,12 @@ static NSString *gameCellIdentifier = @"GameCell";
 
 - (void)loadGames {
     [GKTurnBasedMatch loadMatchesWithCompletionHandler:^(NSArray *matches, NSError *error) {
+        if (matches.count == 0) {
+            [self.refreshControl endRefreshing];
+            return;
+        }
         if (error) {
-            NSLog(@"error : %@", error);
+            [self showAlertView:error tag:0];
             return;
         }
         
@@ -350,16 +359,22 @@ static NSString *gameCellIdentifier = @"GameCell";
         
         for (GKTurnBasedMatch* match in matches) {
             [match loadMatchDataWithCompletionHandler:^(NSData *matchData, NSError *error) {
-                SVGame* game = [SVGame gameWithMatch:match];
-                if (match.status == GKTurnBasedMatchStatusOpen)
-                    [newInProgressGames addObject:game];
-                else if (match.status == GKTurnBasedMatchStatusEnded)
-                    [newEndedGames addObject:game];
-                
-                count++;
-                
-                if (count == matches.count)
-                    block();
+                if (error) {
+                    [self showAlertView:error tag:0];
+                    return;
+                }
+                else {
+                    SVGame* game = [SVGame gameWithMatch:match];
+                    if (match.status == GKTurnBasedMatchStatusOpen)
+                        [newInProgressGames addObject:game];
+                    else if (match.status == GKTurnBasedMatchStatusEnded)
+                        [newEndedGames addObject:game];
+                    
+                    count++;
+                    
+                    if (count == matches.count)
+                        block();
+                }
             }];
         }
     }];
@@ -493,46 +508,39 @@ static NSString *gameCellIdentifier = @"GameCell";
     }
 }
 
-- (void)deleteGame:(SVGame*)game finishBlock:(void(^)(NSError* error))finishBlock {
-    void(^deleteBlock)(void) = ^{
-        NSLog(@"in delete");
-        [game.match removeWithCompletionHandler:finishBlock];
-    };
-    
-    if (game.match.status == GKTurnBasedMatchStatusEnded) {
-        deleteBlock();
+- (void)resignGame:(SVGame*)game {
+    if ([game.match.currentParticipant.playerID isEqualToString:[GKLocalPlayer localPlayer].playerID]) {
+        for (GKTurnBasedParticipant* participant in game.match.participants) {
+            if ([participant.playerID isEqualToString:[GKLocalPlayer localPlayer].playerID])
+                participant.matchOutcome = GKTurnBasedMatchOutcomeLost;
+            else
+                participant.matchOutcome = GKTurnBasedMatchOutcomeWon;
+        }
+        
+        [game.match endMatchInTurnWithMatchData:game.data completionHandler:^(NSError *error) {
+            if (error) {
+                [self showAlertView:error tag:1];
+            }
+        }];
     }
     else {
-        if ([game.match.currentParticipant.playerID isEqualToString:[GKLocalPlayer localPlayer].playerID]) {
-            for (GKTurnBasedParticipant* participant in game.match.participants) {
-                if ([participant.playerID isEqualToString:[GKLocalPlayer localPlayer].playerID])
-                    participant.matchOutcome = GKTurnBasedMatchOutcomeLost;
-                else
-                    participant.matchOutcome = GKTurnBasedMatchOutcomeWon;
+        [game.match participantQuitOutOfTurnWithOutcome:GKTurnBasedMatchOutcomeLost withCompletionHandler:^(NSError *error) {
+            if (error) {
+                [self showAlertView:error tag:1];
             }
-            
-            [game.match endMatchInTurnWithMatchData:game.data completionHandler:^(NSError *error) {
-                if (error) {
-                    finishBlock(error);
-                }
-                else {
-                    deleteBlock();
-                }
-            }];
-        } else {
-           [game.match participantQuitOutOfTurnWithOutcome:GKTurnBasedMatchOutcomeLost withCompletionHandler:^(NSError *error) {
-               if (error) {
-                   finishBlock(error);
-               }
-               else {
-                   deleteBlock();
-               }
-           }];
-        }
+        }];
     }
 }
 
-- (void)moveGameToCompleted:(SVGame*)game {
+- (void)deleteGame:(SVGame*)game {
+    [game.match removeWithCompletionHandler:^(NSError *error) {
+        if (error) {
+            [self showAlertView:error tag:2];
+        }
+    }];
+}
+
+- (void)moveGameToEnded:(SVGame*)game {
     NSUInteger index = [self.inProgressGames indexOfObject:game];
     if (index == NSNotFound)
         return;
@@ -549,6 +557,34 @@ static NSString *gameCellIdentifier = @"GameCell";
     [self.tableView deleteRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationLeft];
     [self.tableView insertRowsAtIndexPaths:newIndexPaths withRowAnimation:UITableViewRowAnimationLeft];
     [self.tableView endUpdates];
+    
+    [self.backupInfo setObject:cellIndexPath forKey:@"oldIndexPath"];
+    [self.backupInfo setObject:newCellIndexPath forKey:@"newIndexPath"];
+    [self.backupInfo setObject:game forKey:@"game"];
+}
+
+- (void)removeGameFromEnded:(SVGame*)game {
+    NSIndexPath* indexPath = [NSIndexPath indexPathForRow:[self.endedGames indexOfObject:game] inSection:1];
+    NSIndexPath* indexPath2 = [NSIndexPath indexPathForRow:indexPath.row + 1 inSection:indexPath.section];
+    NSArray* indexPaths = [NSArray arrayWithObjects:indexPath, indexPath2, nil];
+    [self.endedGames removeObject:game];
+    [self.tableView deleteRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationLeft];
+    
+    [self.backupInfo setObject:indexPath forKey:@"oldIndexPath"];
+    [self.backupInfo setObject:game forKey:@"game"];
+}
+
+- (void)showAlertView:(NSError*)error tag:(NSInteger)tag {
+    NSString *titleString = @"Error contacting Game Center";
+    NSString *messageString = [error localizedDescription];
+    
+    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:titleString
+                                                        message:messageString delegate:self
+                                              cancelButtonTitle:@"Cancel"
+                                              otherButtonTitles:@"Try again", nil];
+    alertView.delegate =  self;
+    alertView.tag = tag;
+    [alertView show];
 }
 
 - (SVGame*)gameForMatch:(GKTurnBasedMatch*)match {
@@ -574,6 +610,7 @@ static NSString *gameCellIdentifier = @"GameCell";
 
 - (void)didPanCell:(UIPanGestureRecognizer *)gestureRecognizer {
     SVGameTableViewCell* cell = (SVGameTableViewCell*)gestureRecognizer.view;
+    NSIndexPath* indexPath = [self.tableView indexPathForCell:cell];
     if (gestureRecognizer.state == UIGestureRecognizerStateBegan) {
         self.deleteView = [[UIView alloc] initWithFrame:cell.frame];
         self.deleteView.layer.cornerRadius = self.deleteView.frame.size.height / 2;
@@ -586,7 +623,12 @@ static NSString *gameCellIdentifier = @"GameCell";
         self.deleteLabel.layer.cornerRadius = 15;
         self.deleteLabel.clipsToBounds = YES;
         self.deleteLabel.backgroundColor = [UIColor clearColor];
-        NSString* deleteString = @"Delete";
+        NSString* deleteString;
+
+        if (indexPath.section == 0)
+            deleteString = @"Resign";
+        else
+            deleteString = @"Delete";
         NSMutableAttributedString* deleteText = [[NSMutableAttributedString alloc] initWithString:deleteString];
         [deleteText addAttribute:NSKernAttributeName value:@3 range:NSMakeRange(0, deleteString.length - 1)];
         self.deleteLabel.attributedText = deleteText;
@@ -599,36 +641,42 @@ static NSString *gameCellIdentifier = @"GameCell";
     }
     else if (gestureRecognizer.state == UIGestureRecognizerStateChanged) {
         CGPoint point = [gestureRecognizer translationInView:self.tableView];
+        UIColor* color;
+        if (indexPath.section == 0)
+            color = [UIColor colorWithRed:1 green:0.83 blue:0.27 alpha:0];
+        else
+            color = [UIColor colorWithRed:1 green:0.31 blue:0.31 alpha:0];
+        
         if (point.x < 0 && point.x > - 200) {
             cell.frame = CGRectMake(point.x,
                                     cell.frame.origin.y,
                                     cell.frame.size.width,
                                     cell.frame.size.height);
             float ratio = (float)point.x / -150;
-            self.deleteLabel.backgroundColor = [UIColor colorWithRed:1 green:0.31 blue:0.31 alpha:ratio];
+            self.deleteLabel.backgroundColor = [color colorWithAlphaComponent:ratio];
         }
         else if (point.x >= 0) {
             cell.frame = CGRectMake(0,
                                     cell.frame.origin.y,
                                     cell.frame.size.width,
                                     cell.frame.size.height);
-            self.deleteLabel.backgroundColor = [UIColor colorWithRed:1 green:0.31 blue:0.31 alpha:1.0];
+            self.deleteLabel.backgroundColor = [color colorWithAlphaComponent:1];
         }
     }
     else if (gestureRecognizer.state == UIGestureRecognizerStateEnded) {
         CGPoint point = [gestureRecognizer translationInView:self.tableView];
         if (point.x <= -150) {
-            NSIndexPath* indexPath = [self.tableView indexPathForCell:cell];
-            NSIndexPath* indexPath2 = [NSIndexPath indexPathForRow:indexPath.row + 1 inSection:indexPath.section];
-            NSArray* indexPaths = [NSArray arrayWithObjects:indexPath, indexPath2, nil];
             SVGame* game;
+            
             if (indexPath.section == 0) {
                 game = [self.inProgressGames objectAtIndex:indexPath.row / 2];
-                [self.inProgressGames removeObject:game];
+                [self resignGame:game];
+                [self moveGameToEnded:game];
             }
             else {
                 game = [self.endedGames objectAtIndex:indexPath.row / 2];
-                [self.endedGames removeObject:game];
+                [self deleteGame:game];
+                [self removeGameFromEnded:game];
             }
             [UIView animateWithDuration:0.15 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
                 self.deleteView.alpha = 0;
@@ -636,11 +684,6 @@ static NSString *gameCellIdentifier = @"GameCell";
                 [self.deleteView removeFromSuperview];
                 self.deleteView = nil;
                 self.deleteLabel = nil;
-            }];
-            
-            [self.tableView deleteRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationLeft];
-            [self deleteGame:game finishBlock:^(NSError *error) {
-                NSLog(@"error: %@", error);
             }];
         }
         else {
@@ -734,7 +777,7 @@ static NSString *gameCellIdentifier = @"GameCell";
 
 - (void)player:(GKPlayer *)player matchEnded:(GKTurnBasedMatch *)match {
     SVGame* game = [self gameForMatch:match];
-    [self moveGameToCompleted:game];
+    [self moveGameToEnded:game];
 }
 
 - (void)gameViewControllerDidClickBack:(SVGameViewController *)controller gameUpdated:(BOOL)updated {
@@ -744,7 +787,7 @@ static NSString *gameCellIdentifier = @"GameCell";
             NSIndexPath* indexPath = [NSIndexPath indexPathForRow:index * 2 inSection:0];
         
             if (controller.game.match.status == GKTurnBasedMatchStatusEnded)
-                [self moveGameToCompleted:controller.game];
+                [self moveGameToEnded:controller.game];
             else
                 [self.tableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
         }
@@ -762,6 +805,62 @@ static NSString *gameCellIdentifier = @"GameCell";
 - (BOOL)gestureRecognizerShouldBegin:(UIPanGestureRecognizer *)gestureRecognizer {
     CGPoint velocity = [gestureRecognizer velocityInView:gestureRecognizer.view];
     return abs(velocity.x) > abs(velocity.y);
+}
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    switch (alertView.tag) {
+        //Load games error
+        case 0:
+            if (buttonIndex == 1) {
+                [self loadGames];
+            }
+            break;
+            
+        //Resign error
+        case 1:
+            if (buttonIndex == 0) {
+                NSIndexPath* oldIndexPath = [self.backupInfo objectForKey:@"oldIndexPath"];
+                NSIndexPath* newIndexPath = [self.backupInfo objectForKey:@"newIndexPath"];
+                NSIndexPath* oldSpaceIndexPath = [NSIndexPath indexPathForRow:oldIndexPath.row + 1 inSection:oldIndexPath.section];
+                NSIndexPath* newSpaceIndexPath = [NSIndexPath indexPathForRow:newIndexPath.row + 1 inSection:newIndexPath.section];
+                NSArray* oldIndexPaths = [NSArray arrayWithObjects:oldIndexPath, oldSpaceIndexPath, nil];
+                NSArray* newIndexPaths = [NSArray arrayWithObjects:newIndexPath, newSpaceIndexPath, nil];
+                
+                SVGame* game = [self.backupInfo objectForKey:@"game"];
+                
+                [self.endedGames removeObject:game];
+                [self.inProgressGames insertObject:game atIndex:oldIndexPath.row / 2];
+                
+                [self.tableView beginUpdates];
+                [self.tableView deleteRowsAtIndexPaths:newIndexPaths withRowAnimation:UITableViewRowAnimationLeft];
+                [self.tableView insertRowsAtIndexPaths:oldIndexPaths withRowAnimation:UITableViewRowAnimationLeft];
+                [self.tableView endUpdates];
+            }
+            else {
+                [self resignGame:[self.backupInfo objectForKey:@"game"]];
+            }
+            break;
+            
+        //Delete error
+        case 2:
+            if (buttonIndex == 0) {
+                NSIndexPath* oldIndexPath = [self.backupInfo objectForKey:@"oldIndexPath"];
+                NSIndexPath* oldSpaceIndexPath = [NSIndexPath indexPathForRow:oldIndexPath.row + 1 inSection:oldIndexPath.section];
+                NSArray* oldIndexPaths = [NSArray arrayWithObjects:oldIndexPath, oldSpaceIndexPath, nil];
+                
+                SVGame* game = [self.backupInfo objectForKey:@"game"];
+                
+                [self.endedGames insertObject:game atIndex:oldIndexPath.row / 2];
+                
+                [self.tableView beginUpdates];
+                [self.tableView insertRowsAtIndexPaths:oldIndexPaths withRowAnimation:UITableViewRowAnimationLeft];
+                [self.tableView endUpdates];
+            }
+            else {
+                [self deleteGame:[self.backupInfo objectForKey:@"game"]];
+            }
+            break;
+    }
 }
 
 #pragma mark - Table view data source
@@ -847,5 +946,7 @@ static NSString *gameCellIdentifier = @"GameCell";
     }
     return 42;
 }
+
+
 
 @end
