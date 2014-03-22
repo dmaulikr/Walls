@@ -91,6 +91,7 @@
 - (BOOL)canPlayAction:(kSVAction)action withInfo:(id)actionInfo;
 - (void)didPlayAction;
 - (void)playTurn:(SVTurn*)turn;
+- (void)cancelLastTurn;
 - (void)displayTurn:(SVTurn*)turn animated:(BOOL)animated delay:(NSTimeInterval)delay finishBlock:(void(^)(void))finishBlock;
 - (void)reDisplayTurnAnimated:(SVTurn*)turn finishBlock:(void(^)(void))finishBlock;
 - (void)performBlock:(void(^)(void))block;
@@ -525,7 +526,6 @@
     
     //Adjust the footer color
     self.footerView.backgroundColor = [self.playerColors objectAtIndex:self.currentPlayer];
-    
     if (self.game.match.status == GKTurnBasedMatchStatusEnded) {
         self.footerView.backgroundColor = [SVTheme sharedTheme].endedGameColor;
         GKTurnBasedParticipant* localParticipant;
@@ -634,9 +634,11 @@
 
 - (void)commitCurrentTurn {
     [self.game.turns addObject:self.currentTurn];
+    [self playTurn:self.currentTurn];
     
     [self commitToGameCenter:^(NSError *error) {
         if (error) {
+            [self cancelLastTurn];
             [self.game.turns removeLastObject];
             NSString *titleString = @"Error contacting Game Center";
             NSString *messageString = [error localizedDescription];
@@ -658,7 +660,6 @@
                 [self.wallViews setObject:[self.buildingWallInfo objectForKey:@"view"] forKey:wall.position];
             }
             self.gameUpdated = YES;
-            [self playTurn:self.currentTurn];
 
             [self newTurn];
             [self updateUI];
@@ -778,6 +779,21 @@
                       withOrientation:wall.orientation
                                  type:wall.type
                             forPlayer:turn.player];
+    }
+}
+
+- (void)cancelLastTurn {
+    SVTurn* turn = [self.game.turns lastObject];
+    if (!turn)
+        return;
+    
+    if (turn.action == kSVMoveAction) {
+        NSDictionary* info = turn.actionInfo;
+        [self.board movePlayer:turn.player to:[info objectForKey:@"oldPosition"]];
+    }
+    else if (turn.action == kSVAddWallAction) {
+        SVWall* wall = turn.actionInfo;
+        [self.board removeWallAtPosition:wall.position];
     }
 }
 
