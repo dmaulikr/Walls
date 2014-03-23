@@ -221,7 +221,7 @@
         self.infoView = [[SVCustomView alloc] initWithFrame:CGRectMake(0,
                                                                        0,
                                                                        self.view.frame.size.width,
-                                                                       30)];
+                                                                       35)];
     }
     self.infoView.backgroundColor = [SVTheme sharedTheme].darkSquareColor;
     __weak SVCustomView* weakInfoView = self.infoView;
@@ -423,7 +423,7 @@
         }
         else {
             backButton.frame = CGRectMake(0,
-                                          0,
+                                          -4,
                                           backImage.size.width,
                                           backImage.size.height);
             [self.footerView addSubview:backButton];
