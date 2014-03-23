@@ -123,7 +123,7 @@
 
 - (void)setTextLabel:(NSString*)text animated:(BOOL)animated {
     NSMutableAttributedString* topString = [[NSMutableAttributedString alloc] initWithString:text];
-    [topString addAttribute:NSKernAttributeName value:@3 range:NSMakeRange(0, 4)];
+    [topString addAttribute:NSKernAttributeName value:@3 range:NSMakeRange(0, topString.length)];
     if (animated) {
         UILabel* newLabel = [[UILabel alloc] initWithFrame:self.label.frame];
         newLabel.textColor = self.label.textColor;

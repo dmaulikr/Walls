@@ -400,7 +400,7 @@
     //Switch menu
     if ([self.parentViewController isKindOfClass:SVCustomContainerController.class]) {
         SVCustomContainerController* container = (SVCustomContainerController*)self.parentViewController;
-        [container.topBarView setTextLabel:@"Wall" animated:YES];
+        [container.topBarView setTextLabel:@"" animated:YES];
         
         UIImage* backImage = [UIImage imageNamed:@"back_arrow.png"];
         UIButton* backButton = [UIButton buttonWithType:UIButtonTypeCustom];
