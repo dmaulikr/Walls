@@ -84,23 +84,23 @@ static NSCache* imageCache;
 
 - (void)displayForGame:(SVGame *)game {
     //Check if someone left or game is over
-    BOOL gameOver = NO;
+    BOOL ended = NO;
     for (GKTurnBasedParticipant* participant in game.match.participants) {
         if ([participant.playerID isEqualToString:[GKLocalPlayer localPlayer].playerID]) {
             if (participant.matchOutcome == GKTurnBasedMatchOutcomeWon) {
                 [self setText:@"Won"];
                 self.originalColor = [SVTheme sharedTheme].endedGameColor;
-                gameOver = YES;
+                ended = YES;
             }
             else if (participant.matchOutcome == GKTurnBasedMatchOutcomeLost) {
                 [self setText:@"Lost"];
                 self.originalColor = [SVTheme sharedTheme].endedGameColor;
-                gameOver = YES;
+                ended = YES;
             }
         }
     }
     
-    if (!gameOver) {
+    if (!ended) {
         if ([game.match.currentParticipant.playerID isEqualToString:[GKLocalPlayer localPlayer].playerID]) {
             [self setText:@"Your turn"];
             self.originalColor = [SVTheme sharedTheme].localPlayerColor;
