@@ -23,7 +23,7 @@
     }
     else {
         game = [NSKeyedUnarchiver unarchiveObjectWithData:match.matchData];
-        if (game.match.participants.count > 1)
+        if (match.participants.count > 1)
             game.secondPlayerID = ((GKTurnBasedParticipant*)[match.participants objectAtIndex:1]).playerID;
     }
     game.match = match;
