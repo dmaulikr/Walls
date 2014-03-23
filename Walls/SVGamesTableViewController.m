@@ -630,10 +630,21 @@ static NSString *gameCellIdentifier = @"GameCell";
         [self.inProgressGames replaceObjectAtIndex:index withObject:game];
     }
     
+    //New game
+    if (game.turns.count <= 1) {
+        NSIndexPath* cellIndexPath = [NSIndexPath indexPathForRow:0 inSection:0];
+        NSIndexPath* spaceIndexPath = [NSIndexPath indexPathForRow:1 inSection:0];
+        [self.inProgressGames insertObject:game atIndex:0];
+        [self.tableView insertRowsAtIndexPaths:[NSArray arrayWithObjects:cellIndexPath, spaceIndexPath, nil]
+                              withRowAnimation:UITableViewRowAnimationLeft];
+    }
+
     //Reload row
-    NSIndexPath* indexPath = [NSIndexPath indexPathForRow:[self.inProgressGames indexOfObject:game] / 2 inSection:0];
-    NSArray* indexPaths = [NSArray arrayWithObject:indexPath];
-    [self.tableView reloadRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationFade];
+    else {
+        NSIndexPath* indexPath = [NSIndexPath indexPathForRow:[self.inProgressGames indexOfObject:game] / 2 inSection:0];
+        NSArray* indexPaths = [NSArray arrayWithObject:indexPath];
+        [self.tableView reloadRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationFade];
+    }
 }
 
 - (void)player:(GKPlayer *)player didRequestMatchWithPlayers:(NSArray *)playerIDsToInvite {
@@ -655,18 +666,22 @@ static NSString *gameCellIdentifier = @"GameCell";
     }
 }
 
-- (void)gameViewControllerDidClickBack:(SVGameViewController *)controller gameUpdated:(BOOL)updated {
+- (void)gameViewControllerDidPlayTurn:(SVGameViewController *)controller {
+    NSUInteger index = (int)[self.inProgressGames indexOfObject:controller.game];
+    if (index == NSNotFound)
+        return;
+    
+    NSIndexPath* indexPath = [NSIndexPath indexPathForRow:index * 2 inSection:0];
+        
+    if (controller.game.match.status == GKTurnBasedMatchStatusEnded)
+        [self moveGameToEnded:controller.game];
+    else
+        [self.tableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
+}
+
+- (void)gameViewControllerDidClickBack:(SVGameViewController *)controller{
     [self hideRowsAnimated:NO];
     [self.currentController hideWithFinishBlock:^{
-        if (updated) {
-            int index = (int)[self.inProgressGames indexOfObject:controller.game];
-            NSIndexPath* indexPath = [NSIndexPath indexPathForRow:index * 2 inSection:0];
-        
-            if (controller.game.match.status == GKTurnBasedMatchStatusEnded)
-                [self moveGameToEnded:controller.game];
-            else
-                [self.tableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
-        }
         if ([controller.parentViewController isKindOfClass:SVCustomContainerController.class]) {
             SVCustomContainerController* container = (SVCustomContainerController*)controller.parentViewController;
             [container popViewController];

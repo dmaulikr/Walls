@@ -66,7 +66,6 @@
 @property (assign) kSVPanDirection pawnPanDirection;
 @property (strong) SVCustomView* pawnPanView;
 @property (assign) CGAffineTransform pawnPanViewRotationTransform;
-@property (assign) BOOL gameUpdated;
 
 
 /////////////////////////////////////////////////////
@@ -123,7 +122,6 @@
         _wallViews = [[NSMutableDictionary alloc] init];
         _playerCircles = [[NSMutableArray alloc] init];
         _hiddingView = NO;
-        _gameUpdated = NO;
         
         [self newTurn];
     }
@@ -667,8 +665,9 @@
                 [self removeInfoWallOfType:(kSVWallType)wall.type forPlayer:self.currentPlayer];
                 [self.wallViews setObject:[self.buildingWallInfo objectForKey:@"view"] forKey:wall.position];
             }
-            self.gameUpdated = YES;
-
+            if (self.delegate && [self.delegate respondsToSelector:@selector(gameViewControllerDidPlayTurn:)]) {
+                [self.delegate gameViewControllerDidPlayTurn:self];
+            }
             [self newTurn];
             [self updateUI];
         }
@@ -1310,8 +1309,8 @@
 }
 
 - (void)didClickBackButton:(id)sender {
-    if (self.delegate && [self.delegate respondsToSelector:@selector(gameViewControllerDidClickBack:gameUpdated:)]) {
-        [self.delegate gameViewControllerDidClickBack:self gameUpdated:self.gameUpdated];
+    if (self.delegate && [self.delegate respondsToSelector:@selector(gameViewControllerDidClickBack:)]) {
+        [self.delegate gameViewControllerDidClickBack:self];
     }
 }
 

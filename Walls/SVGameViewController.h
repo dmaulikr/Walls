@@ -25,6 +25,7 @@
 @end
 
 @protocol SVGameViewControllerDelegate <NSObject>
-- (void)gameViewControllerDidClickBack:(SVGameViewController*)controller gameUpdated:(BOOL)updated;
+- (void)gameViewControllerDidPlayTurn:(SVGameViewController*)controller;
+- (void)gameViewControllerDidClickBack:(SVGameViewController*)controller;
 @end
 
