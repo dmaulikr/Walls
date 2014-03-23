@@ -41,9 +41,7 @@
         return NO;
     }
     SVGame* other = (SVGame*)object;
-    return [self.match.matchID isEqual:other.match.matchID] &&
-           [self.firstPlayerID isEqual:other.firstPlayerID] &&
-           [self.secondPlayerID isEqual:other.secondPlayerID];
+    return [self.match.matchID isEqual:other.match.matchID];
     
 }
 
