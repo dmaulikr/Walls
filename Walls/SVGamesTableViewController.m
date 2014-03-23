@@ -235,6 +235,7 @@ static NSString *gameCellIdentifier = @"GameCell";
                 }
                 else {
                     SVGame* game = [SVGame gameWithMatch:match];
+                    NSLog(@"status: %ld", (long)match.status);
                     if (match.status == GKTurnBasedMatchStatusOpen) {
                         BOOL ended = NO;
                         for (GKTurnBasedParticipant* participant in match.participants) {
@@ -253,6 +254,8 @@ static NSString *gameCellIdentifier = @"GameCell";
                     }
                     else if (match.status == GKTurnBasedMatchStatusEnded)
                         [newEndedGames addObject:game];
+                    else if (match.status == GKTurnBasedMatchStatusMatching)
+                        [newInProgressGames addObject:game];
                     
                     count++;
                     
