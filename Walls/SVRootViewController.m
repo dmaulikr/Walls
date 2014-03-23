@@ -135,7 +135,7 @@
         [[GKLocalPlayer localPlayer] unregisterAllListeners];
         [[GKLocalPlayer localPlayer] registerListener:controller];
         self.containerController.view.frame = self.view.bounds;
-        [self.containerController pushViewController:controller];
+        [self.containerController pushViewController:controller topBarVisible:YES];
         [self.view addSubview:self.containerController.view];
     }
 }

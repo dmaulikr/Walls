@@ -13,6 +13,6 @@
 @property (strong) SVTopBarView* topBarView;
 @property (strong) id delegate;
 
-- (void)pushViewController:(UIViewController*)controller;
+- (void)pushViewController:(UIViewController*)controller topBarVisible:(BOOL)visible;
 - (void)popViewController;
 @end

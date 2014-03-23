@@ -44,12 +44,17 @@
     // Dispose of any resources that can be recreated.
 }
 
-- (void)pushViewController:(UIViewController*)controller {
+- (void)pushViewController:(UIViewController*)controller topBarVisible:(BOOL)visible {
     [self addChildViewController:controller];
-    controller.view.frame = CGRectMake(0,
-                                       CGRectGetMaxY(self.topBarView.frame),
-                                       self.view.frame.size.width,
-                                       self.view.frame.size.height - CGRectGetMaxY(self.topBarView.frame));
+    if (visible) {
+        controller.view.frame = CGRectMake(0,
+                                           CGRectGetMaxY(self.topBarView.frame),
+                                           self.view.frame.size.width,
+                                           self.view.frame.size.height - CGRectGetMaxY(self.topBarView.frame));
+    }
+    else {
+        controller.view.frame = self.view.bounds;
+    }
     [self.view addSubview:controller.view];
     [controller didMoveToParentViewController:self];
 }

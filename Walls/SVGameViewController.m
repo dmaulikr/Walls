@@ -18,6 +18,7 @@
 #import "SVTurn.h"
 #import "SVCustomContainerController.h"
 #import "SVCustomButton.h"
+#import "SVAppDelegate.h"
 
 @interface SVGameViewController ()
 
@@ -73,9 +74,6 @@
 /////////////////////////////////////////////////////
 
 @property (assign) BOOL hiddingView;
-
-
-
 //Private
 - (void)updateUI;
 - (void)newTurn;
@@ -213,10 +211,18 @@
                                                                self.view.frame.size.height - CGRectGetMaxY(self.boardView.frame))];
     [self.view addSubview:self.bottomView];
     
-    self.infoView = [[SVCustomView alloc] initWithFrame:CGRectMake(0,
-                                                                   0,
-                                                                   self.view.frame.size.width,
-                                                                   45)];
+    if (((SVAppDelegate*)[UIApplication sharedApplication].delegate).screenSize == kSVLargeScreen) {
+        self.infoView = [[SVCustomView alloc] initWithFrame:CGRectMake(0,
+                                                                       0,
+                                                                       self.view.frame.size.width,
+                                                                       45)];
+    }
+    else {
+        self.infoView = [[SVCustomView alloc] initWithFrame:CGRectMake(0,
+                                                                       0,
+                                                                       self.view.frame.size.width,
+                                                                       30)];
+    }
     self.infoView.backgroundColor = [SVTheme sharedTheme].darkSquareColor;
     __weak SVCustomView* weakInfoView = self.infoView;
     [self.infoView drawBlock:^(CGContextRef context) {
@@ -399,22 +405,29 @@
 - (void)show {
     //Switch menu
     if ([self.parentViewController isKindOfClass:SVCustomContainerController.class]) {
-        SVCustomContainerController* container = (SVCustomContainerController*)self.parentViewController;
-        [container.topBarView setTextLabel:@"" animated:YES];
-        
         UIImage* backImage = [UIImage imageNamed:@"back_arrow.png"];
         UIButton* backButton = [UIButton buttonWithType:UIButtonTypeCustom];
         [backButton setImage:backImage forState:UIControlStateNormal];
-        backButton.frame = CGRectMake(0,
-                                      0,
-                                      backImage.size.width,
-                                      backImage.size.height);
         backButton.adjustsImageWhenDisabled = NO;
         backButton.adjustsImageWhenHighlighted = NO;
         [backButton addTarget:self action:@selector(didClickBackButton:) forControlEvents:UIControlEventTouchUpInside];
-        [container.topBarView setLeftButton:backButton animated:YES];
-        [container.topBarView setRightButton:nil animated:YES];
-    
+        if (((SVAppDelegate*)[UIApplication sharedApplication].delegate).screenSize == kSVLargeScreen) {
+            SVCustomContainerController* container = (SVCustomContainerController*)self.parentViewController;
+            [container.topBarView setTextLabel:@"" animated:YES];
+            backButton.frame = CGRectMake(0,
+                                          0,
+                                          backImage.size.width,
+                                          backImage.size.height);
+            [container.topBarView setLeftButton:backButton animated:YES];
+            [container.topBarView setRightButton:nil animated:YES];
+        }
+        else {
+            backButton.frame = CGRectMake(0,
+                                          0,
+                                          backImage.size.width,
+                                          backImage.size.height);
+            [self.footerView addSubview:backButton];
+        }
         
         [UIView animateWithDuration:0.15 delay:0.1 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             self.topLine.alpha = 1.0;
@@ -742,26 +755,40 @@
     cancelButton.titleLabel.font = [UIFont fontWithName:@"HelveticaNeue" size:20];
     [cancelButton addTarget:self action:@selector(didClickCancelButton:) forControlEvents:UIControlEventTouchUpInside];
     cancelButton.alpha = 0;
-    cancelButton.frame = CGRectMake((self.footerView.frame.size.width - 100) / 2,
-                                    (self.footerView.frame.size.height - 40) / 2,
-                                    100,
-                                    40);
-    [self.footerView addSubview:cancelButton];
     
     UIButton* validateButton = [UIButton buttonWithType:UIButtonTypeSystem];
     [validateButton setTitle:@"Validate" forState:UIControlStateNormal];
     [validateButton setTitleColor:[SVTheme sharedTheme].localPlayerColor forState:UIControlStateNormal];
-    validateButton.layer.cornerRadius = 20;
     validateButton.backgroundColor = [UIColor whiteColor];
     [validateButton addTarget:self action:@selector(didClickValidateButton:) forControlEvents:UIControlEventTouchUpInside];
     validateButton.titleLabel.font = [UIFont fontWithName:@"HelveticaNeue" size:20];
     validateButton.alpha = 0;
-    validateButton.frame = CGRectMake((self.footerView.frame.size.width - 100) / 2,
-                                      (self.footerView.frame.size.height - 40) / 2,
-                                      100,
-                                      40);
     
+    if (((SVAppDelegate*)[UIApplication sharedApplication].delegate).screenSize == kSVLargeScreen) {
+        cancelButton.frame = CGRectMake((self.footerView.frame.size.width - 100) / 2,
+                                        (self.footerView.frame.size.height - 40) / 2,
+                                        100,
+                                        40);
+        validateButton.frame = CGRectMake((self.footerView.frame.size.width - 100) / 2,
+                                          (self.footerView.frame.size.height - 40) / 2,
+                                          100,
+                                          40);
+    }
+    else {
+        cancelButton.frame = CGRectMake((self.footerView.frame.size.width - 100) / 2,
+                                        (self.footerView.frame.size.height - 24) / 2,
+                                        100,
+                                        24);
+        validateButton.frame = CGRectMake((self.footerView.frame.size.width - 100) / 2,
+                                          (self.footerView.frame.size.height - 24) / 2,
+                                          100,
+                                          24);
+    }
+    validateButton.layer.cornerRadius = validateButton.frame.size.height / 2;
+    
+    [self.footerView addSubview:cancelButton];
     [self.footerView addSubview:validateButton];
+    
     
     [UIView animateWithDuration:0.3 animations:^{
         self.footerLabel.alpha = 0;

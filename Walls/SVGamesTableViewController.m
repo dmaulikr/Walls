@@ -14,6 +14,7 @@
 #import "SVGameTableViewCell.h"
 #import "SVCustomContainerController.h"
 #import "SVGameTableSectionView.h"
+#import "SVAppDelegate.h"
 
 static NSString *spaceCellIdentifer = @"SpaceCell";
 static NSString *gameCellIdentifier = @"GameCell";
@@ -125,7 +126,7 @@ static NSString *gameCellIdentifier = @"GameCell";
         [self hideRowsAnimated:YES];
         SVCustomContainerController* container = (SVCustomContainerController*)self.parentViewController;
         [self performSelector:@selector(performBlock:) withObject:^{
-            [container pushViewController:controller];
+            [container pushViewController:controller topBarVisible:NO];
             [controller show];
             self.currentController = controller;
         } afterDelay:0.2];
@@ -673,7 +674,7 @@ static NSString *gameCellIdentifier = @"GameCell";
     }];
     [self performSelector:@selector(performBlock:) withObject:^{
         [self showRowsAnimated:YES];
-        [self setTopBarButtonsAnimated:YES];
+        [self setTopBarButtonsAnimated:((SVAppDelegate*)[UIApplication sharedApplication].delegate).screenSize == kSVLargeScreen];
     } afterDelay:0.2];
 }
 

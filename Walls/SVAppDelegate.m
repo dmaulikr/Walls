@@ -13,11 +13,17 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+    if ([UIScreen mainScreen].bounds.size.height == 568)
+        self.screenSize = kSVLargeScreen;
+    else
+        self.screenSize = kSVSmallScreen;
+    
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     // Override point for customization after application launch.
     self.window.backgroundColor = [UIColor whiteColor];
     self.window.rootViewController = [[SVRootViewController alloc] init];
     [self.window makeKeyAndVisible];
+    
     return YES;
 }
 
