@@ -550,7 +550,7 @@
             if (self.opponentName)
                 self.footerLabel.text = [@"Waiting for " stringByAppendingString:[self.opponentName objectAtIndex:0]];
             else
-                self.footerLabel.text = @"Waiting for player";
+                self.footerLabel.text = @"Waiting for opponent";
         }
     }
     
