@@ -656,6 +656,7 @@ static NSString *gameCellIdentifier = @"GameCell";
 }
 
 - (void)gameViewControllerDidClickBack:(SVGameViewController *)controller gameUpdated:(BOOL)updated {
+    [self hideRowsAnimated:NO];
     [self.currentController hideWithFinishBlock:^{
         if (updated) {
             int index = (int)[self.inProgressGames indexOfObject:controller.game];
