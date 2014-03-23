@@ -116,8 +116,11 @@ static NSCache* imageCache;
     //Load images
     
     UIImage* image1 = [imageCache objectForKey:game.firstPlayerID];
-    UIImage* image2 = [imageCache objectForKey:game.secondPlayerID];
+    UIImage* image2;
+    if (game.secondPlayerID)
+        [imageCache objectForKey:game.secondPlayerID];
     if (!image1) {
+        [self drawLeftImage:[UIImage imageNamed:@"photo-placeholder.png"]];
         [GKPlayer loadPlayersForIdentifiers:[NSArray arrayWithObject:game.firstPlayerID]
                       withCompletionHandler:^(NSArray *players, NSError *error) {
                           if (!error) {
@@ -137,6 +140,9 @@ static NSCache* imageCache;
         [self drawLeftImage:image1];
     
     if (!image2) {
+        [self drawRightImage:[UIImage imageNamed:@"photo-placeholder.png"]];
+        if (!game.secondPlayerID)
+            return;
         [GKPlayer loadPlayersForIdentifiers:[NSArray arrayWithObject:game.secondPlayerID]
                       withCompletionHandler:^(NSArray *players, NSError *error) {
                           if (!error) {

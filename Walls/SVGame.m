@@ -18,10 +18,13 @@
         game = [[SVGame alloc] init];
         game.turns = [[NSMutableArray alloc] init];
         game.firstPlayerID = ((GKTurnBasedParticipant*)[match.participants objectAtIndex:0]).playerID;
-        game.secondPlayerID = ((GKTurnBasedParticipant*)[match.participants objectAtIndex:1]).playerID;
+        if (match.participants.count > 1)
+            game.secondPlayerID = ((GKTurnBasedParticipant*)[match.participants objectAtIndex:1]).playerID;
     }
     else {
         game = [NSKeyedUnarchiver unarchiveObjectWithData:match.matchData];
+        if (game.match.participants.count > 1)
+            game.secondPlayerID = ((GKTurnBasedParticipant*)[match.participants objectAtIndex:1]).playerID;
     }
     game.match = match;
     return game;

@@ -549,9 +549,10 @@
             self.footerLabel.text = @"Your turn";
         }
         else {
-            if (self.opponentName) {
+            if (self.opponentName)
                 self.footerLabel.text = [@"Waiting for " stringByAppendingString:[self.opponentName objectAtIndex:0]];
-            }
+            else
+                self.footerLabel.text = @"Waiting";
         }
     }
     
@@ -565,6 +566,8 @@
         }
     }
     else {
+        if (!self.game.secondPlayerID)
+            return;
         NSString* opponentID = [self.game.firstPlayerID isEqualToString:[GKLocalPlayer localPlayer].playerID] ? self.game.secondPlayerID : self.game.firstPlayerID;
         [GKPlayer loadPlayersForIdentifiers:[NSArray arrayWithObject:opponentID]
                       withCompletionHandler:^(NSArray *players, NSError *error) {
