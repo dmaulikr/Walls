@@ -98,16 +98,6 @@ static NSString *gameCellIdentifier = @"GameCell";
 
 #pragma mark - Private
 
-- (void)testPush {
-    if (self.inProgressGames.count > 0) {
-        SVGame* game = [self.inProgressGames firstObject];
-        GKTurnBasedMatch* match = [game.match copy];
-        [match loadMatchDataWithCompletionHandler:^(NSData *matchData, NSError *error) {
-            [self player:[GKLocalPlayer localPlayer] receivedTurnEventForMatch:match didBecomeActive:YES];
-        }];
-    }
-}
-
 - (void)refresh {
     if (!self.refreshControl.refreshing) {
         [self.tableView setContentOffset:CGPointMake(0, -self.refreshControl.frame.size.height) animated:YES];
@@ -383,15 +373,6 @@ static NSString *gameCellIdentifier = @"GameCell";
         [plusButton addTarget:self action:@selector(didClickPlusButton:) forControlEvents:UIControlEventTouchUpInside];
         self.plusButton = plusButton;
         [container.topBarView setRightButton:plusButton animated:animated];
-        
-        
-        //TEST
-        UIButton* button = [UIButton buttonWithType:UIButtonTypeSystem];
-        button.frame = CGRectMake(0, 0, 40, 40);
-        [button setTitle:@"test" forState:UIControlStateNormal];
-        [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-        [button addTarget:self action:@selector(testPush) forControlEvents:UIControlEventTouchUpInside];
-        [container.topBarView setLeftButton:button animated:animated];
     }
 }
 
