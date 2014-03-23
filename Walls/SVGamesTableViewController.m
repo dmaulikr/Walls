@@ -61,7 +61,7 @@ static NSString *gameCellIdentifier = @"GameCell";
         _backupInfo = [[NSMutableDictionary alloc] init];
         
         NSNotificationCenter* center = [NSNotificationCenter defaultCenter];
-        [center addObserver:self selector:@selector(refresh) name:@"ApplicationDidBecomeActiveNotification" object:nil];
+        [center addObserver:self selector:@selector(loadGames) name:@"ApplicationDidBecomeActiveNotification" object:nil];
     }
     return self;
 }
@@ -80,7 +80,7 @@ static NSString *gameCellIdentifier = @"GameCell";
     [self refresh];
 }
 
-- (void)viewWillAppear:(BOOL)animated {
+- (void)viewWillAppear:(BOOL)animated { 
     [super viewWillAppear:animated];
     [self setTopBarButtonsAnimated:NO];
 }
@@ -752,7 +752,10 @@ static NSString *gameCellIdentifier = @"GameCell";
                 [self.inProgressGames insertObject:game atIndex:oldIndexPath.row / 2];
                 
                 [self.tableView beginUpdates];
-                [self.tableView deleteRowsAtIndexPaths:newIndexPaths withRowAnimation:UITableViewRowAnimationLeft];
+                //In case already deleted
+                if ([self.tableView cellForRowAtIndexPath:newIndexPath]) {
+                    [self.tableView deleteRowsAtIndexPaths:newIndexPaths withRowAnimation:UITableViewRowAnimationLeft];
+                }
                 [self.tableView insertRowsAtIndexPaths:oldIndexPaths withRowAnimation:UITableViewRowAnimationLeft];
                 [self.tableView endUpdates];
             }
