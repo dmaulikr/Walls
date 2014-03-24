@@ -9,11 +9,13 @@
 #import <UIKit/UIKit.h>
 #import "SVGameViewController.h"
 #import "SVCustomViewController.h"
+#import "SVHelpView.h"
 
 
 @interface SVGamesTableViewController : UITableViewController <GKTurnBasedMatchmakerViewControllerDelegate,
                                                                GKLocalPlayerListener,
                                                                SVGameViewControllerDelegate,
                                                                UIGestureRecognizerDelegate,
-                                                               UIAlertViewDelegate>
+                                                               UIAlertViewDelegate,
+                                                               SVHelpViewDelegate>
 @end

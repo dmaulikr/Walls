@@ -15,6 +15,7 @@
 #import "SVCustomContainerController.h"
 #import "SVGameTableSectionView.h"
 #import "SVAppDelegate.h"
+#import "SVHelpView.h"
 
 static NSString *spaceCellIdentifer = @"SpaceCell";
 static NSString *gameCellIdentifier = @"GameCell";
@@ -29,6 +30,8 @@ static NSString *gameCellIdentifier = @"GameCell";
 @property (strong) UIView* deleteView;
 @property (strong) UILabel* deleteLabel;
 @property (strong) NSMutableDictionary* backupInfo;
+@property (strong) SVHelpView* helpView;
+@property (strong) UIView* helpViewBackground;
 
 - (void)refresh;
 - (void)newGame;
@@ -44,6 +47,7 @@ static NSString *gameCellIdentifier = @"GameCell";
 - (void)resignGame:(SVGame*)game;
 - (void)performBlock:(void(^)(void))block;
 - (void)didClickPlusButton:(id)sender;
+- (void)didClickHelpButton:(id)sender;
 - (void)didPanCell:(UIPanGestureRecognizer*)gestureRecognizer;
 
 @end
@@ -60,6 +64,7 @@ static NSString *gameCellIdentifier = @"GameCell";
         _endedGames = [[NSMutableArray alloc] init];
         _sectionViews = [[NSMutableDictionary alloc] init];
         _backupInfo = [[NSMutableDictionary alloc] init];
+        
         
         NSNotificationCenter* center = [NSNotificationCenter defaultCenter];
         [center addObserver:self selector:@selector(loadGames) name:@"ApplicationDidBecomeActiveNotification" object:nil];
@@ -374,6 +379,18 @@ static NSString *gameCellIdentifier = @"GameCell";
         [plusButton addTarget:self action:@selector(didClickPlusButton:) forControlEvents:UIControlEventTouchUpInside];
         self.plusButton = plusButton;
         [container.topBarView setRightButton:plusButton animated:animated];
+        
+        UIButton* helpButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        UIImage* helpImage = [UIImage imageNamed:@"help_sign.png"];
+        [helpButton setBackgroundImage:helpImage forState:UIControlStateNormal];
+        helpButton.adjustsImageWhenHighlighted = NO;
+        helpButton.adjustsImageWhenDisabled = NO;
+        helpButton.frame = CGRectMake(0,
+                                      0,
+                                      helpImage.size.width,
+                                      helpImage.size.height);
+        [helpButton addTarget:self action:@selector(didClickHelpButton:) forControlEvents:UIControlEventTouchUpInside];
+        [container.topBarView setLeftButton:helpButton animated:animated];
     }
 }
 
@@ -463,6 +480,27 @@ static NSString *gameCellIdentifier = @"GameCell";
 - (void)didClickPlusButton:(id)sender {
     self.plusButton.enabled = NO;
     [self newGame];
+}
+
+- (void)didClickHelpButton:(id)sender {
+    self.helpViewBackground = [[UIView alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    self.helpViewBackground.backgroundColor = [UIColor clearColor];
+    self.helpView = [[SVHelpView alloc] initWithFrame:CGRectMake((self.view.frame.size.width - 235) / 2,
+                                                                 - (self.tableView.superview.frame.size.height - 60),
+                                                                 235,
+                                                                 self.tableView.superview.frame.size.height - 60)];
+    self.helpView.delegate = self;
+    [self.tableView.superview addSubview:self.helpViewBackground];
+    [self.tableView.superview addSubview:self.helpView];
+    
+    [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        self.helpView.frame = CGRectMake((self.view.frame.size.width - 235) / 2,
+                                         30,
+                                         235,
+                                         self.tableView.superview.frame.size.height - 60);
+        self.helpViewBackground.backgroundColor = [UIColor colorWithWhite:0 alpha:0.3];
+    } completion:nil];
+    
 }
 
 - (void)didPanCell:(UIPanGestureRecognizer *)gestureRecognizer {
@@ -771,6 +809,23 @@ static NSString *gameCellIdentifier = @"GameCell";
             break;
             
     }
+}
+
+- (void)helpViewDidClickCloseButton {
+    [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        self.helpView.frame = CGRectMake(self.helpView.frame.origin.x,
+                                         self.tableView.superview.frame.size.height,
+                                         self.helpView.frame.size.width,
+                                         self.helpView.frame.size.height);
+        self.helpViewBackground.backgroundColor = [UIColor colorWithWhite:0 alpha:0];
+    } completion:^(BOOL finished) {
+        if (finished) {
+            [self.helpView removeFromSuperview];
+            self.helpView = nil;
+            [self.helpViewBackground removeFromSuperview];
+            self.helpViewBackground = nil;
+        }
+    }];
 }
 
 #pragma mark - Table view data source

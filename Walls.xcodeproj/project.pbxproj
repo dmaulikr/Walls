@@ -43,6 +43,8 @@
 		4DD226F9189034020095D71D /* SVPositionTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DD226F8189034020095D71D /* SVPositionTest.m */; };
 		4DE07FF7188C477D00A3251A /* SVPosition.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DE07FF6188C477D00A3251A /* SVPosition.m */; };
 		4DF62C32188C28AB00ED83D4 /* SVBoardTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DF62C31188C28AB00ED83D4 /* SVBoardTest.m */; };
+		4DFA60E318DFA90300E01D9D /* SVHelpView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DFA60E218DFA90300E01D9D /* SVHelpView.m */; };
+		4DFA60E618DFAC7200E01D9D /* SVHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DFA60E518DFAC7200E01D9D /* SVHelper.m */; };
 		4DFEBBDC1895A1CE0051274A /* SVColorButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DFEBBDB1895A1CE0051274A /* SVColorButton.m */; };
 		4DFEBBE2189691F30051274A /* SVInfoWallView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DFEBBE1189691F30051274A /* SVInfoWallView.m */; };
 /* End PBXBuildFile section */
@@ -118,6 +120,10 @@
 		4DE07FF5188C477D00A3251A /* SVPosition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVPosition.h; sourceTree = "<group>"; };
 		4DE07FF6188C477D00A3251A /* SVPosition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVPosition.m; sourceTree = "<group>"; };
 		4DF62C31188C28AB00ED83D4 /* SVBoardTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVBoardTest.m; sourceTree = "<group>"; };
+		4DFA60E118DFA90300E01D9D /* SVHelpView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVHelpView.h; sourceTree = "<group>"; };
+		4DFA60E218DFA90300E01D9D /* SVHelpView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVHelpView.m; sourceTree = "<group>"; };
+		4DFA60E418DFAC7200E01D9D /* SVHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVHelper.h; sourceTree = "<group>"; };
+		4DFA60E518DFAC7200E01D9D /* SVHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVHelper.m; sourceTree = "<group>"; };
 		4DFEBBDA1895A1CE0051274A /* SVColorButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVColorButton.h; sourceTree = "<group>"; };
 		4DFEBBDB1895A1CE0051274A /* SVColorButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVColorButton.m; sourceTree = "<group>"; };
 		4DFEBBE0189691F30051274A /* SVInfoWallView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVInfoWallView.h; sourceTree = "<group>"; };
@@ -187,8 +193,6 @@
 				4D97AC92188A98D80044EEFE /* Controllers */,
 				4D97AC93188A98DD0044EEFE /* Views */,
 				4DA80C3918955D1700C7F541 /* Others */,
-				4D06AC76188A976C00ED425F /* SVAppDelegate.h */,
-				4D06AC77188A976C00ED425F /* SVAppDelegate.m */,
 				4D06AC79188A976C00ED425F /* Images.xcassets */,
 				4D06AC6E188A976C00ED425F /* Supporting Files */,
 			);
@@ -289,6 +293,8 @@
 				4D2917F618BCEDC90057A393 /* SVTopBarView.m */,
 				4D915E6218C6ACC800AADDD4 /* SVGameTableSectionView.h */,
 				4D915E6318C6ACC800AADDD4 /* SVGameTableSectionView.m */,
+				4DFA60E118DFA90300E01D9D /* SVHelpView.h */,
+				4DFA60E218DFA90300E01D9D /* SVHelpView.m */,
 			);
 			name = Views;
 			sourceTree = "<group>";
@@ -296,6 +302,10 @@
 		4DA80C3918955D1700C7F541 /* Others */ = {
 			isa = PBXGroup;
 			children = (
+				4D06AC76188A976C00ED425F /* SVAppDelegate.h */,
+				4D06AC77188A976C00ED425F /* SVAppDelegate.m */,
+				4DFA60E418DFAC7200E01D9D /* SVHelper.h */,
+				4DFA60E518DFAC7200E01D9D /* SVHelper.m */,
 			);
 			name = Others;
 			sourceTree = "<group>";
@@ -416,6 +426,7 @@
 				4DE07FF7188C477D00A3251A /* SVPosition.m in Sources */,
 				4D915E6418C6ACC800AADDD4 /* SVGameTableSectionView.m in Sources */,
 				4D7F75BA18A53D8F00140965 /* SVTurn.m in Sources */,
+				4DFA60E318DFA90300E01D9D /* SVHelpView.m in Sources */,
 				4DFEBBE2189691F30051274A /* SVInfoWallView.m in Sources */,
 				4D06AC74188A976C00ED425F /* main.m in Sources */,
 				4DD226F51890295D0095D71D /* SVWall.m in Sources */,
@@ -423,6 +434,7 @@
 				4DA11954188D89D7008A8688 /* SVSquareView.m in Sources */,
 				4DB703D718981AD200324B2A /* SVRootViewController.m in Sources */,
 				4D06AC78188A976C00ED425F /* SVAppDelegate.m in Sources */,
+				4DFA60E618DFAC7200E01D9D /* SVHelper.m in Sources */,
 				4D2917F718BCEDC90057A393 /* SVTopBarView.m in Sources */,
 				4D7F75BF18A7F0EB00140965 /* SVGameTableViewCell.m in Sources */,
 				4D915E6718C6CD8B00AADDD4 /* SVCustomButton.m in Sources */,
