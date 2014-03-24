@@ -131,7 +131,8 @@ static NSString *gameCellIdentifier = @"GameCell";
         [self hideRowsAnimated:YES];
         SVCustomContainerController* container = (SVCustomContainerController*)self.parentViewController;
         [self performSelector:@selector(performBlock:) withObject:^{
-            [container pushViewController:controller topBarVisible:NO];
+            BOOL topBarVisible = ((SVAppDelegate*)[UIApplication sharedApplication].delegate).screenSize == kSVLargeScreen;
+            [container pushViewController:controller topBarVisible:topBarVisible];
             [controller show];
             self.currentController = controller;
         } afterDelay:0.2];
