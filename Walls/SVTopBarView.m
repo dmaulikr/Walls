@@ -8,6 +8,7 @@
 
 #import "SVTopBarView.h"
 #import "SVTheme.h"
+#import "SVHelper.h"
 
 @interface SVTopBarView ()
 @property (strong) UILabel* label;
@@ -122,15 +123,13 @@
 }
 
 - (void)setTextLabel:(NSString*)text animated:(BOOL)animated {
-    NSMutableAttributedString* topString = [[NSMutableAttributedString alloc] initWithString:text];
-    [topString addAttribute:NSKernAttributeName value:@3 range:NSMakeRange(0, topString.length)];
     if (animated) {
         UILabel* newLabel = [[UILabel alloc] initWithFrame:self.label.frame];
         newLabel.textColor = self.label.textColor;
         newLabel.font = self.label.font;
         newLabel.lineBreakMode = self.label.lineBreakMode;
         newLabel.textAlignment = self.label.textAlignment;
-        newLabel.attributedText = topString;
+        newLabel.attributedText = [SVHelper attributedStringWithText:text characterSpacing:3];
         newLabel.frame = CGRectMake(newLabel.frame.origin.x,
                                     -newLabel.frame.size.height,
                                     newLabel.frame.size.width,
@@ -147,7 +146,7 @@
         }];
     }
     else {
-        self.label.attributedText = topString;
+        self.label.attributedText = [SVHelper attributedStringWithText:text characterSpacing:3];
     }
 }
 

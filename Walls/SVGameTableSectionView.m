@@ -8,6 +8,7 @@
 
 #import "SVGameTableSectionView.h"
 #import "SVTheme.h"
+#import "SVHelper.h"
 
 @interface SVGameTableSectionView ()
 @end
@@ -26,10 +27,7 @@
         _label.font = [UIFont fontWithName:@"HelveticaNeue" size:13];
         _label.backgroundColor = [UIColor clearColor];
         
-        NSMutableAttributedString* text;
-        text = [[NSMutableAttributedString alloc] initWithString:title];
-        [text addAttribute:NSKernAttributeName value:@2 range:NSMakeRange(0, text.length)];
-        _label.attributedText = text;
+        _label.attributedText = [SVHelper attributedStringWithText:title characterSpacing:2];
         [self addSubview:_label];
         _line = [[UIView alloc] initWithFrame:CGRectMake(20, 26, 280, 1)];
         _line.backgroundColor = [UIColor whiteColor];

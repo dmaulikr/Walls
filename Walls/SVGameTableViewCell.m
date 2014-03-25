@@ -9,6 +9,7 @@
 #import "SVGameTableViewCell.h"
 #import "SVTheme.h"
 #import "SVCustomView.h"
+#import "SVHelper.h"
 
 static NSCache* imageCache;
 
@@ -73,9 +74,7 @@ static NSCache* imageCache;
 }
 
 - (void)setText:(NSString *)text {
-    NSMutableAttributedString* attributedString = [[NSMutableAttributedString alloc] initWithString:text];
-    [attributedString addAttribute:NSKernAttributeName value:@2 range:NSMakeRange(0, text.length)];
-    self.label.attributedText = attributedString;
+    self.label.attributedText = [SVHelper attributedStringWithText:text characterSpacing:2];
 }
 
 - (void)setColor:(UIColor *)color {

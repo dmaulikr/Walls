@@ -11,6 +11,7 @@
 #import "SVGamesTableViewController.h"
 #import "SVGameViewController.h"
 #import "SVTheme.h"
+#import "SVHelper.h"
 
 @interface SVRootViewController ()
 @property (strong) UIViewController* currentViewController;
@@ -44,13 +45,10 @@
                                                                 self.view.frame.size.height / 2 - 50,
                                                                 200,
                                                                 60)];
-    NSString* wallsString = @"Walls";
-    NSMutableAttributedString* wallsText = [[NSMutableAttributedString alloc] initWithString:wallsString];
-    [wallsText addAttribute:NSKernAttributeName value:@3 range:NSMakeRange(0, wallsString.length - 1)];
     self.wallsLabel.textColor = [UIColor whiteColor];
     self.wallsLabel.font = [UIFont fontWithName:@"HelveticaNeue" size:60];
     self.wallsLabel.textAlignment = NSTextAlignmentCenter;
-    self.wallsLabel.attributedText = wallsText;
+    self.wallsLabel.attributedText = [SVHelper attributedStringWithText:@"Walls" characterSpacing:3];
     [self.view addSubview:self.wallsLabel];
     
 }
@@ -62,9 +60,6 @@
         [view removeFromSuperview];
     }
     self.view.backgroundColor = [SVTheme sharedTheme].darkSquareColor;
-    NSString* welcomeString = @"Welcome";
-    NSMutableAttributedString* welcomeText = [[NSMutableAttributedString alloc] initWithString:welcomeString];
-    [welcomeText addAttribute:NSKernAttributeName value:@3 range:NSMakeRange(0, welcomeString.length - 1)];
     
     UILabel* welcomeLabel = [[UILabel alloc] initWithFrame:CGRectMake((self.view.frame.size.width - 200) / 2,
                                                                       180,
@@ -73,12 +68,8 @@
     welcomeLabel.textColor = [UIColor whiteColor];
     welcomeLabel.font = [UIFont fontWithName:@"HelveticaNeue-Bold" size:23];
     welcomeLabel.textAlignment = NSTextAlignmentCenter;
-    welcomeLabel.attributedText = welcomeText;
+    welcomeLabel.attributedText = [SVHelper attributedStringWithText:@"Welcome" characterSpacing:3];
     [self.view addSubview:welcomeLabel];
-    
-    NSString* explanationString = @"Walls uses Game Center to connect with your friends and play online";
-    NSMutableAttributedString* explanationText = [[NSMutableAttributedString alloc] initWithString:explanationString];
-    [explanationText addAttribute:NSKernAttributeName value:@3 range:NSMakeRange(0, explanationString.length - 1)];
     
     UILabel* explanationLabel = [[UILabel alloc] initWithFrame:CGRectMake((self.view.frame.size.width - 250) / 2,
                                                                           CGRectGetMaxY(welcomeLabel.frame) + 10,
@@ -87,7 +78,8 @@
     explanationLabel.textColor = [UIColor whiteColor];
     explanationLabel.font = [UIFont fontWithName:@"HelveticaNeue" size:15];
     explanationLabel.textAlignment = NSTextAlignmentCenter;
-    explanationLabel.attributedText = explanationText;
+    explanationLabel.attributedText = [SVHelper attributedStringWithText:@"Walls uses Game Center to connect with your friends and play online"
+                                                        characterSpacing:3];
     explanationLabel.numberOfLines = 3;
     [self.view addSubview:explanationLabel];
     
@@ -98,11 +90,8 @@
                               30);
     button.layer.cornerRadius = 15;
     button.backgroundColor = [UIColor whiteColor];
-    NSString* signInString = @"Sign in";
-    NSMutableAttributedString* signInText = [[NSMutableAttributedString alloc] initWithString:signInString];
-    [signInText addAttribute:NSKernAttributeName value:@2 range:NSMakeRange(0, signInString.length - 1)];
     button.titleLabel.textColor = [SVTheme sharedTheme].darkSquareColor;
-    [button setAttributedTitle:signInText forState:UIControlStateNormal];
+    [button setAttributedTitle:[SVHelper attributedStringWithText:@"Sign in" characterSpacing:2] forState:UIControlStateNormal];
     [self.view addSubview:button];
     
     [button addTarget:self action:@selector(didClickButton:) forControlEvents:UIControlEventTouchUpInside];

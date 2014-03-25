@@ -537,9 +537,7 @@ static NSString *gameCellIdentifier = @"GameCell";
         }
         self.deleteLabel.layer.borderColor = color.CGColor;
 
-        NSMutableAttributedString* deleteText = [[NSMutableAttributedString alloc] initWithString:deleteString];
-        [deleteText addAttribute:NSKernAttributeName value:@3 range:NSMakeRange(0, deleteString.length - 1)];
-        self.deleteLabel.attributedText = deleteText;
+        self.deleteLabel.attributedText = [SVHelper attributedStringWithText:deleteString characterSpacing:3];
         self.deleteLabel.font = [UIFont fontWithName:@"Helvetica-Neue" size:23];
         self.deleteLabel.textColor = [UIColor whiteColor];
         self.deleteLabel.textAlignment = NSTextAlignmentCenter;

@@ -11,7 +11,7 @@
 @implementation SVHelper
 + (NSMutableAttributedString*)attributedStringWithText:(NSString *)text characterSpacing:(int)spacing {
     NSMutableAttributedString* attributedString = [[NSMutableAttributedString alloc] initWithString:text];
-    [attributedString addAttribute:NSKernAttributeName value:[NSNumber numberWithInt:spacing] range:NSMakeRange(0, text.length)];
+    [attributedString addAttribute:NSKernAttributeName value:[NSNumber numberWithInt:spacing] range:NSMakeRange(0, text.length > 0 ? text.length - 1 : 0)];
     return attributedString;
 }
 
