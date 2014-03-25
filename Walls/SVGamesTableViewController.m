@@ -16,6 +16,7 @@
 #import "SVGameTableSectionView.h"
 #import "SVAppDelegate.h"
 #import "SVHelpView.h"
+#import "SVHelper.h"
 
 static NSString *spaceCellIdentifer = @"SpaceCell";
 static NSString *gameCellIdentifier = @"GameCell";
@@ -32,6 +33,8 @@ static NSString *gameCellIdentifier = @"GameCell";
 @property (strong) NSMutableDictionary* backupInfo;
 @property (strong) SVHelpView* helpView;
 @property (strong) UIView* helpViewBackground;
+
+@property (assign) SystemSoundID turnSoundID;
 
 - (void)refresh;
 - (void)newGame;
@@ -64,7 +67,7 @@ static NSString *gameCellIdentifier = @"GameCell";
         _endedGames = [[NSMutableArray alloc] init];
         _sectionViews = [[NSMutableDictionary alloc] init];
         _backupInfo = [[NSMutableDictionary alloc] init];
-        
+        _turnSoundID = [SVHelper soundIDForName:@"turn_sound"];
         
         NSNotificationCenter* center = [NSNotificationCenter defaultCenter];
         [center addObserver:self selector:@selector(loadGames) name:@"ApplicationDidBecomeActiveNotification" object:nil];
@@ -641,6 +644,7 @@ static NSString *gameCellIdentifier = @"GameCell";
 
 - (void)player:(GKPlayer *)player receivedTurnEventForMatch:(GKTurnBasedMatch *)match didBecomeActive:(BOOL)didBecomeActive {
     NSLog(@"received turn: %ld", (long)match.status);
+    AudioServicesPlaySystemSound(self.turnSoundID);
     SVGame* game = [SVGame gameWithMatch:match];
     
     if (self.currentController && [match.matchID isEqualToString:self.currentController.game.match.matchID]) {

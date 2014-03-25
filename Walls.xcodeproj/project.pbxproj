@@ -28,6 +28,9 @@
 		4D7F75BA18A53D8F00140965 /* SVTurn.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D7F75B918A53D8F00140965 /* SVTurn.m */; };
 		4D7F75BC18A5586200140965 /* SVTurnTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D7F75BB18A5586200140965 /* SVTurnTest.m */; };
 		4D7F75BF18A7F0EB00140965 /* SVGameTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D7F75BE18A7F0EB00140965 /* SVGameTableViewCell.m */; };
+		4D8DEC3818E1005300DD88CE /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D8DEC3718E1005300DD88CE /* AudioToolbox.framework */; };
+		4D8DEC3A18E10CBD00DD88CE /* turn_sound.caf in Resources */ = {isa = PBXBuildFile; fileRef = 4D8DEC3618E1002C00DD88CE /* turn_sound.caf */; };
+		4D8DEC3C18E10F4000DD88CE /* pawn_fall.caf in Resources */ = {isa = PBXBuildFile; fileRef = 4D8DEC3B18E10F3800DD88CE /* pawn_fall.caf */; };
 		4D915E6418C6ACC800AADDD4 /* SVGameTableSectionView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D915E6318C6ACC800AADDD4 /* SVGameTableSectionView.m */; };
 		4D915E6718C6CD8B00AADDD4 /* SVCustomButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D915E6618C6CD8B00AADDD4 /* SVCustomButton.m */; };
 		4DA11951188D89AB008A8688 /* SVGameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DA11950188D89AB008A8688 /* SVGameViewController.m */; };
@@ -93,6 +96,9 @@
 		4D7F75BB18A5586200140965 /* SVTurnTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVTurnTest.m; sourceTree = "<group>"; };
 		4D7F75BD18A7F0EB00140965 /* SVGameTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVGameTableViewCell.h; sourceTree = "<group>"; };
 		4D7F75BE18A7F0EB00140965 /* SVGameTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVGameTableViewCell.m; sourceTree = "<group>"; };
+		4D8DEC3618E1002C00DD88CE /* turn_sound.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = turn_sound.caf; sourceTree = "<group>"; };
+		4D8DEC3718E1005300DD88CE /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
+		4D8DEC3B18E10F3800DD88CE /* pawn_fall.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = pawn_fall.caf; sourceTree = "<group>"; };
 		4D915E6218C6ACC800AADDD4 /* SVGameTableSectionView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVGameTableSectionView.h; sourceTree = "<group>"; };
 		4D915E6318C6ACC800AADDD4 /* SVGameTableSectionView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVGameTableSectionView.m; sourceTree = "<group>"; };
 		4D915E6518C6CD8B00AADDD4 /* SVCustomButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVCustomButton.h; sourceTree = "<group>"; };
@@ -135,6 +141,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4D8DEC3818E1005300DD88CE /* AudioToolbox.framework in Frameworks */,
 				4D06AC6A188A976C00ED425F /* CoreGraphics.framework in Frameworks */,
 				4D06AC6C188A976C00ED425F /* UIKit.framework in Frameworks */,
 				4D06AC68188A976C00ED425F /* Foundation.framework in Frameworks */,
@@ -177,6 +184,7 @@
 		4D06AC66188A976C00ED425F /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4D8DEC3718E1005300DD88CE /* AudioToolbox.framework */,
 				4D1CEBF7189140D200757A75 /* GameKit.framework */,
 				4D06AC67188A976C00ED425F /* Foundation.framework */,
 				4D06AC69188A976C00ED425F /* CoreGraphics.framework */,
@@ -202,6 +210,7 @@
 		4D06AC6E188A976C00ED425F /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				4D8DEC3518E1001F00DD88CE /* Audio */,
 				4D06AC6F188A976C00ED425F /* Walls-Info.plist */,
 				4D06AC70188A976C00ED425F /* InfoPlist.strings */,
 				4D06AC73188A976C00ED425F /* main.m */,
@@ -231,6 +240,15 @@
 				4D06AC89188A976C00ED425F /* InfoPlist.strings */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		4D8DEC3518E1001F00DD88CE /* Audio */ = {
+			isa = PBXGroup;
+			children = (
+				4D8DEC3B18E10F3800DD88CE /* pawn_fall.caf */,
+				4D8DEC3618E1002C00DD88CE /* turn_sound.caf */,
+			);
+			name = Audio;
 			sourceTree = "<group>";
 		};
 		4D97AC91188A98D30044EEFE /* Models */ = {
@@ -394,6 +412,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4D8DEC3A18E10CBD00DD88CE /* turn_sound.caf in Resources */,
+				4D8DEC3C18E10F4000DD88CE /* pawn_fall.caf in Resources */,
 				4D06AC72188A976C00ED425F /* InfoPlist.strings in Resources */,
 				4D06AC7A188A976C00ED425F /* Images.xcassets in Resources */,
 			);

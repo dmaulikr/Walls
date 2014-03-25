@@ -7,7 +7,9 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <AudioToolbox/AudioToolbox.h>
 
 @interface SVHelper : NSObject
 + (NSMutableAttributedString*)attributedStringWithText:(NSString*)text characterSpacing:(int)spacing;
++ (SystemSoundID)soundIDForName:(NSString*)name;
 @end
