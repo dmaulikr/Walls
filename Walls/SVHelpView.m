@@ -73,7 +73,7 @@
         
         //Basics
         UILabel* basicsSubtitleLabel = [self subtitleLabelForText:@"Basics" yPosition:CGRectGetMaxY(startTextLabel.frame) + 20];
-        UILabel* basicsTextLabel1 = [self textLabelForText:@"At each turn, a player can either move or build a wall. A wall is always 2 squares wide and can only be build if the 2 players can still reach their goal after the wall is built. A normal wall blocks the way to both players while special wall allow their owner to go through."
+        UILabel* basicsTextLabel1 = [self textLabelForText:@"At each turn, a player can either move or build a wall. A wall is always 2 squares wide and can only be build if the 2 players can still reach their goal after the wall is built. A normal wall blocks the way to both players while a colored wall only allows its owner to go through."
                                                yPosition:CGRectGetMaxY(basicsSubtitleLabel.frame) + 10];
         
         UIImage* basicImage1 = [UIImage imageNamed:@"helpImage1.png"];
