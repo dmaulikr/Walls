@@ -489,19 +489,19 @@ static NSString *gameCellIdentifier = @"GameCell";
 - (void)didClickHelpButton:(id)sender {
     self.helpViewBackground = [[UIView alloc] initWithFrame:[UIScreen mainScreen].bounds];
     self.helpViewBackground.backgroundColor = [UIColor clearColor];
-    self.helpView = [[SVHelpView alloc] initWithFrame:CGRectMake((self.view.frame.size.width - 235) / 2,
-                                                                 - (self.tableView.superview.frame.size.height - 60),
-                                                                 235,
-                                                                 self.tableView.superview.frame.size.height - 60)];
+    self.helpView = [[SVHelpView alloc] initWithFrame:CGRectMake((self.view.frame.size.width - 250) / 2,
+                                                                 - (self.tableView.superview.frame.size.height - 50),
+                                                                 250,
+                                                                 self.tableView.superview.frame.size.height - 100)];
     self.helpView.delegate = self;
     [self.tableView.superview addSubview:self.helpViewBackground];
     [self.tableView.superview addSubview:self.helpView];
     
     [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        self.helpView.frame = CGRectMake((self.view.frame.size.width - 235) / 2,
-                                         30,
-                                         235,
-                                         self.tableView.superview.frame.size.height - 60);
+        self.helpView.frame = CGRectMake(self.helpView.frame.origin.x,
+                                         50,
+                                         self.helpView.frame.size.width,
+                                         self.helpView.frame.size.height);
         self.helpViewBackground.backgroundColor = [UIColor colorWithWhite:0 alpha:0.3];
     } completion:nil];
     
