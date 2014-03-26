@@ -33,8 +33,7 @@ static NSString *gameCellIdentifier = @"GameCell";
 @property (strong) NSMutableDictionary* backupInfo;
 @property (strong) SVHelpView* helpView;
 @property (strong) UIView* helpViewBackground;
-
-@property (assign) SystemSoundID turnSoundID;
+@property (strong) UIButton* helpButton;
 
 - (void)refresh;
 - (void)newGame;
@@ -51,6 +50,7 @@ static NSString *gameCellIdentifier = @"GameCell";
 - (void)performBlock:(void(^)(void))block;
 - (void)didClickPlusButton:(id)sender;
 - (void)didClickHelpButton:(id)sender;
+- (void)didClickHelpCloseButton:(id)sender;
 - (void)didPanCell:(UIPanGestureRecognizer*)gestureRecognizer;
 
 @end
@@ -67,7 +67,6 @@ static NSString *gameCellIdentifier = @"GameCell";
         _endedGames = [[NSMutableArray alloc] init];
         _sectionViews = [[NSMutableDictionary alloc] init];
         _backupInfo = [[NSMutableDictionary alloc] init];
-        _turnSoundID = [SVHelper soundIDForName:@"turn_sound"];
         
         NSNotificationCenter* center = [NSNotificationCenter defaultCenter];
         [center addObserver:self selector:@selector(loadGames) name:@"ApplicationDidBecomeActiveNotification" object:nil];
@@ -394,6 +393,7 @@ static NSString *gameCellIdentifier = @"GameCell";
                                       helpImage.size.width,
                                       helpImage.size.height);
         [helpButton addTarget:self action:@selector(didClickHelpButton:) forControlEvents:UIControlEventTouchUpInside];
+        self.helpButton = helpButton;
         [container.topBarView setLeftButton:helpButton animated:animated];
     }
 }
@@ -497,14 +497,51 @@ static NSString *gameCellIdentifier = @"GameCell";
     [self.tableView.superview addSubview:self.helpViewBackground];
     [self.tableView.superview addSubview:self.helpView];
     
+    UIButton* closeButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    UIImage* closeImage = [UIImage imageNamed:@"help_cross.png"];
+    [closeButton setBackgroundImage:closeImage forState:UIControlStateNormal];
+    closeButton.adjustsImageWhenHighlighted = NO;
+    closeButton.adjustsImageWhenDisabled = NO;
+    closeButton.frame = CGRectMake(5,
+                                   3,
+                                   closeImage.size.width,
+                                   closeImage.size.height);
+    closeButton.alpha = 0;
+    [closeButton addTarget:self action:@selector(didClickHelpCloseButton:) forControlEvents:UIControlEventTouchUpInside];
+    [self.helpViewBackground addSubview:closeButton];
+    
     [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        self.helpButton.alpha = 0;
+        closeButton.alpha = 1;
         self.helpView.frame = CGRectMake(self.helpView.frame.origin.x,
                                          50,
                                          self.helpView.frame.size.width,
                                          self.helpView.frame.size.height);
-        self.helpViewBackground.backgroundColor = [UIColor colorWithWhite:0 alpha:0.3];
+        self.helpViewBackground.backgroundColor = [UIColor colorWithWhite:0 alpha:0.6];
     } completion:nil];
     
+}
+
+- (void)didClickHelpCloseButton:(id)sender {
+    UIButton* button = (UIButton*)sender;
+    [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        self.helpView.frame = CGRectMake(self.helpView.frame.origin.x,
+                                         self.tableView.superview.frame.size.height,
+                                         self.helpView.frame.size.width,
+                                         self.helpView.frame.size.height);
+        self.helpViewBackground.backgroundColor = [UIColor colorWithWhite:0 alpha:0];
+        button.alpha = 0;
+        self.helpButton.alpha = 1;
+        
+    } completion:^(BOOL finished) {
+        if (finished) {
+            [button removeFromSuperview];
+            [self.helpView removeFromSuperview];
+            self.helpView = nil;
+            [self.helpViewBackground removeFromSuperview];
+            self.helpViewBackground = nil;
+        }
+    }];
 }
 
 - (void)didPanCell:(UIPanGestureRecognizer *)gestureRecognizer {
@@ -642,7 +679,6 @@ static NSString *gameCellIdentifier = @"GameCell";
 
 - (void)player:(GKPlayer *)player receivedTurnEventForMatch:(GKTurnBasedMatch *)match didBecomeActive:(BOOL)didBecomeActive {
     NSLog(@"received turn: %ld", (long)match.status);
-    AudioServicesPlaySystemSound(self.turnSoundID);
     SVGame* game = [SVGame gameWithMatch:match];
     
     if (self.currentController && [match.matchID isEqualToString:self.currentController.game.match.matchID]) {
@@ -812,23 +848,6 @@ static NSString *gameCellIdentifier = @"GameCell";
             break;
             
     }
-}
-
-- (void)helpViewDidClickCloseButton {
-    [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        self.helpView.frame = CGRectMake(self.helpView.frame.origin.x,
-                                         self.tableView.superview.frame.size.height,
-                                         self.helpView.frame.size.width,
-                                         self.helpView.frame.size.height);
-        self.helpViewBackground.backgroundColor = [UIColor colorWithWhite:0 alpha:0];
-    } completion:^(BOOL finished) {
-        if (finished) {
-            [self.helpView removeFromSuperview];
-            self.helpView = nil;
-            [self.helpViewBackground removeFromSuperview];
-            self.helpViewBackground = nil;
-        }
-    }];
 }
 
 #pragma mark - Table view data source

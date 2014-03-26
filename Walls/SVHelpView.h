@@ -11,7 +11,3 @@
 @interface SVHelpView : UIView
 @property (weak) id delegate;
 @end
-
-@protocol SVHelpViewDelegate <NSObject>
-- (void)helpViewDidClickCloseButton;
-@end

@@ -16,6 +16,5 @@
                                                                GKLocalPlayerListener,
                                                                SVGameViewControllerDelegate,
                                                                UIGestureRecognizerDelegate,
-                                                               UIAlertViewDelegate,
-                                                               SVHelpViewDelegate>
+                                                               UIAlertViewDelegate>
 @end

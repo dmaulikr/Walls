@@ -15,7 +15,6 @@
 
 - (UILabel*)subtitleLabelForText:(NSString*)text yPosition:(int)y;
 - (UILabel*)textLabelForText:(NSString*)text yPosition:(int)y;
-- (void)didClickCloseButton:(id)sender;
 @end
 
 @implementation SVHelpView
@@ -115,21 +114,8 @@
         [scrollView addSubview:winSubtitleLabel];
         [scrollView addSubview:winTextLabel];
         
-        UIButton* button = [UIButton buttonWithType:UIButtonTypeCustom];
-        button.frame = CGRectMake((scrollView.contentSize.width - 105) / 2,
-                                  CGRectGetMaxY(winTextLabel.frame) + 20,
-                                  105,
-                                  30);
-        button.layer.cornerRadius = 15;
-        button.layer.borderWidth = 2;
-        button.layer.borderColor = [SVTheme sharedTheme].darkSquareColor.CGColor;
-        button.titleLabel.textColor = [SVTheme sharedTheme].darkSquareColor;
-        [button setAttributedTitle:[SVHelper attributedStringWithText:@"Close" characterSpacing:3] forState:UIControlStateNormal];
-        [button addTarget:self action:@selector(didClickCloseButton:) forControlEvents:UIControlEventTouchUpInside];
-        [scrollView addSubview:button];
-        
         scrollView.contentSize = CGSizeMake(scrollView.contentSize.width,
-                                            CGRectGetMaxY(button.frame) + 15);
+                                            CGRectGetMaxY(winTextLabel.frame) + 15);
     }
     return self;
 }
@@ -158,15 +144,6 @@
     [label sizeToFit];
     return label;
 }
-
-#pragma mark - Target
-
-- (void)didClickCloseButton:(id)sender {
-    if (self.delegate && [self.delegate respondsToSelector:@selector(helpViewDidClickCloseButton)]) {
-        [self.delegate helpViewDidClickCloseButton];
-    }
-}
-
 
 /*
 // Only override drawRect: if you perform custom drawing.

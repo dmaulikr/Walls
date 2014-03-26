@@ -15,11 +15,4 @@
     return attributedString;
 }
 
-+ (SystemSoundID)soundIDForName:(NSString *)name {
-    SystemSoundID soundID;
-    NSString* soundPath = [[NSBundle mainBundle] pathForResource:name ofType:@"caf"];
-    CFURLRef soundRef = (__bridge CFURLRef)[NSURL fileURLWithPath:soundPath];
-    AudioServicesCreateSystemSoundID(soundRef, &soundID);
-    return soundID;
-}
 @end
