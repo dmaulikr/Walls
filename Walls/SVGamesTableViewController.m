@@ -234,7 +234,6 @@ static NSString *gameCellIdentifier = @"GameCell";
                 }
                 else {
                     SVGame* game = [SVGame gameWithMatch:match];
-                    NSLog(@"status: %ld", (long)match.status);
                     if (match.status == GKTurnBasedMatchStatusOpen) {
                         BOOL ended = NO;
                         for (GKTurnBasedParticipant* participant in match.participants) {
@@ -407,7 +406,6 @@ static NSString *gameCellIdentifier = @"GameCell";
                 participant.matchOutcome = GKTurnBasedMatchOutcomeWon;
         }
         [game.match endMatchInTurnWithMatchData:game.data completionHandler:^(NSError *error) {
-            NSLog(@"end match in turn: %ld", (long)game.match.status);
             if (error) {
                 [self showAlertView:error tag:1];
             }
@@ -415,7 +413,6 @@ static NSString *gameCellIdentifier = @"GameCell";
     }
     else {
         [game.match participantQuitOutOfTurnWithOutcome:GKTurnBasedMatchOutcomeLost withCompletionHandler:^(NSError *error) {
-            NSLog(@"participant quit out of turn: %ld", (long)game.match.status);
             if (error) {
                 [self showAlertView:error tag:1];
             }
@@ -425,7 +422,6 @@ static NSString *gameCellIdentifier = @"GameCell";
 
 - (void)deleteGame:(SVGame*)game {
     [game.match removeWithCompletionHandler:^(NSError *error) {
-        NSLog(@"remove: %ld", (long)game.match.status);
         if (error) {
             [self showAlertView:error tag:2];
         }
@@ -647,7 +643,6 @@ static NSString *gameCellIdentifier = @"GameCell";
 #pragma mark - Delegates
 
 - (void)turnBasedMatchmakerViewController:(GKTurnBasedMatchmakerViewController *)viewController didFindMatch:(GKTurnBasedMatch *)match {
-    NSLog(@"found match: %ld", (long)match.status);
     SVGame* game = [SVGame gameWithMatch:match];
     [self.inProgressGames insertObject:game atIndex:0];
     NSArray* indexPaths = [NSArray arrayWithObjects:[NSIndexPath indexPathForRow:0 inSection:0],
@@ -660,25 +655,21 @@ static NSString *gameCellIdentifier = @"GameCell";
 }
 
 - (void)turnBasedMatchmakerViewController:(GKTurnBasedMatchmakerViewController *)viewController playerQuitForMatch:(GKTurnBasedMatch *)match {
-    NSLog(@"quit");
     self.plusButton.enabled = YES;
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)turnBasedMatchmakerViewControllerWasCancelled:(GKTurnBasedMatchmakerViewController *)viewController {
-    NSLog(@"cancelled");
     self.plusButton.enabled = YES;
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)turnBasedMatchmakerViewController:(GKTurnBasedMatchmakerViewController *)viewController didFailWithError:(NSError *)error {
-    NSLog(@"fail");
     self.plusButton.enabled = YES;
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)player:(GKPlayer *)player receivedTurnEventForMatch:(GKTurnBasedMatch *)match didBecomeActive:(BOOL)didBecomeActive {
-    NSLog(@"received turn: %ld", (long)match.status);
     SVGame* game = [SVGame gameWithMatch:match];
     
     if (self.currentController && [match.matchID isEqualToString:self.currentController.game.match.matchID]) {
@@ -710,7 +701,6 @@ static NSString *gameCellIdentifier = @"GameCell";
 }
 
 - (void)player:(GKPlayer *)player didRequestMatchWithPlayers:(NSArray *)playerIDsToInvite {
-    NSLog(@"did request match");
 }
 
 - (void)player:(GKPlayer *)player matchEnded:(GKTurnBasedMatch *)match {

@@ -6,8 +6,6 @@
 //  Copyright (c) 2014 Sebastien Villar. All rights reserved.
 //
 
-#define LogVariableName(x) NSLog(@"The variable is %s", #x)
-
 #import "SVTurn.h"
 
 @implementation SVTurn
