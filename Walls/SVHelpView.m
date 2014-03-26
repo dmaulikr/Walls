@@ -64,7 +64,7 @@
     
         //Start
         UILabel* startSubtitleLabel = [self subtitleLabelForText:@"Start" yPosition:CGRectGetMaxY(titleLabel.frame) + 20];
-        UILabel* startTextLabel = [self textLabelForText:@"The game starts with the 2 players positioned at opposing ends of the board. Each player is given 6 normals walls and 2 walls of his color."
+        UILabel* startTextLabel = [self textLabelForText:@"The game starts with the 2 players positioned at opposite sides of the board. Each player is given 6 normals walls and 2 walls of his color."
                                                yPosition:CGRectGetMaxY(startSubtitleLabel.frame) + 10];
         
         [scrollView addSubview:startSubtitleLabel];
@@ -72,7 +72,7 @@
         
         //Basics
         UILabel* basicsSubtitleLabel = [self subtitleLabelForText:@"Basics" yPosition:CGRectGetMaxY(startTextLabel.frame) + 20];
-        UILabel* basicsTextLabel1 = [self textLabelForText:@"At each turn, a player can either move or build a wall. A wall is always 2 squares wide and can only be build if the 2 players can still reach their goal after the wall is built. A normal wall blocks the way to both players while a colored wall only allows its owner to go through."
+        UILabel* basicsTextLabel1 = [self textLabelForText:@"At each turn, a player can either move or build a wall. A wall is always 2 squares wide and can only be built if the 2 players can still reach their goal after the wall is built. A normal wall blocks the way to both players while a colored wall only allows its owner to go through."
                                                yPosition:CGRectGetMaxY(basicsSubtitleLabel.frame) + 10];
         
         UIImage* basicImage1 = [UIImage imageNamed:@"helpImage1.png"];
