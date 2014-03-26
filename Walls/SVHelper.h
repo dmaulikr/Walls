@@ -9,6 +9,12 @@
 #import <Foundation/Foundation.h>
 #import <AudioToolbox/AudioToolbox.h>
 
+typedef enum {
+    kSVSmallScreen,
+    kSVLargeScreen
+} kSVScreenSize;
+
 @interface SVHelper : NSObject
 + (NSMutableAttributedString*)attributedStringWithText:(NSString*)text characterSpacing:(int)spacing;
++ (kSVScreenSize)screenSize;
 @end

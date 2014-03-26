@@ -15,10 +15,6 @@
 {
     NSDictionary *appDefaults = [NSDictionary dictionaryWithObject:[NSNumber numberWithBool:YES] forKey:@"firstLaunch"];
     [[NSUserDefaults standardUserDefaults] registerDefaults:appDefaults];
-    if ([UIScreen mainScreen].bounds.size.height == 568)
-        self.screenSize = kSVLargeScreen;
-    else
-        self.screenSize = kSVSmallScreen;
     
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     // Override point for customization after application launch.

@@ -14,7 +14,6 @@
 #import "SVGameTableViewCell.h"
 #import "SVCustomContainerController.h"
 #import "SVGameTableSectionView.h"
-#import "SVAppDelegate.h"
 #import "SVHelpView.h"
 #import "SVHelper.h"
 
@@ -136,7 +135,7 @@ static NSString *gameCellIdentifier = @"GameCell";
         [self hideRowsAnimated:YES];
         SVCustomContainerController* container = (SVCustomContainerController*)self.parentViewController;
         [self performSelector:@selector(performBlock:) withObject:^{
-            BOOL topBarVisible = ((SVAppDelegate*)[UIApplication sharedApplication].delegate).screenSize == kSVLargeScreen;
+            BOOL topBarVisible = [SVHelper screenSize] == kSVLargeScreen;
             [container pushViewController:controller topBarVisible:topBarVisible];
             [controller show];
             self.currentController = controller;
@@ -744,7 +743,7 @@ static NSString *gameCellIdentifier = @"GameCell";
     }];
     [self performSelector:@selector(performBlock:) withObject:^{
         [self showRowsAnimated:YES];
-        [self setTopBarButtonsAnimated:((SVAppDelegate*)[UIApplication sharedApplication].delegate).screenSize == kSVLargeScreen];
+        [self setTopBarButtonsAnimated:[SVHelper screenSize] == kSVLargeScreen];
     } afterDelay:0.2];
 }
 

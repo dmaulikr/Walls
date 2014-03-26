@@ -18,7 +18,7 @@
 #import "SVTurn.h"
 #import "SVCustomContainerController.h"
 #import "SVCustomButton.h"
-#import "SVAppDelegate.h"
+#import "SVHelper.h"
 
 @interface SVGameViewController ()
 
@@ -211,7 +211,7 @@
                                                                self.view.frame.size.height - CGRectGetMaxY(self.boardView.frame))];
     [self.view addSubview:self.bottomView];
     
-    if (((SVAppDelegate*)[UIApplication sharedApplication].delegate).screenSize == kSVLargeScreen) {
+    if ([SVHelper screenSize] == kSVLargeScreen) {
         self.infoView = [[SVCustomView alloc] initWithFrame:CGRectMake(0,
                                                                        0,
                                                                        self.view.frame.size.width,
@@ -411,7 +411,7 @@
         backButton.adjustsImageWhenDisabled = NO;
         backButton.adjustsImageWhenHighlighted = NO;
         [backButton addTarget:self action:@selector(didClickBackButton:) forControlEvents:UIControlEventTouchUpInside];
-        if (((SVAppDelegate*)[UIApplication sharedApplication].delegate).screenSize == kSVLargeScreen) {
+        if ([SVHelper screenSize] == kSVLargeScreen) {
             SVCustomContainerController* container = (SVCustomContainerController*)self.parentViewController;
             [container.topBarView setTextLabel:@"" animated:YES];
             backButton.frame = CGRectMake(0,
@@ -764,7 +764,7 @@
     validateButton.titleLabel.font = [UIFont fontWithName:@"HelveticaNeue" size:20];
     validateButton.alpha = 0;
     
-    if (((SVAppDelegate*)[UIApplication sharedApplication].delegate).screenSize == kSVLargeScreen) {
+    if ([SVHelper screenSize] == kSVLargeScreen) {
         cancelButton.frame = CGRectMake((self.footerView.frame.size.width - 100) / 2,
                                         (self.footerView.frame.size.height - 40) / 2,
                                         100,

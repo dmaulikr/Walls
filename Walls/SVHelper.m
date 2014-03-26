@@ -15,4 +15,11 @@
     return attributedString;
 }
 
++ (kSVScreenSize)screenSize {
+    if ([UIScreen mainScreen].bounds.size.height == 568)
+        return kSVLargeScreen;
+    else
+        return kSVSmallScreen;
+}
+
 @end
