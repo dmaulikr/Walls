@@ -91,6 +91,9 @@ static NSString *gameCellIdentifier = @"GameCell";
 - (void)viewWillAppear:(BOOL)animated { 
     [super viewWillAppear:animated];
     [self setTopBarButtonsAnimated:NO];
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"firstLaunch"]) {
+        [self didClickHelpButton:self.helpButton];
+    }
 }
 
 - (void)didReceiveMemoryWarning
