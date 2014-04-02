@@ -92,6 +92,8 @@ static NSString *gameCellIdentifier = @"GameCell";
     [self setTopBarButtonsAnimated:NO];
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"firstLaunch"]) {
         [self didClickHelpButton:self.helpButton];
+        [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"firstLaunch"];
+        [[NSUserDefaults standardUserDefaults] synchronize];
     }
 }
 

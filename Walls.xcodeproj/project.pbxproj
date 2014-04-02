@@ -21,7 +21,6 @@
 		4D154D841892B97100E8E303 /* SVPawnView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D154D831892B97100E8E303 /* SVPawnView.m */; };
 		4D154D871892BB0E00E8E303 /* SVBoardView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D154D861892BB0E00E8E303 /* SVBoardView.m */; };
 		4D154D8A1892D25500E8E303 /* SVWallView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D154D891892D25500E8E303 /* SVWallView.m */; };
-		4D1CEBF8189140D200757A75 /* GameKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D1CEBF7189140D200757A75 /* GameKit.framework */; };
 		4D2917F418BCE9BC0057A393 /* SVCustomContainerController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D2917F318BCE9BC0057A393 /* SVCustomContainerController.m */; };
 		4D2917F718BCEDC90057A393 /* SVTopBarView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D2917F618BCEDC90057A393 /* SVTopBarView.m */; };
 		4D499E45188AAA13000A48C6 /* SVBoard.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D499E44188AAA13000A48C6 /* SVBoard.m */; };
@@ -39,6 +38,7 @@
 		4DB703DA18981F8D00324B2A /* SVGamesTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DB703D918981F8D00324B2A /* SVGamesTableViewController.m */; };
 		4DB9B0B7189E9AB5001AFA81 /* SVGame.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DB9B0B6189E9AB5001AFA81 /* SVGame.m */; };
 		4DB9B0B9189EA97E001AFA81 /* SVGameTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DB9B0B8189EA97E001AFA81 /* SVGameTest.m */; };
+		4DCCD53918E3A7D100E1C248 /* GameKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4DCCD53818E3A7D100E1C248 /* GameKit.framework */; };
 		4DD226F51890295D0095D71D /* SVWall.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DD226F41890295D0095D71D /* SVWall.m */; };
 		4DD226F7189033F70095D71D /* SVWallTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DD226F6189033F70095D71D /* SVWallTest.m */; };
 		4DD226F9189034020095D71D /* SVPositionTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DD226F8189034020095D71D /* SVPositionTest.m */; };
@@ -82,7 +82,6 @@
 		4D154D861892BB0E00E8E303 /* SVBoardView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVBoardView.m; sourceTree = "<group>"; };
 		4D154D881892D25500E8E303 /* SVWallView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVWallView.h; sourceTree = "<group>"; };
 		4D154D891892D25500E8E303 /* SVWallView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVWallView.m; sourceTree = "<group>"; };
-		4D1CEBF7189140D200757A75 /* GameKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameKit.framework; path = System/Library/Frameworks/GameKit.framework; sourceTree = SDKROOT; };
 		4D2917F218BCE9BC0057A393 /* SVCustomContainerController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVCustomContainerController.h; sourceTree = "<group>"; };
 		4D2917F318BCE9BC0057A393 /* SVCustomContainerController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVCustomContainerController.m; sourceTree = "<group>"; };
 		4D2917F518BCEDC90057A393 /* SVTopBarView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVTopBarView.h; sourceTree = "<group>"; };
@@ -114,6 +113,7 @@
 		4DB9B0B5189E9AB5001AFA81 /* SVGame.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVGame.h; sourceTree = "<group>"; };
 		4DB9B0B6189E9AB5001AFA81 /* SVGame.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVGame.m; sourceTree = "<group>"; };
 		4DB9B0B8189EA97E001AFA81 /* SVGameTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVGameTest.m; sourceTree = "<group>"; };
+		4DCCD53818E3A7D100E1C248 /* GameKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameKit.framework; path = System/Library/Frameworks/GameKit.framework; sourceTree = SDKROOT; };
 		4DD226F31890295D0095D71D /* SVWall.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVWall.h; sourceTree = "<group>"; };
 		4DD226F41890295D0095D71D /* SVWall.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVWall.m; sourceTree = "<group>"; };
 		4DD226F6189033F70095D71D /* SVWallTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVWallTest.m; sourceTree = "<group>"; };
@@ -141,7 +141,7 @@
 				4D06AC6A188A976C00ED425F /* CoreGraphics.framework in Frameworks */,
 				4D06AC6C188A976C00ED425F /* UIKit.framework in Frameworks */,
 				4D06AC68188A976C00ED425F /* Foundation.framework in Frameworks */,
-				4D1CEBF8189140D200757A75 /* GameKit.framework in Frameworks */,
+				4DCCD53918E3A7D100E1C248 /* GameKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -180,8 +180,8 @@
 		4D06AC66188A976C00ED425F /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4DCCD53818E3A7D100E1C248 /* GameKit.framework */,
 				4D8DEC3718E1005300DD88CE /* AudioToolbox.framework */,
-				4D1CEBF7189140D200757A75 /* GameKit.framework */,
 				4D06AC67188A976C00ED425F /* Foundation.framework */,
 				4D06AC69188A976C00ED425F /* CoreGraphics.framework */,
 				4D06AC6B188A976C00ED425F /* UIKit.framework */,
@@ -573,6 +573,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
+				TARGETED_DEVICE_FAMILY = 1;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -590,6 +591,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
+				TARGETED_DEVICE_FAMILY = 1;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
