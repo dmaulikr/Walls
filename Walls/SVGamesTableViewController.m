@@ -23,6 +23,7 @@ static NSString *gameCellIdentifier = @"GameCell";
 @interface SVGamesTableViewController ()
 @property (strong) NSMutableArray* inProgressGames;
 @property (strong) NSMutableArray* endedGames;
+@property (assign, getter = isSyncing) BOOL syncing;
 
 @property (strong) SVGameViewController* currentController;
 @property (strong) NSMutableDictionary* sectionViews;
@@ -66,6 +67,7 @@ static NSString *gameCellIdentifier = @"GameCell";
         _endedGames = [[NSMutableArray alloc] init];
         _sectionViews = [[NSMutableDictionary alloc] init];
         _backupInfo = [[NSMutableDictionary alloc] init];
+        _syncing = NO;
         
         NSNotificationCenter* center = [NSNotificationCenter defaultCenter];
         [center addObserver:self selector:@selector(loadGames) name:@"ApplicationDidBecomeActiveNotification" object:nil];
@@ -146,13 +148,17 @@ static NSString *gameCellIdentifier = @"GameCell";
 }
 
 - (void)loadGames {
+    self.syncing = YES;
     [GKTurnBasedMatch loadMatchesWithCompletionHandler:^(NSArray *matches, NSError *error) {
         if (matches.count == 0) {
             [self.refreshControl endRefreshing];
+            self.syncing = NO;
             return;
         }
         if (error) {
             [self showAlertView:error tag:0];
+            [self.refreshControl endRefreshing];
+            self.syncing = NO;
             return;
         }
         
@@ -225,6 +231,7 @@ static NSString *gameCellIdentifier = @"GameCell";
             [self.tableView reloadRowsAtIndexPaths:indexPathsToReload withRowAnimation:UITableViewRowAnimationFade];
             [self.tableView endUpdates];
             
+            self.syncing = NO;
             [self.refreshControl endRefreshing];
         };
         
@@ -233,6 +240,8 @@ static NSString *gameCellIdentifier = @"GameCell";
         for (GKTurnBasedMatch* match in matches) {
             [match loadMatchDataWithCompletionHandler:^(NSData *matchData, NSError *error) {
                 if (error) {
+                    [self.refreshControl endRefreshing];
+                    self.syncing = NO;
                     [self showAlertView:error tag:0];
                     return;
                 }
@@ -674,6 +683,9 @@ static NSString *gameCellIdentifier = @"GameCell";
 }
 
 - (void)player:(GKPlayer *)player receivedTurnEventForMatch:(GKTurnBasedMatch *)match didBecomeActive:(BOOL)didBecomeActive {
+    if (self.isSyncing)
+        return;
+    
     SVGame* game = [SVGame gameWithMatch:match];
     
     if (self.currentController && [match.matchID isEqualToString:self.currentController.game.match.matchID]) {
