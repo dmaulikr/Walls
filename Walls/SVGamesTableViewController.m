@@ -713,13 +713,15 @@ static NSString *gameCellIdentifier = @"GameCell";
     if (index == -1)
         return;
     
+    if (self.currentController && [match.matchID isEqualToString:self.currentController.game.match.matchID]) {
+        if (game.turns.count == ((SVGame*)[self.inProgressGames objectAtIndex:index]).turns.count)
+            [self.currentController opponentPlayerDidResign:game];
+        else
+            [self.currentController opponentPlayerDidPlayTurn:game];
+    }
     
     [self.inProgressGames replaceObjectAtIndex:index withObject:game];
     [self moveGameToEnded:game];
-    
-    if (self.currentController && [match.matchID isEqualToString:self.currentController.game.match.matchID]) {
-        [self.currentController opponentPlayerDidResign:game];
-    }
 }
 
 - (void)gameViewControllerDidPlayTurn:(SVGameViewController *)controller {
