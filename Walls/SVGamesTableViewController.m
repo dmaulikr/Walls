@@ -258,7 +258,9 @@ static NSString *gameCellIdentifier = @"GameCell";
                             GKTurnBasedParticipant* participant = match.currentParticipant;
                             participant.matchOutcome = GKTurnBasedMatchOutcomeWon;
                             [newEndedGames addObject:game];
-                            [match endMatchInTurnWithMatchData:[game data] completionHandler:nil];
+                            @try {
+                                [match endMatchInTurnWithMatchData:[game data] completionHandler:nil];
+                            } @catch(NSException* e) {}
                         }
                         else
                             [newInProgressGames addObject:game];
@@ -435,18 +437,22 @@ static NSString *gameCellIdentifier = @"GameCell";
                             else
                                 participant.matchOutcome = GKTurnBasedMatchOutcomeWon;
                         }
-                        [match endMatchInTurnWithMatchData:game.data completionHandler:^(NSError *error) {
-                            if (error) {
-                                [self showAlertView:error tag:1];
-                            }
-                        }];
+                        @try {
+                            [match endMatchInTurnWithMatchData:game.data completionHandler:^(NSError *error) {
+                                if (error) {
+                                    [self showAlertView:error tag:1];
+                                }
+                            }];
+                        } @catch(NSException *e){}
                     }
                     else {
-                        [match participantQuitOutOfTurnWithOutcome:GKTurnBasedMatchOutcomeLost withCompletionHandler:^(NSError *error) {
-                            if (error) {
-                                [self showAlertView:error tag:1];
-                            }
-                        }];
+                        @try {
+                            [match participantQuitOutOfTurnWithOutcome:GKTurnBasedMatchOutcomeLost withCompletionHandler:^(NSError *error) {
+                                if (error) {
+                                    [self showAlertView:error tag:1];
+                                }
+                            }];
+                        } @catch(NSException* e) {}
                     }
 
                 }
@@ -725,7 +731,9 @@ static NSString *gameCellIdentifier = @"GameCell";
     else if (game.turns.count == ((SVGame*)[self.inProgressGames objectAtIndex:index]).turns.count) {
         GKTurnBasedParticipant* participant = match.currentParticipant;
         participant.matchOutcome = GKTurnBasedMatchOutcomeWon;
-        [match endMatchInTurnWithMatchData:[game data] completionHandler:nil];
+        @try {
+            [match endMatchInTurnWithMatchData:[game data] completionHandler:nil];
+        } @catch(NSException* e) {};
         [self moveGameToEnded:game];
     }
 
@@ -748,7 +756,6 @@ static NSString *gameCellIdentifier = @"GameCell";
 }
 
 - (void)player:(GKPlayer *)player matchEnded:(GKTurnBasedMatch *)match {
-    NSLog(@"match ended");
     SVGame* game = [SVGame gameWithMatch:match];
     NSInteger index = [self.inProgressGames indexOfObject:game];
     if (index == NSNotFound)
@@ -878,9 +885,11 @@ static NSString *gameCellIdentifier = @"GameCell";
                 SVGame* game = [self.backupInfo objectForKey:@"game"];
                 GKTurnBasedParticipant* participant = game.match.currentParticipant;
                 participant.matchOutcome = GKTurnBasedMatchOutcomeWon;
-                [game.match endMatchInTurnWithMatchData:[game data] completionHandler:^(NSError *error) {
-                    [self showAlertView:error tag:3];
-                }];
+                @try {
+                    [game.match endMatchInTurnWithMatchData:[game data] completionHandler:^(NSError *error) {
+                        [self showAlertView:error tag:3];
+                    }];
+                } @catch(NSException* e) {}
             }
             break;
             
