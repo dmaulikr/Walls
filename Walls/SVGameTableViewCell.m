@@ -48,10 +48,12 @@ static NSCache* imageCache;
         _leftImageView.layer.cornerRadius = 17;
         _leftImageView.layer.borderWidth = 1;
         _leftImageView.layer.borderColor = [UIColor whiteColor].CGColor;
+        _leftImageView.autoresizingMask = UIViewAnimationTransitionNone;
         _rightImageView = [[SVCustomView alloc] initWithFrame:CGRectMake(self.frame.size.width - 4 - 34, 4, 34, 34)];
         _rightImageView.layer.cornerRadius = 17;
         _rightImageView.layer.borderWidth = 1;
         _rightImageView.layer.borderColor = [UIColor whiteColor].CGColor;
+        _rightImageView.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
         [self.contentView addSubview:_leftImageView];
         [self.contentView addSubview:_rightImageView];
         [self.contentView addSubview:_label];
@@ -69,7 +71,6 @@ static NSCache* imageCache;
                                   (frame.size.height - 30) / 2,
                                   frame.size.width - 60, 30);
     self.contentView.layer.cornerRadius = frame.size.height / 2;
-    self.rightImageView.frame = CGRectMake(self.frame.size.width - 4 - 34, 4, 34, 34);
     [super setFrame:frame];
 }
 
