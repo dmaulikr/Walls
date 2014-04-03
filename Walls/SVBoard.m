@@ -129,10 +129,21 @@
     int xOffset = orientation == kSVHorizontalOrientation ? 1 : 0;
     int yOffset = orientation == kSVHorizontalOrientation ? 0 : 1;
     
+    //Same orientation walls
     SVWall* wall1 = [self.walls objectForKey:[[SVPosition alloc] initWithX:position.x - xOffset andY:position.y - yOffset]];
     SVWall* wall2 = [self.walls objectForKey:[[SVPosition alloc] initWithX:position.x + xOffset andY:position.y + yOffset]];
     if ((wall1 && wall1.orientation == orientation) ||
         (wall2 && wall2.orientation == orientation))
+        return NO;
+    
+    xOffset = orientation == kSVHorizontalOrientation ? 0 : 1;
+    yOffset = orientation == kSVHorizontalOrientation ? 1 : 0;
+    
+    //Other orientation 2 walls next to each other
+    SVWall* wall3 = [self.walls objectForKey:[[SVPosition alloc] initWithX:position.x - xOffset andY:position.y - yOffset]];
+    SVWall* wall4 = [self.walls objectForKey:[[SVPosition alloc] initWithX:position.x + xOffset andY:position.y + yOffset]];
+    if ((wall3 && wall3.orientation != orientation) &&
+        (wall4 && wall4.orientation != orientation))
         return NO;
     
     //Add wall to test if goal reachable then remove it

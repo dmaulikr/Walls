@@ -349,6 +349,7 @@
 - (void)testIsWallLegalFail {
     SVBoard* board;
     SVWall* wall;
+    SVWall* wall2;
     
     //2 walls of same direction at same position
     board = [[SVBoard alloc] init];
@@ -427,6 +428,30 @@
                                       forPlayer:kSVPlayer2],
                    @"2 vertical walls interleaving not rejected");
     
+    //Vertical wall crossing 2 side by side horizontal walls
+    board = [[SVBoard alloc] init];
+    wall = [[SVWall alloc] initWithPosition:[[SVPosition alloc] initWithX:2 andY:2] orientation:kSVHorizontalOrientation andType:kSVWallNormal];
+    wall2 = [[SVWall alloc] initWithPosition:[[SVPosition alloc] initWithX:4 andY:2] orientation:kSVHorizontalOrientation andType:kSVWallNormal];
+    [board.walls setObject:wall forKey:wall.position];
+    [board.walls setObject:wall2 forKey:wall2.position];
+    XCTAssertFalse([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:3 andY:2]
+                                withOrientation:kSVVerticalOrientation
+                                           type:kSVWallNormal
+                                      forPlayer:kSVPlayer1],
+                   @"vertical wall crossing 2 side by side horizontal wall not rejected");
+    
+    //Horizontal wall corssing 2 side by side vertical walls
+    board = [[SVBoard alloc] init];
+    wall = [[SVWall alloc] initWithPosition:[[SVPosition alloc] initWithX:2 andY:2] orientation:kSVVerticalOrientation andType:kSVWallNormal];
+    wall2 = [[SVWall alloc] initWithPosition:[[SVPosition alloc] initWithX:2 andY:4] orientation:kSVVerticalOrientation andType:kSVWallNormal];
+    [board.walls setObject:wall forKey:wall.position];
+    [board.walls setObject:wall2 forKey:wall2.position];
+    XCTAssertFalse([board isWallLegalAtPosition:[[SVPosition alloc] initWithX:2 andY:3]
+                                withOrientation:kSVHorizontalOrientation
+                                           type:kSVWallNormal
+                                      forPlayer:kSVPlayer2],
+                   @"2 vertical walls interleaving not rejected");
+    
     //Goal not reachable
     board = [[SVBoard alloc] init];
     wall = [[SVWall alloc] initWithPosition:[[SVPosition alloc] initWithX:1 andY:1] orientation:kSVHorizontalOrientation andType:kSVWallNormal];
@@ -459,6 +484,7 @@
                                            type:kSVWallPlayer2
                                       forPlayer:kSVPlayer2],
                    @"No special wall remaining not detected");
+    
 }
 
 - (void)testIsWallLegalSuccess {
