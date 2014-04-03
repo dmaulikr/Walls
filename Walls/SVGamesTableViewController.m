@@ -688,31 +688,37 @@ static NSString *gameCellIdentifier = @"GameCell";
     
     SVGame* game = [SVGame gameWithMatch:match];
     
-    if (self.currentController && [match.matchID isEqualToString:self.currentController.game.match.matchID]) {
-        if (game.turns.count > self.currentController.game.turns.count) {
-            [self.currentController opponentPlayerDidPlayTurn:game];
-        }
-    }
-    
     NSUInteger index = [self.inProgressGames indexOfObject:game];
-    if (index != NSNotFound) {
-        [self.inProgressGames replaceObjectAtIndex:index withObject:game];
-    }
     
     //New game
-    if (game.turns.count <= 1) {
+    if (index == NSNotFound) {
         NSIndexPath* cellIndexPath = [NSIndexPath indexPathForRow:0 inSection:0];
         NSIndexPath* spaceIndexPath = [NSIndexPath indexPathForRow:1 inSection:0];
         [self.inProgressGames insertObject:game atIndex:0];
         [self.tableView insertRowsAtIndexPaths:[NSArray arrayWithObjects:cellIndexPath, spaceIndexPath, nil]
                               withRowAnimation:UITableViewRowAnimationLeft];
     }
+    
+    //Resigned when not his turn
+    else if (game.turns.count == ((SVGame*)[self.inProgressGames objectAtIndex:index]).turns.count) {
+        GKTurnBasedParticipant* participant = match.currentParticipant;
+        participant.matchOutcome = GKTurnBasedMatchOutcomeWon;
+        [match endMatchInTurnWithMatchData:[game data] completionHandler:nil];
+        [self moveGameToEnded:game];
+    }
 
     //Reload row
     else {
+        [self.inProgressGames replaceObjectAtIndex:index withObject:game];
         NSIndexPath* indexPath = [NSIndexPath indexPathForRow:[self.inProgressGames indexOfObject:game] / 2 inSection:0];
         NSArray* indexPaths = [NSArray arrayWithObject:indexPath];
         [self.tableView reloadRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationFade];
+    }
+    
+    if (self.currentController && [match.matchID isEqualToString:self.currentController.game.match.matchID]) {
+        if (game.turns.count > self.currentController.game.turns.count) {
+            [self.currentController opponentPlayerDidPlayTurn:game];
+        }
     }
 }
 
@@ -720,9 +726,10 @@ static NSString *gameCellIdentifier = @"GameCell";
 }
 
 - (void)player:(GKPlayer *)player matchEnded:(GKTurnBasedMatch *)match {
+    NSLog(@"match ended");
     SVGame* game = [SVGame gameWithMatch:match];
     NSInteger index = [self.inProgressGames indexOfObject:game];
-    if (index == -1)
+    if (index == NSNotFound)
         return;
     
     if (self.currentController && [match.matchID isEqualToString:self.currentController.game.match.matchID]) {
