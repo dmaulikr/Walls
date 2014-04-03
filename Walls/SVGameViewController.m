@@ -1463,7 +1463,13 @@
         NSMutableDictionary* info = [[NSMutableDictionary alloc] init];
         [info setObject:position forKey:@"oldPosition"];
         [info setObject:nextPosition forKey:@"newPosition"];
-        if ([self canPlayAction:kSVMoveAction withInfo:info] && abs(translation) >= self.pawnPanView.bounds.size.width) {
+        BOOL translationCondition;
+        if (self.pawnPanDirection == kSVLeftDirection || self.pawnPanDirection == kSVTopDirection)
+            translationCondition = translation <= -self.pawnPanView.bounds.size.width;
+        else
+            translationCondition = translation >= self.pawnPanView.bounds.size.width;
+        
+        if ([self canPlayAction:kSVMoveAction withInfo:info] && translationCondition) {
             [self movePawnToPosition:nextPosition forPlayer:self.currentPlayer animated:YES finishBlock:nil];
             self.currentTurn.action = kSVMoveAction;
             self.currentTurn.actionInfo = info;
