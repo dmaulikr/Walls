@@ -411,26 +411,48 @@ static NSString *gameCellIdentifier = @"GameCell";
 }
 
 - (void)resignGame:(SVGame*)game {
-    if ([game.match.currentParticipant.playerID isEqualToString:[GKLocalPlayer localPlayer].playerID]) {
-        for (GKTurnBasedParticipant* participant in game.match.participants) {
-            if ([participant.playerID isEqualToString:[GKLocalPlayer localPlayer].playerID])
-                participant.matchOutcome = GKTurnBasedMatchOutcomeLost;
-            else
-                participant.matchOutcome = GKTurnBasedMatchOutcomeWon;
+    //So that the game is seen as ended
+    for (GKTurnBasedParticipant* participant in game.match.participants) {
+        if ([participant.playerID isEqualToString:[GKLocalPlayer localPlayer].playerID])
+            participant.matchOutcome = GKTurnBasedMatchOutcomeLost;
+        else
+            participant.matchOutcome = GKTurnBasedMatchOutcomeWon;
+    }
+    
+    [GKTurnBasedMatch loadMatchWithID:game.match.matchID withCompletionHandler:^(GKTurnBasedMatch *match, NSError *error) {
+        if (error)
+            [self showAlertView:error tag:1];
+        else {
+            [match loadMatchDataWithCompletionHandler:^(NSData *matchData, NSError *error) {
+                if (error)
+                    [self showAlertView:error tag:1];
+                else {
+                    SVGame* game = [SVGame gameWithMatch:match];
+                    if ([match.currentParticipant.playerID isEqualToString:[GKLocalPlayer localPlayer].playerID]) {
+                        for (GKTurnBasedParticipant* participant in match.participants) {
+                            if ([participant.playerID isEqualToString:[GKLocalPlayer localPlayer].playerID])
+                                participant.matchOutcome = GKTurnBasedMatchOutcomeLost;
+                            else
+                                participant.matchOutcome = GKTurnBasedMatchOutcomeWon;
+                        }
+                        [match endMatchInTurnWithMatchData:game.data completionHandler:^(NSError *error) {
+                            if (error) {
+                                [self showAlertView:error tag:1];
+                            }
+                        }];
+                    }
+                    else {
+                        [match participantQuitOutOfTurnWithOutcome:GKTurnBasedMatchOutcomeLost withCompletionHandler:^(NSError *error) {
+                            if (error) {
+                                [self showAlertView:error tag:1];
+                            }
+                        }];
+                    }
+
+                }
+            }];
         }
-        [game.match endMatchInTurnWithMatchData:game.data completionHandler:^(NSError *error) {
-            if (error) {
-                [self showAlertView:error tag:1];
-            }
-        }];
-    }
-    else {
-        [game.match participantQuitOutOfTurnWithOutcome:GKTurnBasedMatchOutcomeLost withCompletionHandler:^(NSError *error) {
-            if (error) {
-                [self showAlertView:error tag:1];
-            }
-        }];
-    }
+    }];
 }
 
 - (void)deleteGame:(SVGame*)game {
